@@ -20,4 +20,7 @@
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
 
-/backend/go4surprise/__pycache__
+/backend/*/__pycache__
+/backend/*/migrations/__pycache__
+/backend/.env
+
