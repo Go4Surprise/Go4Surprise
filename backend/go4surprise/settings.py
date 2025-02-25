@@ -86,7 +86,7 @@ DATABASES = {
         'NAME': os.getenv('DATABASE_NAME'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'go4server.postgres.database.azure.com',
+        'HOST': os.getenv('DATABASE_URL'),
         'PORT': '5432'
     }
 }
