@@ -1,6 +1,8 @@
 import uuid
 from django.db import models
 
+from users.models import Usuario
+
 # Create your models here.
 class reserva(models.Model):
     class Categorias(models.TextChoices):
@@ -18,6 +20,14 @@ class reserva(models.Model):
         NOCHE = "Noche"
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    usuario = models.ForeignKey(
+        Usuario,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='reservas',
+        verbose_name="Usuario"
+    )
     
     date = models.DateField()
     momento = models.CharField(choices=Momento.choices)

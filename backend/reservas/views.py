@@ -16,7 +16,7 @@ from reservas.serializers import CrearReservaSerializer, ReservaSerializer
     operation_id="crear_reserva",
     operation_description="Crear una reserva",
     responses={
-        201: "Created",
+        201: ReservaSerializer,
         400: "Bad Request",
         500: "Internal Server Error"
     },
@@ -31,8 +31,9 @@ def crear_reserva(request):
     try:
       serializer = CrearReservaSerializer(data=request.data)
       if serializer.is_valid():
-          serializer.save()
-          return Response(serializer.data, status=status.HTTP_201_CREATED)
+            reserva_obj = serializer.save()
+            response_serializer = ReservaSerializer(reserva_obj)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
       
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
