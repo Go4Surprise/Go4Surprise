@@ -35,8 +35,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'reservas.apps.ReservasConfig',
+    'bookings.apps.BookingsConfig',
     'users.apps.UsersConfig',
+    'experiences.apps.ExperiencesConfig',
     'localflavor',
     'django.contrib.admin',
     'django.contrib.auth',
