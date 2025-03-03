@@ -7,8 +7,8 @@ from drf_yasg import openapi
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 
-from reservas.models import reserva
-from reservas.serializers import CrearReservaSerializer, ReservaSerializer
+from bookings.models import Booking
+from bookings.serializers import CrearReservaSerializer, ReservaSerializer
 
 @swagger_auto_schema(
     method='post',
@@ -70,7 +70,7 @@ def obtener_reserva(request, id):
     Obtiene una reserva por su ID
     """
     try:
-      reserva_obj = get_object_or_404(reserva, id=id)
+      reserva_obj = get_object_or_404(booking, id=id)
       serializer = ReservaSerializer(reserva_obj)
       return Response(serializer.data, status=status.HTTP_200_OK)
     except Http404:
