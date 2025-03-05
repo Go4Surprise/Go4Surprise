@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import Experience
 
-# Register your models here.
+# Adding models to the administration site
+admin.site.register(Experience)
