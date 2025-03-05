@@ -1,11 +1,14 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, parser_classes
+
+from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
+from rest_framework.permissions import IsAuthenticated
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from bookings.models import Booking
 from bookings.serializers import CrearReservaSerializer, ReservaSerializer
@@ -24,6 +27,7 @@ from bookings.serializers import CrearReservaSerializer, ReservaSerializer
 )
 @api_view(['POST'])
 @parser_classes([FormParser, MultiPartParser, JSONParser])
+@permission_classes([IsAuthenticated])
 def crear_reserva(request):
     """
     Crea una reserva
@@ -65,6 +69,7 @@ def crear_reserva(request):
     tags=['Reservas']
 )
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def obtener_reserva(request, id):
     """
     Obtiene una reserva por su ID
