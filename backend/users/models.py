@@ -10,5 +10,13 @@ class Usuario(models.Model):
     pfp = models.ImageField(upload_to='', null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-surname']
+        indexes = [
+            models.Index(fields=['-surname']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} {self.surname}"
