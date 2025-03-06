@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
-import { useNavigation } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
@@ -12,13 +12,12 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://TU_BACKEND_URL/api/login/', {
+      const response = await axios.post('http://localhost:8000/users/login/', {
         email,
         password,
       });
 
       Alert.alert('Éxito', 'Inicio de sesión correcto');
-      navigation.navigate('(tabs)'); // Redirige a la navegación principal
     } catch (error) {
       Alert.alert('Error', 'Credenciales incorrectas');
     }
@@ -38,9 +37,9 @@ export default function LoginScreen() {
         <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
         <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Acceder</Text>
-        </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/PreferencesFormScreen')}>
+      <Text style={styles.buttonText}>Acceder</Text>
+      </TouchableOpacity>
 
         <Text style={styles.linkText} onPress={() => router.push('/ForgottenPasword')}>
                     ¿Has olvidado tu contraseña?
