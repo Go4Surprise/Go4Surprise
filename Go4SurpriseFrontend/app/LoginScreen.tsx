@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
 import { useNavigation } from 'expo-router';
 import axios from 'axios';
 
@@ -23,30 +23,43 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-      <Text style={styles.title}>Go4Surprise</Text>
-      <Text style={styles.subtitle}>Iniciar sesión</Text>
+    <ImageBackground 
+      source={require('../assets/images/Background.jpg')} // Ruta de la imagen de fondo
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        <Image source={require('../assets/images/logo.png')} style={styles.logo} />
+        <Text style={styles.title}>Go4Surprise</Text>
+        <Text style={styles.subtitle}>Iniciar sesión</Text>
 
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
+        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+        <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Acceder</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Acceder</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.forgotPasswordText}>¿Has olvidado tu <Text style={styles.linkText}>contraseña?</Text></Text>
-    </View>
+        <Text style={styles.forgotPasswordText}>¿Has olvidado tu <Text style={styles.linkText}>contraseña?</Text></Text>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff', // 👈 Asegura que el fondo sea blanco
     paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Leve transparencia para mejorar visibilidad
+    borderRadius: 10, // Para que no se vea tan cuadrado
+    margin: 20, // Da un poco de margen a los lados
   },
   logo: {
     width: 150,
