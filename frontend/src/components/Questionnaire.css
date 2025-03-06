@@ -1,0 +1,93 @@
+:root {
+    --primary-color: #007bff; /* Azul principal */
+    --primary-hover: #0056b3; /* Azul más oscuro al pasar el ratón */
+    --background-dark: #0d1117; /* Fondo oscuro */
+    --text-light: #f0f0f0; /* Texto claro */
+    --border-color: #1f2a36; /* Bordes sutiles */
+}
+
+.questionnaire-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 25px;
+    background-color: var(--background-dark);
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: var(--text-light);
+}
+
+.questionnaire-container h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.questionnaire-container p {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #bbb;
+}
+
+.questionnaire-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.questionnaire-option {
+    background-color: #1a1f27;
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.questionnaire-option:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.questionnaire-option input {
+    display: none;
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 2px solid var(--primary-color);
+    display: inline-block;
+    margin-right: 10px;
+    transition: background 0.3s ease;
+}
+
+.questionnaire-option input:checked + .custom-checkbox {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.questionnaire-form button {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.questionnaire-form button:hover {
+    background-color: var(--primary-hover);
+}
