@@ -1,27 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
-import { useNavigation } from 'expo-router';
+import { useNavigation, Stack } from 'expo-router';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function ForgottenPasword() {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post('http://TU_BACKEND_URL/api/login/', {
-        email,
-        password,
-      });
-
-      Alert.alert('Éxito', 'Inicio de sesión correcto');
-      navigation.navigate('(tabs)'); // Redirige a la navegación principal
-    } catch (error) {
-      Alert.alert('Error', 'Credenciales incorrectas');
-    }
+  const sendEmail = async () => {
+    
   };
 
   return (
@@ -30,21 +19,23 @@ export default function LoginScreen() {
       style={styles.background}
       resizeMode="cover"
     >
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+      </>
       <View style={styles.container}>
         <Image source={require('../assets/images/logo.png')} style={styles.logo} />
         <Text style={styles.title}>Go4Surprise</Text>
-        <Text style={styles.subtitle}>Iniciar sesión</Text>
+        <Text style={styles.subtitle}>¿Tienes problemas para entrar?</Text>
+
+        <Text style={styles.textInfo}>Introduce tu correo electrónico y 
+          te enviaremos un enlace para que vuelvas a entrar en tu cuenta.</Text>
 
         <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-        <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Acceder</Text>
+        <TouchableOpacity style={styles.button} onPress={sendEmail}>
+          <Text style={styles.buttonText}>Enviar enlace de acceso</Text>
         </TouchableOpacity>
 
-        <Text style={styles.linkText} onPress={() => router.push('/ForgottenPasword')}>
-                    ¿Has olvidado tu contraseña?
-        </Text>
       </View>
     </ImageBackground>
   );
@@ -78,6 +69,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
+    color: '#777',
+    marginBottom: 20,
+  },
+  textInfo: {
+    fontSize: 12,
     color: '#777',
     marginBottom: 20,
   },
