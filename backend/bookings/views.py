@@ -10,20 +10,21 @@ from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from users.models import Usuario
 from bookings.models import Booking
 from bookings.serializers import CrearReservaSerializer, ReservaSerializer
 
 @swagger_auto_schema(
     method='post',
     request_body=CrearReservaSerializer,
-    operation_id="crear_reserva",
+    operation_id="create_booking",
     operation_description="Crear una reserva",
     responses={
         201: ReservaSerializer,
         400: "Bad Request",
         500: "Internal Server Error"
     },
-    tags=['Reservas']
+    tags=['Booking']
 )
 @api_view(['POST'])
 @parser_classes([FormParser, MultiPartParser, JSONParser])
@@ -49,7 +50,7 @@ def crear_reserva(request):
 
 @swagger_auto_schema(
     method='get',
-    operation_id="obtener_reserva",
+    operation_id="get_booking",
     operation_description="Obtener detalles de una reserva específica",
     manual_parameters=[
         openapi.Parameter(
@@ -66,7 +67,7 @@ def crear_reserva(request):
         404: "Not Found",
         500: "Internal Server Error"
     },
-    tags=['Reservas']
+    tags=['Booking']
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -75,7 +76,7 @@ def obtener_reserva(request, id):
     Obtiene una reserva por su ID
     """
     try:
-      reserva_obj = get_object_or_404(booking, id=id)
+      reserva_obj = get_object_or_404(Booking, id=id)
       serializer = ReservaSerializer(reserva_obj)
       return Response(serializer.data, status=status.HTTP_200_OK)
     except Http404:
@@ -89,4 +90,45 @@ def obtener_reserva(request, id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-
+@swagger_auto_schema(
+    method='get',
+    operation_id="get_user_bookings",
+    operation_description="Obtener todas las reservas de un usuario",
+    manual_parameters=[
+        openapi.Parameter(
+            'user_id', 
+            openapi.IN_PATH, 
+            description="ID del usuario (UUID)", 
+            type=openapi.TYPE_STRING,
+            format='uuid',
+            required=True
+        ),
+    ],
+    responses={
+        200: "OK",
+        404: "Not Found",
+        500: "Internal Server Error"
+    },
+    tags=['Booking']
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def obtener_reservas_usuario(request, user_id):
+    """
+    Obtiene una reserva por su ID
+    """
+    try:
+      usuario = get_object_or_404(Usuario, id=user_id)
+      reservas = Booking.objects.filter(user=usuario)
+      serializer = ReservaSerializer(reservas, many=True)
+      return Response(serializer.data, status=status.HTTP_200_OK)
+    except Http404:
+        return Response(
+            {"error": "Usuario no encontrado"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

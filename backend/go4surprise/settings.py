@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework_swagger',
     'rest_framework',
+    'corsheaders',
     'drf_yasg',
     'corsheaders',
     'rest_framework_simplejwt'
@@ -66,7 +67,12 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+<<<<<<< HEAD
     "http://localhost:3000"
+=======
+    "http://localhost:3000",  # Agrega la URL de tu frontend
+    "http://localhost:8081",  # Agrega la URL de tu Expo Go
+>>>>>>> main
 ]
 
 ROOT_URLCONF = 'go4surprise.urls'
@@ -156,4 +162,8 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False
 }

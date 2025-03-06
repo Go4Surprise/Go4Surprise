@@ -1,22 +1,27 @@
 import uuid
 from rest_framework import serializers
 
+from experiences.models import Experience
 from users.models import Usuario
 from .models import Booking
-from datetime import date
+from django.utils import timezone
 
 class CrearReservaSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(required=True)
     participants= serializers.IntegerField(required=True)
-    total_price = serializers.FloatField(required=True)
-    user =  serializers.UUIDField(required=False)
-    experience = serializers.UUIDField(required=True)
+    price = serializers.FloatField(required=True)
+    user =  serializers.UUIDField(required=True)
+    experience_date = serializers.DateField(required=True)
+
+    # Atributos de la experiencia
+    location = serializers.CharField(required=True)
+    duration = serializers.IntegerField(required=True)
+    category = serializers.ChoiceField(choices=Experience.ExperienceCategory.choices,required=True)
 
     class Meta:
         model = Booking
-        fields = ['date', 'participants', 'total_price', 'user', 'experience']
+        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'duration', 'category']
         
-    def validate_usuario(self, value):
+    def validate_user(self, value):
         """
         Comprobar que el UUID es válido y que el usuario existe en BBDD
         """
@@ -30,11 +35,28 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("No se encontró ningún usuario con este ID")
     
     def create(self, validated_data):
-        usuario_id = validated_data.pop('usuario', None)
+        usuario_id = validated_data.pop('user', None)
         if usuario_id:
             try:
                 usuario = Usuario.objects.get(id=usuario_id)
-                return Booking.objects.create(usuario=usuario, **validated_data)
+                booking_date = timezone.now().date()
+                total_price = validated_data['price'] * validated_data['participants']
+                
+                # Crea la experiencia si no existe ninguna para la localización, duración, categoría y precio
+                # Si ya existe, la asocia a la reserva
+                experience, created = Experience.objects.get_or_create(location=validated_data['location'], duration=validated_data['duration'], category=validated_data['category'], price=validated_data['price'])
+                
+                return Booking.objects.create(
+                    experience=experience,
+                    user=usuario,
+                    status="PENDING",
+                    cancellable=True,
+                    booking_date=booking_date,
+                    experience_date=validated_data['experience_date'],
+                    total_price=total_price,
+                    price=validated_data['price'],
+                    participants=validated_data['participants']
+                )
             except Usuario.DoesNotExist:
                 raise serializers.ValidationError("User not found")
         else:
