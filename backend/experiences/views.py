@@ -1,5 +1,5 @@
-from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
 
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
@@ -10,11 +10,39 @@ from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+from .forms import UserPreferencesForm
 from experiences.models import Experience
 from experiences.serializers import ExperienceSerializer
 from users.models import Usuario
 from bookings.models import Booking
 from bookings.serializers import CrearReservaSerializer, ReservaSerializer
+
+
+# Create your views here.
+
+
+def user_preferences(request):
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+    
+    formulario = UserPreferencesForm()
+    user = get_object_or_404(Usuario, user=request.user)
+
+    if request.method=='POST':
+        formulario = UserPreferencesForm(request.POST)
+
+        if formulario.is_valid():
+            user.adventure = formulario.cleaned_data['adventure']
+            user.culture = formulario.cleaned_data['culture']
+            user.sports = formulario.cleaned_data['sports']
+            user.gastronomy = formulario.cleaned_data['gastronomy']
+            user.nightlife = formulario.cleaned_data['nightlife']
+            user.music = formulario.cleaned_data['music']
+            user.save()
+
+            return redirect('')
+    
+    return render(request, 'user_preferences.html', {'formulario': formulario})
 
 @swagger_auto_schema(
     method='put',
