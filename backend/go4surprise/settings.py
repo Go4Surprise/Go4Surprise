@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework_swagger',
     'rest_framework',
+    'corsheaders',
     'drf_yasg',
     'rest_framework_simplejwt'
 
@@ -60,6 +61,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Agrega la URL de tu frontend
+    "http://localhost:8081",  # Agrega la URL de tu Expo Go
 ]
 
 ROOT_URLCONF = 'go4surprise.urls'

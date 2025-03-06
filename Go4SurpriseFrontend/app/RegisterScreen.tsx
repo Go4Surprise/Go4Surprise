@@ -23,6 +23,7 @@ export default function RegisterScreen() {
         phone,
       });
       Alert.alert('Registro exitoso');
+      router.push('/LoginScreen');
     } catch (error) {
       Alert.alert('Error en la solicitud', (error as any).message);
     }
@@ -70,8 +71,8 @@ export default function RegisterScreen() {
         onChangeText={setPhone}
         keyboardType="phone-pad"
       />
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/LoginScreen')}>
-      <Text style={styles.buttonText}>Registrarse</Text>
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Registrarse</Text>
       </TouchableOpacity>
     </View>
   );
