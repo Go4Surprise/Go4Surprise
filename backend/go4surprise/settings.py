@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'bookings.apps.BookingsConfig',
     'users.apps.UsersConfig',
     'experiences.apps.ExperiencesConfig',
+    'reviews.apps.ReviewsConfig',
     'localflavor',
     'django.contrib.admin',
     'django.contrib.auth',
