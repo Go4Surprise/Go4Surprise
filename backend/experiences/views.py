@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from backend.experiences.forms import UserPreferencesForm
+from .forms import UserPreferencesForm
 from experiences.models import Experience
 from experiences.serializers import ExperienceSerializer
 from users.models import Usuario
