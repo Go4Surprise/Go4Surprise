@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 
@@ -14,99 +14,95 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post('http://TU_BACKEND_URL/api/register/', {
+      const response = await axios.post('http://localhost:8000/users/register/', {
         username,
         password,
         name,
         surname,
         email,
         phone,
-        pfp: '', 
       });
-
-      Alert.alert('Éxito', 'Usuario registrado correctamente');
-      router.push('LoginScreen'); // Redirigir a la pantalla de inicio de sesión
+      Alert.alert('Registro exitoso');
     } catch (error) {
-      Alert.alert('Error', 'No se pudo registrar el usuario');
+      Alert.alert('Error en la solicitud', (error as any).message);
     }
   };
 
   return (
-    <ImageBackground 
-      source={require('../assets/images/Background.jpg')} // Imagen de fondo
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Go4Surprise</Text>
-        <Text style={styles.subtitle}>Registro</Text>
-
-        <TextInput style={styles.input} placeholder="Usuario" value={username} onChangeText={setUsername} />
-        <TextInput style={styles.input} placeholder="Nombre" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Apellido" value={surname} onChangeText={setSurname} />
-        <TextInput style={styles.input} placeholder="Correo" keyboardType="email-address" value={email} onChangeText={setEmail} />
-        <TextInput style={styles.input} placeholder="Teléfono" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-        <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarse</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+    <View style={styles.container}>
+      <Text style={styles.title}>Registro de Usuario</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre de usuario"
+        value={username}
+        onChangeText={setUsername}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Apellido"
+        value={surname}
+        onChangeText={setSurname}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Teléfono"
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/LoginScreen')}>
+      <Text style={styles.buttonText}>Registrarse</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Para mejorar la legibilidad sobre el fondo
-    borderRadius: 10,
-    margin: 20,
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-    resizeMode: 'contain',
+    padding: 16,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#004AAD',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#777',
-    marginBottom: 20,
+    fontSize: 24,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   input: {
-    width: '100%',
-    padding: 12,
+    height: 40,
+    borderColor: 'gray',
     borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+    width: '100%',
   },
   button: {
-    backgroundColor: '#333',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-    marginTop: 10,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
