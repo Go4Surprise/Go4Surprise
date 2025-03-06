@@ -16,13 +16,13 @@ class Experience(models.Model):
         MUSIC = "MUSIC", "Música"
         
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=50)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    title = models.CharField(max_length=50, blank=True)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=6, decimal_places=2, help_text="Precio por persona de la experiencia. Deberían haber rangos de precios prefijados.")                            
     location = models.CharField(max_length=50)
     duration = models.PositiveIntegerField()
-    hint = models.CharField(max_length=255)
-    link = models.URLField()
+    hint = models.CharField(max_length=255, blank=True)
+    link = models.URLField(blank=True)
     category = models.CharField(max_length=50, choices=ExperienceCategory.choices)
 
     class Meta:

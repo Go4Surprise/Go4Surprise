@@ -11,7 +11,7 @@ class Usuario(models.Model):
     pfp = models.ImageField(upload_to='', null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=15)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="usuario")
 
     class Meta:
         ordering = ['-surname']
