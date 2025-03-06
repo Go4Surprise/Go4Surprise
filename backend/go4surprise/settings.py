@@ -150,3 +150,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False
+}
