@@ -7,7 +7,6 @@ from rest_framework.response import Response
 
 from .serializers import RegisterSerializer, LoginSerializer
 
-# Create your views here.
 @swagger_auto_schema(
     method="post",
     request_body=RegisterSerializer,

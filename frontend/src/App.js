@@ -1,24 +1,47 @@
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
+import RegisterScreen from './screens/users/RegisterScreen';
+import LoginScreen from './screens/users/LoginScreen';
+
+function Home() {
+  return (
+    <div className="Home">
+      <header className="Home-header">
+        <img src={logo} className="Home-logo" alt="logo" />
+        <p>
+          Bienvenido a la página de inicio de Go4Surprise.
+        </p>
+      </header>
+    </div>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App">
+        <nav className="App-nav">
+          <ul>
+            <li>
+              <Link to="/">Inicio</Link>
+            </li>
+            <li>
+              <Link to="/register">Registro</Link>
+            </li>
+            <li>
+              <Link to="/login">Inicio de Sesión</Link>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route exact path="/" element={<Home />} />
+          <Route path="/register" element={<RegisterScreen />} />
+          <Route path="/login" element={<LoginScreen/>} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
