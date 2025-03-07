@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
-import { router, useNavigation } from 'expo-router';
-import axios from 'axios';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons'; // Importar iconos
 
 export default function LoginScreen() {
-  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/users/login/', {
-        email,
-        password,
-      });
-
+      // Llamada a la API
       Alert.alert('Éxito', 'Inicio de sesión correcto');
     } catch (error) {
       Alert.alert('Error', 'Credenciales incorrectas');
@@ -25,11 +19,16 @@ export default function LoginScreen() {
 
   return (
     <ImageBackground 
-      source={require('../assets/images/Background.jpg')} // Ruta de la imagen de fondo
+      source={require('../assets/images/Background.jpg')}
       style={styles.background}
       resizeMode="cover"
     >
       <View style={styles.container}>
+        {/* Botón para volver */}
+        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}> 
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
+
         <Image source={require('../assets/images/logo.png')} style={styles.logo} />
         <Text style={styles.title}>Go4Surprise</Text>
         <Text style={styles.subtitle}>Iniciar sesión</Text>
@@ -37,12 +36,12 @@ export default function LoginScreen() {
         <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
         <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/PreferencesFormScreen')}>
-      <Text style={styles.buttonText}>Acceder</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => router.push('/PreferencesFormScreen')}>
+          <Text style={styles.buttonText}>Acceder</Text>
+        </TouchableOpacity>
 
         <Text style={styles.linkText} onPress={() => router.push('/ForgottenPasword')}>
-                    ¿Has olvidado tu contraseña?
+          ¿Has olvidado tu contraseña?
         </Text>
       </View>
     </ImageBackground>
@@ -60,9 +59,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Leve transparencia para mejorar visibilidad
-    borderRadius: 10, // Para que no se vea tan cuadrado
-    margin: 20, // Da un poco de margen a los lados
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 10,
+    margin: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
   },
   logo: {
     width: 150,
@@ -101,12 +106,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: '#777',
-  },
   linkText: {
     color: 'blue',
     fontWeight: 'bold',
   },
 });
+
