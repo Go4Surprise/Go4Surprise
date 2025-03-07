@@ -1,23 +1,32 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
-import { router, useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 
 export default function LoginScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/users/login/', {
+      const userData = {
         email,
         password,
-      });
+      };
+      console.log('User data:', userData);
+      const response = await axios.post('http://localhost:8000/users/login/', userData);
 
       Alert.alert('Éxito', 'Inicio de sesión correcto');
-    } catch (error) {
-      Alert.alert('Error', 'Credenciales incorrectas');
+      router.push('../HomeScreen');
+    } catch (error: any) {
+      if (error.response) {
+        console.log('Error response data:', error.response.data);
+        Alert.alert('Error en la solicitud', JSON.stringify(error.response.data));
+      } else {
+        console.log('Error message:', error.message);
+        Alert.alert('Error en la solicitud', error.message);
+      }
     }
   };
 
@@ -35,7 +44,7 @@ export default function LoginScreen() {
         <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
         <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/PreferencesFormScreen')}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
       <Text style={styles.buttonText}>Acceder</Text>
       </TouchableOpacity>
 
