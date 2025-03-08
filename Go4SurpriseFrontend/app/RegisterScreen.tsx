@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -74,6 +75,10 @@ export default function RegisterScreen() {
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Registrarse</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}> 
+          <Ionicons name="arrow-back" size={24} color="black" />
+        </TouchableOpacity>
     </View>
   );
 }
@@ -83,6 +88,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 16,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
   },
   title: {
     fontSize: 24,
