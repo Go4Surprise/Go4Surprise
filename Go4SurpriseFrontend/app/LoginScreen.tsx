@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Importar iconos
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
 
   const handleLogin = async () => {
+    if (!username.trim() || !password.trim()) {
+      setErrorMessage('Por favor, complete todos los campos');
+      return;
+    }
+
     try {
-      // Llamada a la API
+      const response = await axios.post('http://localhost:8000/users/login/', {
+        username,
+        password,
+      });
+
       Alert.alert('Éxito', 'Inicio de sesión correcto');
+      router.push('/HomeScreen');
     } catch (error) {
-      Alert.alert('Error', 'Credenciales incorrectas');
+      if (error.response) {
+        if (error.response.status === 400) {
+          setErrorMessage('Debe ingresar un correo y una contraseña válidos.');
+        } else if (error.response.status === 404) {
+          setErrorMessage('El username ingresado no existe.');
+        } else if (error.response.status === 401) {
+          setErrorMessage('Contraseña incorrecta.');
+        } else {
+          setErrorMessage('Error en el inicio de sesión. Intente nuevamente.');
+        }
+      } else {
+        setErrorMessage('Error de conexión con el servidor.');
+      }
     }
   };
 
@@ -24,7 +48,6 @@ export default function LoginScreen() {
       resizeMode="cover"
     >
       <View style={styles.container}>
-        {/* Botón para volver */}
         <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}> 
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
@@ -33,10 +56,12 @@ export default function LoginScreen() {
         <Text style={styles.title}>Go4Surprise</Text>
         <Text style={styles.subtitle}>Iniciar sesión</Text>
 
-        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+        <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} autoCapitalize="none" keyboardType="email-address" />
         <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
 
-        <TouchableOpacity style={styles.button} onPress={() => router.push('/PreferencesFormScreen')}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Acceder</Text>
         </TouchableOpacity>
 
@@ -85,6 +110,11 @@ const styles = StyleSheet.create({
     color: '#777',
     marginBottom: 20,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 16,
+    marginBottom: 10,
+  },
   input: {
     width: '100%',
     padding: 12,
@@ -111,4 +141,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
