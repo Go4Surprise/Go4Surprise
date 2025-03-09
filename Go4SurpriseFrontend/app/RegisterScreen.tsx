@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -39,28 +40,55 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ImageBackground 
-      source={require('../assets/images/Background.jpg')} // Imagen de fondo
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Go4Surprise</Text>
-        <Text style={styles.subtitle}>Registro</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Registro de Usuario</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre de usuario"
+        value={username}
+        onChangeText={setUsername}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Apellido"
+        value={surname}
+        onChangeText={setSurname}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Teléfono"
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
+      />
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Registrarse</Text>
+      </TouchableOpacity>
 
-        <TextInput style={styles.input} placeholder="Usuario" value={username} onChangeText={setUsername} />
-        <TextInput style={styles.input} placeholder="Nombre" value={name} onChangeText={setName} />
-        <TextInput style={styles.input} placeholder="Apellido" value={surname} onChangeText={setSurname} />
-        <TextInput style={styles.input} placeholder="Correo" keyboardType="email-address" value={email} onChangeText={setEmail} />
-        <TextInput style={styles.input} placeholder="Teléfono" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-        <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
-
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Registrarse</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}> 
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-      </View>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -73,17 +101,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Para mejorar la legibilidad sobre el fondo
-    borderRadius: 10,
-    margin: 20,
+    padding: 16,
   },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-    resizeMode: 'contain',
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
   },
   title: {
     fontSize: 32,

@@ -13,15 +13,14 @@ export default function IndexScreen() {
     >
       <View style={styles.container}>
         <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Go4Surprise</Text>
-        <Text style={styles.subtitle}>Bienvenido</Text>
+        <Text style={styles.title}>Bienvenido</Text>
 
         <TouchableOpacity style={styles.button} onPress={() => router.push('/LoginScreen')}>
           <Text style={styles.buttonText}>Iniciar sesión</Text>
         </TouchableOpacity>
 
         <Text style={styles.registerText}>
-          ¿No tienes cuenta? 
+          ¿No tienes cuenta? {' '}
           <Text style={styles.registerLink} onPress={() => router.push('/RegisterScreen')}>
             Regístrate aquí
           </Text>
@@ -49,9 +48,10 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff', // Color blanco para mayor contraste
+    color: 'black', // Color blanco para mayor contraste
+    marginBottom: 20,
   },
   subtitle: {
     fontSize: 18,

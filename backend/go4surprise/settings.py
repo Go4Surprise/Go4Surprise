@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'bookings.apps.BookingsConfig',
     'users.apps.UsersConfig',
     'experiences.apps.ExperiencesConfig',
+    'reviews.apps.ReviewsConfig',
     'localflavor',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -157,4 +158,8 @@ from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False
 }
