@@ -69,11 +69,9 @@ class LoginSerializer(serializers.Serializer):
 
 
 class PreferencesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Preferences
         fields = [
-            'adventure', 'culture', 'sports', 'gastronomy', 'nightlife', 'music',
-            'preferences_set', 'preferred_event_type', 'group_size', 'dietary_restrictions',
-            'preferred_time', 'budget_range'
+            'music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure',
+            'dietary_restrictions', 'budget_range'
         ]

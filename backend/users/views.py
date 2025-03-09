@@ -63,9 +63,24 @@ def update_preferences(request):
         preferences = request.user.usuario.preferences
     except Preferences.DoesNotExist:
         preferences = Preferences.objects.create(usuario=request.user.usuario)
+
+    data = request.data
+    print("Datos recibidos:", data)  
+
+    for category in ['music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure']:
+        if category in data and isinstance(data[category], list):  
+            preferences.__setattr__(category, data[category])
+
+    # Validar y actualizar restricciones dietéticas y rango de presupuesto
+    if "dietary_restrictions" in data and isinstance(data["dietary_restrictions"], str):
+        data["dietary_restrictions"] = [data["dietary_restrictions"]] if data["dietary_restrictions"].strip() else []
     
-    serializer = PreferencesSerializer(preferences, data=request.data, partial=True)
+    if 'budget_range' in data and isinstance(data['budget_range'], list):
+        preferences.budget_range = data['budget_range']
+
+    serializer = PreferencesSerializer(preferences, data=data, partial=True)
     if serializer.is_valid():
-        serializer.save(preferences_set=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
