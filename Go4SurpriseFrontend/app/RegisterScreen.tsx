@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,27 +15,18 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     try {
-      const userData = {
+      const response = await axios.post('http://localhost:8000/users/register/', {
         username,
         password,
         name,
         surname,
         email,
-        phone, 
-      };
-      console.log('User data:', userData); // Verificar los datos antes de enviarlos
-      const response = await axios.post('http://localhost:8000/users/register/', userData);
-      
+        phone,
+      });
       Alert.alert('Registro exitoso');
       router.push('/LoginScreen');
-    } catch (error:any) {
-      if (error.response) {
-        console.log('Error response data:', error.response.data);
-        Alert.alert('Error en la solicitud', JSON.stringify(error.response.data));
-      } else {
-        console.log('Error message:', error.message);
-        Alert.alert('Error en la solicitud', error.message);
-      }
+    } catch (error) {
+      Alert.alert('Error en la solicitud', (error as any).message);
     }
   };
 
@@ -93,11 +84,6 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -110,34 +96,25 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#004AAD',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#777',
-    marginBottom: 20,
+    fontSize: 24,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   input: {
-    width: '100%',
-    padding: 12,
+    height: 40,
+    borderColor: 'gray',
     borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    marginBottom: 12,
+    paddingHorizontal: 8,
+    width: '100%',
   },
   button: {
-    backgroundColor: '#333',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-    marginTop: 10,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
