@@ -50,8 +50,7 @@ class LoginSerializer(serializers.Serializer):
 
         preferences_set = any([
             preferences.music, preferences.culture, preferences.sports,
-            preferences.gastronomy, preferences.nightlife, preferences.adventure,
-            preferences.dietary_restrictions, preferences.budget_range
+            preferences.gastronomy, preferences.nightlife, preferences.adventure
         ])
 
         tokens = RefreshToken.for_user(user)
@@ -73,6 +72,5 @@ class PreferencesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Preferences
         fields = [
-            'music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure',
-            'dietary_restrictions', 'budget_range'
+            'music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure'
         ]

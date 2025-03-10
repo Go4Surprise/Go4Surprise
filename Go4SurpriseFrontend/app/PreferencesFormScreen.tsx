@@ -11,8 +11,6 @@ const questions = [
   { id: 4, question: 'Si pudieras comer algo ahora mismo, ¿qué elegirías?', category: 'Gastronomía', options: ['🥞 Un brunch con amigos', '🍷 Una cata de vinos', '👨‍🍳 Cocinar algo creativo', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
   { id: 5, question: '¿Cómo disfrutarías más tu tiempo libre?', category: 'Ocio Nocturno', options: ['💃 Bailando sin parar', '🕵️‍♂️ Ganando en un escape room', '🕹️ Jugando en un arcade', '🕶️ Viviendo una experiencia de realidad virtual', '🚫 Nada en especial'] },
   { id: 6, question: '¿Cómo describirías tu espíritu aventurero?', category: 'Aventura', options: ['⛰️ Adrenalina pura', '🪂 Amo las alturas', '🌲 Explorar la naturaleza', '💪 Reto físico extremo', '🚫 Nada en especial'] },
-  { id: 7, question: '¿Tienes alguna restricción alimentaria? (Opcional)', category: 'DietaryRestrictions', input: true, optional: true },
-  { id: 8, question: '¿Cuál es tu rango de presupuesto?', category: 'BudgetRange', options: ['💰 Bajo', '💵 Medio', '💎 Alto', '🚫 Prefiero no responder'] },
 ];
 
 export default function PreferencesFormScreen() {
@@ -65,7 +63,7 @@ export default function PreferencesFormScreen() {
 
   const nextQuestion = () => {
     const category = questions[currentQuestionIndex].category;
-    if (!questions[currentQuestionIndex].optional && !selectedOptions[category]?.length) {
+    if (!selectedOptions[category]?.length) {
       setError('Debes seleccionar al menos una opción.');
       return;
     }
@@ -89,12 +87,10 @@ export default function PreferencesFormScreen() {
         sports: selectedOptions["Deporte y Motor"] || ["🚫 Nada en especial"],
         gastronomy: selectedOptions["Gastronomía"] || ["🚫 Nada en especial"],
         nightlife: selectedOptions["Ocio Nocturno"] || ["🚫 Nada en especial"],
-        adventure: selectedOptions["Aventura"] || ["🚫 Nada en especial"],
-        dietary_restrictions: inputValue.trim() ? [inputValue.trim()] : [],
-        budget_range: selectedOptions["BudgetRange"] || [],
+        adventure: selectedOptions["Aventura"] || ["🚫 Nada en especial"]
       };
   
-      console.log("Datos enviados:", payload); 
+      console.log("Datos enviados:", payload);
   
       await axios.patch(
         "http://localhost:8000/users/preferences/",
@@ -113,32 +109,27 @@ export default function PreferencesFormScreen() {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
       <Text style={styles.question}>{questions[currentQuestionIndex]?.question || ''}</Text>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      {questions[currentQuestionIndex].input ? (
-        <TextInput
-          style={styles.input}
-          value={inputValue}
-          onChangeText={setInputValue}
-          placeholder="Ejemplo: Vegetariano, Sin Gluten, Sin Lactosa"
-          onSubmitEditing={() => handleOptionSelect(inputValue)}
-        />
-      ) : (
-        questions[currentQuestionIndex]?.options?.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.optionButton, selectedOptions[questions[currentQuestionIndex]?.category || '']?.includes(option) && styles.selectedOption]}
-            onPress={() => handleOptionSelect(option)}
-          >
-            <Text style={styles.optionText}>{option}</Text>
-          </TouchableOpacity>
-        ))
-      )}
+  
+      {questions[currentQuestionIndex]?.options?.map((option, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[
+            styles.optionButton, 
+            selectedOptions[questions[currentQuestionIndex]?.category || '']?.includes(option) && styles.selectedOption
+          ]}
+          onPress={() => handleOptionSelect(option)}
+        >
+          <Text style={styles.optionText}>{option}</Text>
+        </TouchableOpacity>
+      ))}
+  
       <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
         <Text style={styles.buttonText}>Siguiente</Text>
       </TouchableOpacity>
     </Animated.View>
   );
 }
-
+  
 const styles = StyleSheet.create({
   container: {
     flex: 1,
