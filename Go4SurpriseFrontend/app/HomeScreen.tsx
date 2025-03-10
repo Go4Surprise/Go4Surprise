@@ -1,6 +1,6 @@
 import React from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useNavigation } from 'expo-router';
 
 export default function HomeScreen() {
@@ -30,7 +30,7 @@ export default function HomeScreen() {
           <View style={styles.overlayContent}>
             <Text style={styles.subtitle}>¿No tienes ganas de organizar un evento? Deja que nosotros te demos una sorpresa</Text>
             <Text style={styles.subsubtitle}>Descubre el evento 24 horas antes</Text>
-            <TouchableOpacity style={styles.surpriseButton} onPress={() => navigation.navigate('SurpriseBooking')}>
+            <TouchableOpacity style={styles.surpriseButton} onPress={() => router.push('/RegisterBookings')}>
               <Text style={styles.surpriseButtonText}>¡Sorpréndeme!</Text>
             </TouchableOpacity>
           </View>
