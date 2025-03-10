@@ -68,15 +68,15 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Algunas de las experiencias que ofrecemos</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/11/08/16363869596750.jpg'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Cena a ciegas</Text>
           </View>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a8/Escape_Room_-_%22The_Expedition%22_%28Escape_Quest_Bethesda%29.jpg'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Escape Room</Text>
           </View>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://d2exd72xrrp1s7.cloudfront.net/www/gu/guvk13n7fs5rboxjeh2z5up04degi9c5-c1860640-full/18cb1ec8f9c?width=2688&height=995&crop=true&q=40'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Aventura en la naturaleza</Text>
           </View>
         </ScrollView>
