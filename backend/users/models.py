@@ -25,45 +25,21 @@ class Usuario(models.Model):
         return f"{self.name} {self.surname}"
 
 
-# Separate Preferences model with extended questions
 class Preferences(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name="preferences")
-    # Rating questions (0-5)
-    adventure = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    culture = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    sports = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    gastronomy = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    nightlife = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    music = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)], default=0)
-    preferences_set = models.BooleanField(default=False)
     
-    # Extended fields
-    preferred_event_type = models.CharField(max_length=50, blank=True, null=True)
-    group_size = models.CharField(max_length=50, blank=True, null=True)
-    dietary_restrictions = models.TextField(blank=True, null=True)
-    preferred_time = models.CharField(max_length=50, blank=True, null=True)
-    budget_range = models.CharField(max_length=50, blank=True, null=True)
-    
-    def get_preferences(self):
-        return {
-            'adventure': self.adventure,
-            'culture': self.culture,
-            'sports': self.sports,
-            'gastronomy': self.gastronomy,
-            'nightlife': self.nightlife,
-            'music': self.music,
-            'preferred_event_type': self.preferred_event_type,
-            'group_size': self.group_size,
-            'dietary_restrictions': self.dietary_restrictions,
-            'preferred_time': self.preferred_time,
-            'budget_range': self.budget_range,
-        }
-    
+    music = models.JSONField(default=list)
+    culture = models.JSONField(default=list)
+    sports = models.JSONField(default=list)
+    gastronomy = models.JSONField(default=list)
+    nightlife = models.JSONField(default=list)
+    adventure = models.JSONField(default=list)
+
     def __str__(self):
         return f"Preferences for {self.usuario}"
-
-
+    
 @receiver(post_save, sender=Usuario)
 def create_user_preferences(sender, instance, created, **kwargs):
     if created:
-        Preferences.objects.create(usuario=instance)
+        if not hasattr(instance, 'preferences'):
+            Preferences.objects.create(usuario=instance)

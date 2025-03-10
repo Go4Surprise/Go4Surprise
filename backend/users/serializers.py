@@ -46,14 +46,15 @@ class LoginSerializer(serializers.Serializer):
         except Usuario.DoesNotExist:
             raise serializers.ValidationError({"error": "El usuario autenticado no tiene un perfil asociado."})
 
-        try:
-            preferences = usuario.preferences
-        except Preferences.DoesNotExist:
-            preferences_set = False
-        else:
-            preferences_set = preferences.preferences_set
+        preferences, created = Preferences.objects.get_or_create(usuario=usuario)
+
+        preferences_set = any([
+            preferences.music, preferences.culture, preferences.sports,
+            preferences.gastronomy, preferences.nightlife, preferences.adventure
+        ])
 
         tokens = RefreshToken.for_user(user)
+        
         return {
             "user_id": user.id,
             "username": user.username,
@@ -64,16 +65,12 @@ class LoginSerializer(serializers.Serializer):
             "pfp": usuario.pfp.url if usuario.pfp else None,
             "access": str(tokens.access_token),
             "refresh": str(tokens),
-            "preferences_set": preferences_set,
+            "preferences_set": preferences_set,  
         }
 
-
 class PreferencesSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Preferences
         fields = [
-            'adventure', 'culture', 'sports', 'gastronomy', 'nightlife', 'music',
-            'preferences_set', 'preferred_event_type', 'group_size', 'dietary_restrictions',
-            'preferred_time', 'budget_range'
+            'music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure'
         ]

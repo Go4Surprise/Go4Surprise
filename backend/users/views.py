@@ -63,9 +63,17 @@ def update_preferences(request):
         preferences = request.user.usuario.preferences
     except Preferences.DoesNotExist:
         preferences = Preferences.objects.create(usuario=request.user.usuario)
-    
-    serializer = PreferencesSerializer(preferences, data=request.data, partial=True)
+
+    data = request.data
+    print("Datos recibidos:", data)  
+
+    for category in ['music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure']:
+        if category in data and isinstance(data[category], list):  
+            preferences.__setattr__(category, data[category])
+
+    serializer = PreferencesSerializer(preferences, data=data, partial=True)
     if serializer.is_valid():
-        serializer.save(preferences_set=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

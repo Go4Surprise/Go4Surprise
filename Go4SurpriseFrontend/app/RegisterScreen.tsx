@@ -24,7 +24,7 @@ export default function RegisterScreen() {
         phone,
       });
       Alert.alert('Registro exitoso');
-      router.push('/LoginScreen');
+      router.push('/PreferencesFormScreen');
     } catch (error) {
       Alert.alert('Error en la solicitud', (error as any).message);
     }
