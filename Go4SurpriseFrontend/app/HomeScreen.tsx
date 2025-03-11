@@ -1,6 +1,6 @@
 import React from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useNavigation } from 'expo-router';
 
 export default function HomeScreen() {
@@ -30,7 +30,7 @@ export default function HomeScreen() {
           <View style={styles.overlayContent}>
             <Text style={styles.subtitle}>¿No tienes ganas de organizar un evento? Deja que nosotros te demos una sorpresa</Text>
             <Text style={styles.subsubtitle}>Descubre el evento 24 horas antes</Text>
-            <TouchableOpacity style={styles.surpriseButton} onPress={() => navigation.navigate('SurpriseBooking')}>
+            <TouchableOpacity style={styles.surpriseButton} onPress={() => router.push('/RegisterBookings')}>
               <Text style={styles.surpriseButtonText}>¡Sorpréndeme!</Text>
             </TouchableOpacity>
           </View>
@@ -68,15 +68,15 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Algunas de las experiencias que ofrecemos</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/11/08/16363869596750.jpg'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Cena a ciegas</Text>
           </View>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a8/Escape_Room_-_%22The_Expedition%22_%28Escape_Quest_Bethesda%29.jpg'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Escape Room</Text>
           </View>
           <View style={styles.experienceCard}>
-            <Image source={require('../assets/images/no-imagen.jpg')} style={styles.experienceImage} />
+            <Image source={{uri: 'https://d2exd72xrrp1s7.cloudfront.net/www/gu/guvk13n7fs5rboxjeh2z5up04degi9c5-c1860640-full/18cb1ec8f9c?width=2688&height=995&crop=true&q=40'}} style={styles.experienceImage} />
             <Text style={styles.experienceTitle}>Aventura en la naturaleza</Text>
           </View>
         </ScrollView>
