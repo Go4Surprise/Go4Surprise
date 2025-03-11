@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Box, Stack, SelectChangeEvent } from '@mui/material';
+import axios, { AxiosError } from 'axios';
 
 interface Reserva {
   usuario_id: string | null;
@@ -55,7 +56,14 @@ export default function RegisterBooking() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle the form submission here (send the data to an API, etc.)
+    axios
+      .post(`http://localhost:8000/bookings/users/${userId}`, reserva, { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => {
+        console.log('Response:', response.data); // Handle success
+      })
+      .catch((error) => {
+        console.error('Error:', error.response ? error.response.data : error.message); // Handle error
+      });
     console.log(reserva);
   };
 
@@ -109,7 +117,7 @@ export default function RegisterBooking() {
               shrink: true,
             }}
             // Convertimos la fecha a formato string (yyyy-MM-dd)
-            value={reserva.experience_date.toISOString().split('T')[0]} 
+            value={reserva.experience_date.toISOString().split('T')[0]}
             onChange={(e) => {
               const dateValue = new Date(e.target.value);
               handleTextFieldChange({ target: { name: 'experience_date', value: dateValue } });
