@@ -36,9 +36,10 @@ export default function LoginScreen() {
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
-            const { access, refresh, preferences_set } = response.data;
+            const { user_id, access, refresh, preferences_set } = response.data;
 
             await AsyncStorage.setItem('accessToken', access);
+            await AsyncStorage.setItem('userId', user_id.toString());
             await AsyncStorage.setItem('refreshToken', refresh);
 
             Alert.alert('Éxito', 'Inicio de sesión correcto');
