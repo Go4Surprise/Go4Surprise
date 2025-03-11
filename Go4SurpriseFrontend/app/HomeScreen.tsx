@@ -1,6 +1,6 @@
 import React from 'react'; 
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useNavigation } from 'expo-router';
 
 export default function HomeScreen() {
@@ -20,7 +20,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={styles.navText}>COUNT-DOWN</Text></TouchableOpacity>
           <TouchableOpacity><Text style={styles.navText}>RESEÑAS</Text></TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.logoContainer}>
+        <TouchableOpacity onPress={() => router.push('/Profile')}>
           <Image source={require('../assets/images/user-logo-none.png')} style={styles.profileIcon} />
         </TouchableOpacity>
       </View>
