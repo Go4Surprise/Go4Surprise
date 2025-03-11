@@ -19,6 +19,7 @@ export default function HomeScreen() {
         <View style={styles.navLinks}>
           <TouchableOpacity><Text style={styles.navText}>COUNT-DOWN</Text></TouchableOpacity>
           <TouchableOpacity><Text style={styles.navText}>RESEÑAS</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/MyBookings')}><Text style={styles.navText}>MIS RESERVAS</Text></TouchableOpacity>
         </View>
         <TouchableOpacity style={styles.logoContainer}>
           <Image source={require('../assets/images/user-logo-none.png')} style={styles.profileIcon} />
