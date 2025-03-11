@@ -2,8 +2,19 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function UserProfileScreen() {
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('refreshToken');
+      router.replace('/LoginScreen'); // Redirige a la pantalla de inicio de sesión
+    } catch (error) {
+      console.error("Error al cerrar sesión", error);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -35,7 +46,7 @@ export default function UserProfileScreen() {
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Historial de Reservas</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]}>
+        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={handleLogout}>
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
