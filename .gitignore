@@ -26,3 +26,5 @@ venv
 /backend/*/migrations/__pycache__
 /backend/.env
 
+/backend/static
+/backend/app.yaml
