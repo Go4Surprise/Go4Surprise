@@ -4,22 +4,24 @@ import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Box, Stac
 import axios, { AxiosError } from 'axios';
 
 interface Reserva {
-  usuario_id: string | null;
+  user: string | null;
   location: string;
   duration: number;
   experience_date: Date;
   price: number;
   participants: number;
+  category: string;
 }
 
 export default function RegisterBooking() {
   const [reserva, setReserva] = useState<Reserva>({
-    usuario_id: null,
+    user: null,
     location: '',
     duration: 0,
     experience_date: new Date(),
     price: 0,
     participants: 0,
+    category: "ADVENTURE"
   });
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -31,6 +33,7 @@ export default function RegisterBooking() {
       const storedToken = await AsyncStorage.getItem('accessToken');
       setUserId(storedUserId);
       setToken(storedToken);
+      setReserva({ ...reserva, user: storedUserId });
     };
 
     fetchData();
@@ -56,15 +59,30 @@ export default function RegisterBooking() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    var date = reserva.experience_date.getFullYear() + "-" + reserva.experience_date.getMonth() + "-" + reserva.experience_date.getDay();
+    console.log(date);
+    const data = {
+      participants: reserva.participants,
+      price: reserva.price,
+      user: reserva.user,
+      experience_date: date,
+      location: reserva.location,
+      duration: reserva.duration,
+      category: reserva.category
+    }
     axios
-      .post(`http://localhost:8000/bookings/users/${userId}`, reserva, { headers: { Authorization: `Bearer ${token}` } })
+      .post(`http://localhost:8000/bookings/crear-reserva/`, 
+        data
+        , { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => {
-        console.log('Response:', response.data); // Handle success
+        console.log('Response:', response.data);// Handle success
+        window.location.href = '/HomeScreen';
       })
       .catch((error) => {
         console.error('Error:', error.response ? error.response.data : error.message); // Handle error
       });
     console.log(reserva);
+
   };
 
   return (
@@ -77,6 +95,7 @@ export default function RegisterBooking() {
             fullWidth
             value={reserva.location}
             onChange={handleTextFieldChange}
+            required
           />
           <FormControl fullWidth>
             <InputLabel>Duration (in hours)</InputLabel>
@@ -84,7 +103,8 @@ export default function RegisterBooking() {
               label="Duration"
               name="duration"
               value={reserva.duration}
-              onChange={handleSelectChange} // Usar el manejador específico para Select
+              onChange={handleSelectChange} 
+              required// Usar el manejador específico para Select
             >
               <MenuItem value={1}>1 hour</MenuItem>
               <MenuItem value={2}>2 hours</MenuItem>
@@ -99,6 +119,7 @@ export default function RegisterBooking() {
             fullWidth
             value={reserva.price}
             onChange={handleTextFieldChange}
+            required
           />
           <TextField
             label="Participants"
@@ -107,6 +128,7 @@ export default function RegisterBooking() {
             fullWidth
             value={reserva.participants}
             onChange={handleTextFieldChange}
+            required
           />
           <TextField
             label="Experience Date"
