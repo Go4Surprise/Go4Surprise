@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 interface LoginResponse {
+    id: string;
     user_id: number;
     username: string;
     name: string;
@@ -36,10 +37,12 @@ export default function LoginScreen() {
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
-            const { access, refresh, preferences_set } = response.data;
+            const { access, id, preferences_set } = response.data;
 
             await AsyncStorage.setItem('accessToken', access);
-            await AsyncStorage.setItem('refreshToken', refresh);
+            await AsyncStorage.setItem('userId', id.toString());
+
+            console.log(id.toString());
 
             Alert.alert('Éxito', 'Inicio de sesión correcto');
 
