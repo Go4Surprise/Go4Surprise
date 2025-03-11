@@ -2,8 +2,10 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-# Create your models here.
+
 class Usuario(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
@@ -22,22 +24,22 @@ class Usuario(models.Model):
     def __str__(self):
         return f"{self.name} {self.surname}"
 
-    adventure = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
-    culture = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
-    sports = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
-    gastronomy = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
-    nightlife = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
-    music = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class Preferences(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name="preferences")
+    
+    music = models.JSONField(default=list)
+    culture = models.JSONField(default=list)
+    sports = models.JSONField(default=list)
+    gastronomy = models.JSONField(default=list)
+    nightlife = models.JSONField(default=list)
+    adventure = models.JSONField(default=list)
 
-
-    def get_preferences(self):
-        preferences = {}
-        preferences['adventure'] = self.adventure
-        preferences['culture'] = self.culture
-        preferences['sports'] = self.sports
-        preferences['gastronomy'] = self.gastronomy
-        preferences['nightlife'] = self.nightlife
-        preferences['music'] = self.music
-        return preferences
+    def __str__(self):
+        return f"Preferences for {self.usuario}"
+    
+@receiver(post_save, sender=Usuario)
+def create_user_preferences(sender, instance, created, **kwargs):
+    if created:
+        if not hasattr(instance, 'preferences'):
+            Preferences.objects.create(usuario=instance)
