@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function UserProfileScreen() {
   const handleLogout = async () => {
@@ -13,6 +14,33 @@ export default function UserProfileScreen() {
     } catch (error) {
       console.error("Error al cerrar sesión", error);
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Eliminar Cuenta",
+      "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('accessToken');
+              await axios.delete('http://localhost:8000/users/delete/', {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              await AsyncStorage.clear();
+              router.replace('/LoginScreen');
+            } catch (error) {
+              console.error("Error al eliminar la cuenta", error);
+              Alert.alert("Error", "No se pudo eliminar la cuenta.");
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -50,17 +78,36 @@ export default function UserProfileScreen() {
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={handleDeleteAccount}>
+          <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
+          <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Botón para ir a HomeScreen */}
       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
         <Ionicons name="home" size={30} color="#fff" />
       </TouchableOpacity>
+      
+      {/* Footer con logo pequeño y nombre de la app en línea */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Go4Surprise</Text>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  deleteButton: {
+    backgroundColor: '#d9534f',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  }, 
   container: {
     flexGrow: 1,
     alignItems: 'center',
@@ -162,4 +209,29 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
+  footer: {
+    alignItems: 'center',
+    marginTop: 100,
+    padding: 5,
+  },
+  footerLogo: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+  },
+  footerText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#777',
+    marginTop: 5,
+  },
+  backgroundLogo: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+},
+
 });
