@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Box, Stack, SelectChangeEvent } from '@mui/material';
 import axios, { AxiosError } from 'axios';
+import { View, Text, StyleSheet, Animated, ScrollView, Alert } from "react-native";
 
 interface Reserva {
   user: string | null;
@@ -31,9 +32,22 @@ export default function RegisterBooking() {
     const fetchData = async () => {
       const storedUserId = await AsyncStorage.getItem('userId');
       const storedToken = await AsyncStorage.getItem('accessToken');
-      setUserId(storedUserId);
+
+      //Obtencion uuid usuario
+      if (!storedToken || !storedUserId) {
+        Alert.alert("Error", "Usuario no autenticado. Inicia sesión nuevamente.");
+        return;
+      }
+      
+      const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+        headers: { Authorization: `Bearer ${storedToken}` },
+        params: { user_id: storedUserId }
+      });
+      
+      const usuarioId = usuarioResponse.data.usuario_id;
+      setUserId(usuarioId);
       setToken(storedToken);
-      setReserva({ ...reserva, user: storedUserId });
+      setReserva({ ...reserva, user: usuarioId });
     };
 
     fetchData();
@@ -79,6 +93,7 @@ export default function RegisterBooking() {
         window.location.href = '/HomeScreen';
       })
       .catch((error) => {
+        console.log(token);
         console.error('Error:', error.response ? error.response.data : error.message); // Handle error
       });
     console.log(reserva);
