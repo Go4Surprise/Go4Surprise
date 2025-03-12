@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackg
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import axios, { AxiosError } from "axios";
 
 interface Reservation  {
   id: string;
@@ -14,7 +14,7 @@ interface Reservation  {
   status: string;
   total_price: number;
   experience: {  
-    name: string;
+    title: string;
   };
 }
 
@@ -147,32 +147,50 @@ export default function UserProfileScreen() {
         }
     }
   };
+
   const fetchPastReservations = async () => {
-    try {
-        if (!user.id) {  // 🔹 Asegura que `user.id` está definido antes de hacer la petición
-            Alert.alert("Error", "No se encontró el ID del usuario.");
-            return;
-        }
+      try {
+          const token = await AsyncStorage.getItem("accessToken");
+          const userId = await AsyncStorage.getItem("userId");
 
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) {
-            Alert.alert("Error", "No tienes sesión iniciada.");
-            return;
-        }
+          if (!token || !userId) {
+              Alert.alert("Error", "No tienes sesión iniciada.");
+              return;
+          }
 
-        const response = await axios.get<Reservation[]>(`http://localhost:8000/user_past_bookings/${user.id}/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+          // 📌 Obtener usuario_id desde la API
+          const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+              headers: { Authorization: `Bearer ${token}` },
+              params: { user_id: userId }
+          });
 
-        setReservations(response.data);
-        setReservationsModalVisible(true);
-    } catch (error) {
-        console.error('Error obteniendo el historial de reservas:', error);
-        Alert.alert("Error", "No se pudo obtener el historial de reservas.");
-    }
+          const usuarioId = usuarioResponse.data.usuario_id;
+
+          // 📌 Obtener las reservas con usuarioId
+          const response = await axios.get<Reservation[]>(`http://localhost:8000/bookings/user_past_bookings/${usuarioId}/`, {
+              headers: { Authorization: `Bearer ${token}` },
+          });
+
+          console.log("Reservas obtenidas:", response.data);
+
+          if (Array.isArray(response.data)) {
+              setReservations(response.data);
+          } else {
+              throw new Error("Formato de datos incorrecto");
+          }
+
+          setReservationsModalVisible(true);
+
+      } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+              console.error('Error obteniendo el historial de reservas:', error.response?.data || error.message);
+              Alert.alert("Error", error.response?.data?.message || "No se pudo obtener el historial de reservas.");
+          } else {
+              console.error("Error inesperado:", error);
+              Alert.alert("Error", "Ocurrió un error inesperado.");
+          }
+      }
   };
-
-
 
   const handleLogout = async () => {
     try {

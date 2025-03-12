@@ -6,6 +6,6 @@ urlpatterns = [
     path('crear-reserva/', crear_reserva, name='crear_reserva'),
     path('obtener-reserva/<uuid:id>/', obtener_reserva, name='obtener_reserva'),
     path('users/<uuid:user_id>/', obtener_reservas_usuario, name='obtener_reservas_usuario'),
-    path('user_past_bookings/<uuid:user_id>/', obtener_reservas_pasadas_usuario, name='obtener_reservas_pasadas_usuario'),
+    path('user_past_bookings/<user_id>/', obtener_reservas_pasadas_usuario, name='obtener_reservas_pasadas_usuario'),
 
 ]
