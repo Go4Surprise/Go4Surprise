@@ -75,6 +75,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Agrega la URL de tu frontend
     "http://localhost:8081",  # Agrega la URL de tu Expo Go
+    "http://localhost:8082"
 ]
 
 if APPENGINE_URL:

@@ -21,7 +21,7 @@ export default function HomeScreen() {
           <TouchableOpacity><Text style={styles.navText}>RESEÑAS</Text></TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/MyBookings')}><Text style={styles.navText}>MIS RESERVAS</Text></TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.logoContainer}>
+        <TouchableOpacity onPress={() => router.push('/Profile')}>
           <Image source={require('../assets/images/user-logo-none.png')} style={styles.profileIcon} />
         </TouchableOpacity>
       </View>

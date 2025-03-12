@@ -132,3 +132,52 @@ def obtener_reservas_usuario(request, user_id):
             {"error": f"Error del servidor: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+from datetime import date
+
+@swagger_auto_schema(
+    method='get',
+    operation_id="get_user_past_bookings",
+    operation_description="Obtener todas las reservas pasadas de un usuario",
+    manual_parameters=[
+        openapi.Parameter(
+            'user_id', 
+            openapi.IN_PATH, 
+            description="ID del usuario (UUID)", 
+            type=openapi.TYPE_STRING,
+            format='uuid',
+            required=True
+        ),
+    ],
+    responses={
+        200: "OK",
+        404: "Not Found",
+        500: "Internal Server Error"
+    },
+    tags=['Booking']
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def obtener_reservas_pasadas_usuario(request, user_id):
+    """
+    Obtiene todas las reservas pasadas de un usuario autenticado.
+    """
+    try:
+        usuario = get_object_or_404(Usuario, id=user_id)
+        hoy = date.today()
+        
+        # Filtra las reservas donde experience_date ya pasó
+        reservas_pasadas = Booking.objects.filter(user=usuario, experience_date__lt=hoy).order_by('-experience_date')
+        
+        serializer = ReservaSerializer(reservas_pasadas, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Http404:
+        return Response(
+            {"error": "Usuario no encontrado"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

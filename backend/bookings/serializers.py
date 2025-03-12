@@ -5,6 +5,7 @@ from experiences.models import Experience
 from users.models import Usuario
 from .models import Booking
 from django.utils import timezone
+from experiences.serializers import ExperienceSerializer
 
 class CrearReservaSerializer(serializers.ModelSerializer):
     participants= serializers.IntegerField(required=True)
@@ -63,6 +64,12 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             return Booking.objects.create(**validated_data)
 
 class ReservaSerializer(serializers.ModelSerializer):
+    experience = ExperienceSerializer()
+
     class Meta:
         model = Booking
         fields = '__all__'
+
+
+    def get_experience(self, obj):
+        return {"name": obj.experience.name} 

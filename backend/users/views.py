@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer
+from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
-
+from django.contrib.auth.models import User
+from .models import Usuario
 
 @swagger_auto_schema(
     method="post",
@@ -78,8 +79,14 @@ def update_preferences(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-from django.contrib.auth.models import User
-from .models import Usuario
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """Devuelve la información del usuario autenticado"""
+    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    serializer = UserSerializer(user)  
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @swagger_auto_schema(
     method="get",
@@ -108,3 +115,106 @@ def get_usuario_id(request):
         return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
     except Usuario.DoesNotExist:
         return Response({"error": "Entidad Usuario no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """Devuelve la información del usuario autenticado"""
+    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    serializer = UserSerializer(user)  
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method="put",
+    request_body=UserUpdateSerializer,
+    responses={
+        200: openapi.Response("Perfil actualizado correctamente"),
+        400: openapi.Response("Error en la validación"),
+    },
+    operation_summary="Actualizar perfil del usuario",
+    operation_description="Permite al usuario autenticado actualizar su perfil, incluyendo nombre, apellido, email, teléfono y nombre de usuario.",
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_profile(request):
+    try:
+        user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@swagger_auto_schema(
+    method="delete",
+    responses={
+        204: openapi.Response("Cuenta eliminada correctamente"),
+        400: openapi.Response("Error al eliminar la cuenta"),
+        404: openapi.Response("Usuario no encontrado"),
+    },
+    operation_summary="Eliminar cuenta de usuario",
+    operation_description="Permite al usuario autenticado eliminar su cuenta de forma permanente.",
+)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user_account(request):
+    """Elimina la cuenta del usuario autenticado"""
+    try:
+        user = request.user
+        usuario = user.usuario  # Relación con el modelo Usuario
+
+        print(f"Eliminando usuario {usuario.id} - {user.username}")  # Para debug
+
+        usuario.delete()
+        user.delete()
+
+        return Response({"message": "Cuenta eliminada correctamente"}, status=status.HTTP_204_NO_CONTENT)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
+        return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.contrib.auth import authenticate
+
+@swagger_auto_schema(
+    method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'current_password': openapi.Schema(type=openapi.TYPE_STRING, description="Contraseña actual"),
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva contraseña")
+        },
+        required=['current_password', 'new_password'],
+    ),
+    responses={
+        200: openapi.Response("Contraseña cambiada exitosamente"),
+        400: openapi.Response("Error en la validación"),
+        401: openapi.Response("Contraseña actual incorrecta"),
+    },
+    operation_summary="Cambiar contraseña",
+    operation_description="Permite al usuario autenticado cambiar su contraseña verificando la actual."
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+
+    current_password = request.data.get("current_password")
+    new_password = request.data.get("new_password")
+
+    if not current_password or not new_password:
+        return Response({"error": "Ambas contraseñas son requeridas"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not user.check_password(current_password):
+        return Response({"error": "Contraseña actual incorrecta"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
