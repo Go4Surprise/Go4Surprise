@@ -27,5 +27,4 @@ venv
 /backend/.env
 
 /backend/static
-/backend/app.yaml
 .qodo
