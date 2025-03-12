@@ -78,6 +78,44 @@ def update_preferences(request):
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """Devuelve la información del usuario autenticado"""
+    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    serializer = UserSerializer(user)  
+    return Response(serializer.data, status=status.HTTP_200_OK)
+from django.contrib.auth.models import User
+from .models import Usuario
+
+@swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter('user_id', openapi.IN_QUERY, description="ID del usuario", type=openapi.TYPE_INTEGER)
+    ],
+    responses={
+        200: openapi.Response("ID del Usuario encontrado"),
+        404: openapi.Response("Usuario no encontrado"),
+    },
+    operation_summary="Obtener ID del Usuario",
+    operation_description="Devuelve el ID de la entidad Usuario según la propiedad user_id.",
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_usuario_id(request):
+    user_id = request.query_params.get('user_id')
+    if not user_id:
+        return Response({"error": "user_id es requerido"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(id=user_id)
+        usuario = Usuario.objects.get(user=user)
+        return Response({"usuario_id": usuario.id}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Entidad Usuario no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
