@@ -359,7 +359,7 @@ export default function UserProfileScreen() {
                           {reservations.map((res, index) => (
                               <View key={index} style={styles.reservationItem}>
                                   <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
-                                  <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.name}</Text>
+                                  <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
                                   <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
                               </View>
                           ))}
