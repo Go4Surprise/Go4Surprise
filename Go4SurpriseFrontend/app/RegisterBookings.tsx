@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TextField, Button, MenuItem, FormControl, InputLabel, Select, Box, Stack, SelectChangeEvent } from '@mui/material';
 import axios, { AxiosError } from 'axios';
+import { BASE_URL } from '../constants/apiUrl';
 
 interface Reserva {
   user: string | null;
@@ -71,7 +72,7 @@ export default function RegisterBooking() {
       category: reserva.category
     }
     axios
-      .post(`http://localhost:8000/bookings/crear-reserva/`, 
+      .post(`${BASE_URL}/bookings/crear-reserva/`, 
         data
         , { headers: { Authorization: `Bearer ${token}` } })
       .then((response) => {

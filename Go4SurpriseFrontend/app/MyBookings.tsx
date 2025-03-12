@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Animated, ScrollView, Alert } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from '../constants/apiUrl';
 
 interface Reserva {
   id: string;
@@ -35,7 +36,7 @@ const ReservasList = () => {
       }
 
       // Obtener el usuario_id desde la nueva API
-      const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { user_id: userId }
       });
@@ -43,7 +44,7 @@ const ReservasList = () => {
       const usuarioId = usuarioResponse.data.usuario_id;
 
       // Obtener las reservas usando el usuario_id
-      const response = await axios.get(`http://localhost:8000/bookings/users/${usuarioId}/`, {
+      const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
