@@ -29,7 +29,7 @@ export default function RegisterBooking() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const storedUserId = await AsyncStorage.getItem('userId');
+      const storedUserId = await AsyncStorage.getItem('id');
       const storedToken = await AsyncStorage.getItem('accessToken');
       setUserId(storedUserId);
       setToken(storedToken);
