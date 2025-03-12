@@ -3,7 +3,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-
+from rest_framework import serializers
+from .models import Usuario, Preferences
 from.models import Usuario, Preferences
 
 
@@ -75,3 +76,63 @@ class PreferencesSerializer(serializers.ModelSerializer):
         fields = [
             'music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure'
         ]
+
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    pfp = serializers.SerializerMethodField()  # Custom field for profile picture URL
+    preferences = serializers.SerializerMethodField()  # Include user preferences
+    username = serializers.CharField(source='user.username', read_only=True)  # Extrae username del modelo User
+
+    class Meta:
+        model = Usuario
+        fields = [
+            'id', 'user', 'name', 'surname', 'email', 
+            'phone', 'pfp', 'preferences', 'username'
+        ]
+
+    def get_pfp(self, obj):
+        """Return the full URL of the profile picture if it exists."""
+        request = self.context.get('request')
+        if obj.pfp:
+            return request.build_absolute_uri(obj.pfp.url) if request else obj.pfp.url
+        return None
+
+    def get_preferences(self, obj):
+        """Return user preferences if they exist."""
+        preferences = obj.preferences  # Access the related Preferences object
+        if preferences:
+            return {
+                "music": preferences.music,
+                "culture": preferences.culture,
+                "sports": preferences.sports,
+                "gastronomy": preferences.gastronomy,
+                "nightlife": preferences.nightlife,
+                "adventure": preferences.adventure,
+            }
+        return None
+    
+class UserUpdateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+
+    class Meta:
+        model = Usuario  # Asegúrate de que es el modelo correcto
+        fields = ['username', 'email', 'name', 'surname', 'phone']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)  # Extraer datos de User si existen
+
+        # Actualizar campos del modelo Usuario
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Si hay datos en User, actualizarlos
+        if user_data:
+            user = instance.user  # Relación con User
+            for attr, value in user_data.items():
+                setattr(user, attr, value)
+            user.save()
+
+        return instance
