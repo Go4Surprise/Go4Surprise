@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError } from "axios";
+import { BASE_URL } from '../constants/apiUrl';
 
 interface Reservation  {
   id: string;
@@ -49,7 +50,7 @@ export default function UserProfileScreen() {
             return;
         }
 
-        const response = await axios.get('http://localhost:8000/users/get_user_info/', {
+        const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -96,7 +97,7 @@ export default function UserProfileScreen() {
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      await axios.put('http://localhost:8000/users/update/', editedUser, {
+      await axios.put(`${BASE_URL}/users/update/`, editedUser, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser(prevState => ({
@@ -121,7 +122,7 @@ export default function UserProfileScreen() {
         }
 
         const response = await axios.post(
-            'http://localhost:8000/users/change_password/',
+            `${BASE_URL}/users/change_password/`,
             { current_password: currentPassword, new_password: newPassword },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -159,7 +160,7 @@ export default function UserProfileScreen() {
           }
 
           // 📌 Obtener usuario_id desde la API
-          const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+          const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
               headers: { Authorization: `Bearer ${token}` },
               params: { user_id: userId }
           });
@@ -167,7 +168,7 @@ export default function UserProfileScreen() {
           const usuarioId = usuarioResponse.data.usuario_id;
 
           // 📌 Obtener las reservas con usuarioId
-          const response = await axios.get<Reservation[]>(`http://localhost:8000/bookings/user_past_bookings/${usuarioId}/`, {
+          const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
               headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -216,7 +217,7 @@ export default function UserProfileScreen() {
 
         console.log("📡 Enviando petición DELETE a la API...");
 
-        const response = await axios.delete('http://localhost:8000/users/delete/', {
+        const response = await axios.delete(`${BASE_URL}/users/delete/`	, {
             headers: { Authorization: `Bearer ${token}` }
         });
 

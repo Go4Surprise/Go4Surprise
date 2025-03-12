@@ -116,16 +116,6 @@ def get_usuario_id(request):
     except Usuario.DoesNotExist:
         return Response({"error": "Entidad Usuario no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_info(request):
-    """Devuelve la información del usuario autenticado"""
-    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
-    serializer = UserSerializer(user)  
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 @swagger_auto_schema(
     method="put",
     request_body=UserUpdateSerializer,
