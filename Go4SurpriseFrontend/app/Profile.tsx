@@ -202,41 +202,37 @@ export default function UserProfileScreen() {
     }
   };
   const handleDeleteAccount = async () => {
-    Alert.alert(
-        "Eliminar Cuenta",
-        "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
-        [
-            { text: "Cancelar", style: "cancel" },
-            {
-                text: "Eliminar",
-                style: "destructive",
-                onPress: async () => {
-                    try {
-                        console.log("Intentando eliminar cuenta...");
-                        const token = await AsyncStorage.getItem('accessToken');
-                        if (!token) {
-                            console.error("Token no encontrado");
-                            Alert.alert("Error", "No tienes sesión iniciada.");
-                            return;
-                        }
-                        
-                        const response = await axios.delete('http://localhost:8000/users/delete/', {
-                            headers: { Authorization: `Bearer ${token}` }
-                        });
+    console.log("📌 handleDeleteAccount() ejecutándose..."); 
 
-                        console.log("Respuesta del servidor:", response.status);
-                        await AsyncStorage.clear();
-                        router.replace('/LoginScreen');
-                        Alert.alert("Cuenta eliminada", "Tu cuenta ha sido eliminada correctamente.");
-                    } catch (error) {
-                        console.error("Error al eliminar la cuenta:", error);
-                        Alert.alert("Error", "No se pudo eliminar la cuenta.");
-                    }
-                }
-            }
-        ]
-    );
-};
+    // Elimina el Alert.alert y prueba con un console.log primero
+    console.log("🛠️ Simulando alerta de confirmación...");
+    
+    try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+            console.error("❌ Token no encontrado");
+            return;
+        }
+
+        console.log("📡 Enviando petición DELETE a la API...");
+
+        const response = await axios.delete('http://localhost:8000/users/delete/', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log("✅ Respuesta del servidor:", response.status);
+
+        if (response.status === 204 || response.status === 200) {
+            await AsyncStorage.clear();
+            router.replace('/LoginScreen');
+            console.log("✅ Redirigiendo a la pantalla de Login...");
+        }
+    } catch (error) {
+        console.error("❌ Error al eliminar la cuenta:", error);
+    }
+  };
+
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -275,10 +271,17 @@ export default function UserProfileScreen() {
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={handleDeleteAccount}>
-          <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
-          <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+        <TouchableOpacity 
+            style={[styles.optionButton, styles.deleteButton]} 
+            onPress={() => {
+                console.log("🛠️ Botón de eliminar cuenta presionado."); // <-- Ver si se ejecuta
+                handleDeleteAccount();
+            }}
+        >
+            <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
+            <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
+
       </View>
 
       {/* Botón para ir a HomeScreen */}
@@ -382,22 +385,40 @@ export default function UserProfileScreen() {
 
 const styles = StyleSheet.create({
   reservationItem: {
-    backgroundColor: '#f1f1f1',
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 8,
-    alignItems: 'center',
-},
-reservationText: {
-    fontSize: 16,
-    color: '#333',
-},
-noReservations: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: 'gray',
-    marginTop: 10,
-},
+      backgroundColor: '#ffffff',
+      padding: 15,
+      marginVertical: 8,
+      borderRadius: 10,
+      shadowColor: '#000',
+      shadowOpacity: 0.1,
+      shadowRadius: 5,
+      elevation: 3,
+      width: '90%',
+      alignSelf: 'center',
+      alignItems: 'center',
+  },
+  reservationDate: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#004AAD',
+  },
+  reservationExperience: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginVertical: 4,
+      color: '#333',
+  },
+  reservationPrice: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#27ae60',
+  },
+  noReservations: {
+      textAlign: 'center',
+      fontSize: 16,
+      color: 'gray',
+      marginTop: 10,
+  },
   deleteButton: {
     backgroundColor: '#d9534f',
     flexDirection: 'row',
