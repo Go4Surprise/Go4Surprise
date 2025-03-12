@@ -85,33 +85,42 @@ export default function UserProfileScreen() {
       console.error("Error al cerrar sesión", error);
     }
   };
-
   const handleDeleteAccount = async () => {
     Alert.alert(
-      "Eliminar Cuenta",
-      "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('accessToken');
-              await axios.delete('http://localhost:8000/users/delete/', {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              await AsyncStorage.clear();
-              router.replace('/LoginScreen');
-            } catch (error) {
-              console.error("Error al eliminar la cuenta", error);
-              Alert.alert("Error", "No se pudo eliminar la cuenta.");
+        "Eliminar Cuenta",
+        "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+        [
+            { text: "Cancelar", style: "cancel" },
+            {
+                text: "Eliminar",
+                style: "destructive",
+                onPress: async () => {
+                    try {
+                        console.log("Intentando eliminar cuenta...");
+                        const token = await AsyncStorage.getItem('accessToken');
+                        if (!token) {
+                            console.error("Token no encontrado");
+                            Alert.alert("Error", "No tienes sesión iniciada.");
+                            return;
+                        }
+                        
+                        const response = await axios.delete('http://localhost:8000/users/delete/', {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+
+                        console.log("Respuesta del servidor:", response.status);
+                        await AsyncStorage.clear();
+                        router.replace('/LoginScreen');
+                        Alert.alert("Cuenta eliminada", "Tu cuenta ha sido eliminada correctamente.");
+                    } catch (error) {
+                        console.error("Error al eliminar la cuenta:", error);
+                        Alert.alert("Error", "No se pudo eliminar la cuenta.");
+                    }
+                }
             }
-          }
-        }
-      ]
+        ]
     );
-  };
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

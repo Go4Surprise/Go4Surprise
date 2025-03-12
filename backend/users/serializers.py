@@ -83,12 +83,13 @@ class PreferencesSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     pfp = serializers.SerializerMethodField()  # Custom field for profile picture URL
     preferences = serializers.SerializerMethodField()  # Include user preferences
+    username = serializers.CharField(source='user.username', read_only=True)  # Extrae username del modelo User
 
     class Meta:
         model = Usuario
         fields = [
             'id', 'user', 'name', 'surname', 'email', 
-            'phone', 'pfp', 'preferences'
+            'phone', 'pfp', 'preferences', 'username'
         ]
 
     def get_pfp(self, obj):
@@ -111,8 +112,9 @@ class UserSerializer(serializers.ModelSerializer):
                 "adventure": preferences.adventure,
             }
         return None
+    
 class UserUpdateSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', required=False)  # Extrae username desde User
+    username = serializers.CharField(source='user.username')
 
     class Meta:
         model = Usuario  # Asegúrate de que es el modelo correcto

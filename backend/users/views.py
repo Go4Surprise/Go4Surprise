@@ -6,7 +6,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
-
+from django.contrib.auth.models import User
+from .models import Usuario
 
 @swagger_auto_schema(
     method="post",
@@ -85,8 +86,7 @@ def get_user_info(request):
     user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
     serializer = UserSerializer(user)  
     return Response(serializer.data, status=status.HTTP_200_OK)
-from django.contrib.auth.models import User
-from .models import Usuario
+
 
 @swagger_auto_schema(
     method="get",
@@ -150,3 +150,32 @@ def update_user_profile(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+@swagger_auto_schema(
+    method="delete",
+    responses={
+        204: openapi.Response("Cuenta eliminada correctamente"),
+        400: openapi.Response("Error al eliminar la cuenta"),
+        404: openapi.Response("Usuario no encontrado"),
+    },
+    operation_summary="Eliminar cuenta de usuario",
+    operation_description="Permite al usuario autenticado eliminar su cuenta de forma permanente.",
+)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user_account(request):
+    """Elimina la cuenta del usuario autenticado"""
+    try:
+        user = request.user
+        usuario = user.usuario  # Relación con el modelo Usuario
+
+        print(f"Eliminando usuario {usuario.id} - {user.username}")  # Para debug
+
+        usuario.delete()
+        user.delete()
+
+        return Response({"message": "Cuenta eliminada correctamente"}, status=status.HTTP_204_NO_CONTENT)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
+        return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
