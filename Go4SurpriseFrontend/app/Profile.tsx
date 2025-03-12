@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Alert, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,8 +7,17 @@ import axios from 'axios';
 
 export default function UserProfileScreen() {
   
-  const [user, setUser] = useState(null); // Estado para almacenar los datos del usuario
+  const [user, setUser] = useState({
+    name: '',
+    email: '',
+    username: '',
+    surname: '',
+    phone: ''
+  });
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
+
 
   // Función para obtener datos del usuario
   const fetchUserData = async () => {
@@ -37,6 +46,35 @@ export default function UserProfileScreen() {
   useEffect(() => {
     fetchUserData();
   }, []);
+
+  const handleEditProfile = () => {
+      if (user) {
+          setEditedUser({
+              name: user.name || '',
+              surname: user.surname || '', 
+              username: user.username || '',  
+              email: user.email || '',
+              phone: user.phone || ''
+          });
+          setModalVisible(true);
+      }
+  };
+
+
+  const handleSaveChanges = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      await axios.put('http://localhost:8000/users/update/', editedUser, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(editedUser);
+      setModalVisible(false);
+      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
+    } catch (error) {
+      console.error('Error actualizando perfil', error);
+      Alert.alert('Error', 'No se pudo actualizar el perfil.');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -96,8 +134,8 @@ export default function UserProfileScreen() {
 
       {/* Opciones del perfil */}
       <View style={styles.optionsContainer}>
-        <TouchableOpacity style={styles.optionButton}>
-          <Ionicons name="person" size={20} color="#004AAD" style={styles.icon} />
+        <TouchableOpacity style={styles.optionButton} onPress={handleEditProfile}>
+          <Ionicons name="person" size={20} color="#004AAD" style={styles.icon}/>
           <Text style={styles.optionText}>Editar Perfil</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.optionButton}>
@@ -127,6 +165,28 @@ export default function UserProfileScreen() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Go4Surprise</Text>
       </View>
+
+       {/* Modal de edición de perfil */}
+       <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Editar Perfil</Text>
+            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
+                <Text style={styles.modalButtonText}>Guardar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -266,6 +326,47 @@ const styles = StyleSheet.create({
   position: 'absolute',
   width: '100%',
   height: '100%',
+},modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
 },
-
+modalContent: {
+  width: '80%',
+  backgroundColor: 'white',
+  padding: 20,
+  borderRadius: 10,
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 10,
+},
+input: {
+  borderBottomWidth: 1,
+  borderColor: '#ccc',
+  marginBottom: 10,
+  paddingVertical: 5,
+},
+modalButtons: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 10,
+},
+modalButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  flex: 1,
+  alignItems: 'center',
+  marginHorizontal: 5,
+},
+cancelButton: {
+  backgroundColor: '#d9534f',
+},
+modalButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
 });

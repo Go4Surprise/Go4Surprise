@@ -111,3 +111,26 @@ class UserSerializer(serializers.ModelSerializer):
                 "adventure": preferences.adventure,
             }
         return None
+class UserUpdateSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', required=False)  # Extrae username desde User
+
+    class Meta:
+        model = Usuario  # Asegúrate de que es el modelo correcto
+        fields = ['username', 'email', 'name', 'surname', 'phone']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)  # Extraer datos de User si existen
+
+        # Actualizar campos del modelo Usuario
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Si hay datos en User, actualizarlos
+        if user_data:
+            user = instance.user  # Relación con User
+            for attr, value in user_data.items():
+                setattr(user, attr, value)
+            user.save()
+
+        return instance

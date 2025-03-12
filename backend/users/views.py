@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer
+from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
 
 
@@ -124,3 +124,29 @@ def get_user_info(request):
     user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
     serializer = UserSerializer(user)  
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method="put",
+    request_body=UserUpdateSerializer,
+    responses={
+        200: openapi.Response("Perfil actualizado correctamente"),
+        400: openapi.Response("Error en la validación"),
+    },
+    operation_summary="Actualizar perfil del usuario",
+    operation_description="Permite al usuario autenticado actualizar su perfil, incluyendo nombre, apellido, email, teléfono y nombre de usuario.",
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_profile(request):
+    try:
+        user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
