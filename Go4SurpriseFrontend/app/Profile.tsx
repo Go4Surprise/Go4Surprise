@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { AxiosError } from 'axios';
+
 
 export default function UserProfileScreen() {
   
@@ -16,7 +18,11 @@ export default function UserProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(''); // Estado para manejar errores en el modal
 
 
   // Función para obtener datos del usuario
@@ -73,6 +79,43 @@ export default function UserProfileScreen() {
     } catch (error) {
       console.error('Error actualizando perfil', error);
       Alert.alert('Error', 'No se pudo actualizar el perfil.');
+    }
+  };
+  const handleChangePassword = async () => {
+    try {
+        setPasswordError(''); // Reiniciar el mensaje de error al intentar cambiar la contraseña
+
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+            setPasswordError("No tienes sesión iniciada.");
+            return;
+        }
+
+        const response = await axios.post(
+            'http://localhost:8000/users/change_password/',
+            { current_password: currentPassword, new_password: newPassword },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setPasswordModalVisible(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        Alert.alert("Éxito", "Contraseña actualizada correctamente.");
+
+    } catch (error) {
+        console.log("Error al cambiar contraseña:", error);
+
+        if (axios.isAxiosError(error) && error.response) {  
+            console.log("Detalles del error:", error.response);
+
+            if (error.response.status === 401) {
+                setPasswordError("❌ La contraseña actual es incorrecta.");
+            } else {
+                setPasswordError("⚠️ No se pudo cambiar la contraseña. Inténtalo de nuevo.");
+            }
+        } else {
+            setPasswordError("🚫 No se pudo conectar con el servidor.");
+        }
     }
   };
 
@@ -147,7 +190,7 @@ export default function UserProfileScreen() {
           <Ionicons name="person" size={20} color="#004AAD" style={styles.icon}/>
           <Text style={styles.optionText}>Editar Perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => setPasswordModalVisible(true)}>
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
@@ -196,6 +239,43 @@ export default function UserProfileScreen() {
           </View>
         </View>
       </Modal>
+      {/* Modal para cambiar contraseña */}
+      <Modal visible={passwordModalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+
+                  {/* Mostrar mensaje de error si existe */}
+                  {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+
+                  <TextInput
+                      style={styles.input}
+                      value={currentPassword}
+                      onChangeText={setCurrentPassword}
+                      placeholder="Contraseña actual"
+                      secureTextEntry
+                  />
+
+                  <TextInput
+                      style={styles.input}
+                      value={newPassword}
+                      onChangeText={setNewPassword}
+                      placeholder="Nueva contraseña"
+                      secureTextEntry
+                  />
+
+                  <View style={styles.modalButtons}>
+                      <TouchableOpacity style={styles.modalButton} onPress={handleChangePassword}>
+                          <Text style={styles.modalButtonText}>Guardar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setPasswordModalVisible(false)}>
+                          <Text style={styles.modalButtonText}>Cancelar</Text>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </View>
+      </Modal>
+
     </ScrollView>
   );
 }
@@ -216,6 +296,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fd',
     paddingBottom: 50,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
   },
   header: {
     width: '100%',

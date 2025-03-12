@@ -179,3 +179,42 @@ def delete_user_account(request):
     except Exception as e:
         print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
         return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+from django.contrib.auth import authenticate
+
+@swagger_auto_schema(
+    method="post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'current_password': openapi.Schema(type=openapi.TYPE_STRING, description="Contraseña actual"),
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING, description="Nueva contraseña")
+        },
+        required=['current_password', 'new_password'],
+    ),
+    responses={
+        200: openapi.Response("Contraseña cambiada exitosamente"),
+        400: openapi.Response("Error en la validación"),
+        401: openapi.Response("Contraseña actual incorrecta"),
+    },
+    operation_summary="Cambiar contraseña",
+    operation_description="Permite al usuario autenticado cambiar su contraseña verificando la actual."
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+
+    current_password = request.data.get("current_password")
+    new_password = request.data.get("new_password")
+
+    if not current_password or not new_password:
+        return Response({"error": "Ambas contraseñas son requeridas"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not user.check_password(current_password):
+        return Response({"error": "Contraseña actual incorrecta"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
