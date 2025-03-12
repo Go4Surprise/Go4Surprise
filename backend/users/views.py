@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer
+from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer
 from .models import Preferences
 
 
@@ -77,3 +77,12 @@ def update_preferences(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """Devuelve la información del usuario autenticado"""
+    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    serializer = UserSerializer(user)  
+    return Response(serializer.data, status=status.HTTP_200_OK)
