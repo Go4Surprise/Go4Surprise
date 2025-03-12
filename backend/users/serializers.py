@@ -13,7 +13,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ['username', 'password', 'name', 'surname', 'email', 'phone', 'pfp']
+        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp']
 
     def create(self, validated_data):
         username = validated_data.pop('username')
@@ -56,6 +56,7 @@ class LoginSerializer(serializers.Serializer):
         tokens = RefreshToken.for_user(user)
         
         return {
+            "id": usuario.id,
             "user_id": user.id,
             "username": user.username,
             "name": usuario.name,
