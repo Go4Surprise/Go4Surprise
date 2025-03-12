@@ -63,6 +63,12 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             return Booking.objects.create(**validated_data)
 
 class ReservaSerializer(serializers.ModelSerializer):
+    experience = serializers.SerializerMethodField()  
+
     class Meta:
         model = Booking
         fields = '__all__'
+
+
+    def get_experience(self, obj):
+        return {"name": obj.experience.name} 

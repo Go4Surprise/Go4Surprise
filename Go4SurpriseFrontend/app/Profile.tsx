@@ -4,12 +4,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { AxiosError } from 'axios';
+
+interface Reservation  {
+  id: string;
+  booking_date: string;
+  experience_date: string;
+  participants: number;
+  price: number;
+  status: string;
+  total_price: number;
+  experience: {  
+    name: string;
+  };
+}
 
 
 export default function UserProfileScreen() {
   
   const [user, setUser] = useState({
+    id: '',
     name: '',
     email: '',
     username: '',
@@ -23,31 +36,44 @@ export default function UserProfileScreen() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState(''); // Estado para manejar errores en el modal
+  const [reservationsModalVisible, setReservationsModalVisible] = useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
 
   // Función para obtener datos del usuario
   const fetchUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        router.replace('/LoginScreen'); // Redirige si no hay token
-        return;
-      }
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+            router.replace('/LoginScreen'); // Redirige si no hay token
+            return;
+        }
 
-      const response = await axios.get('http://localhost:8000/users/get_user_info/', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      console.log(response);
+        const response = await axios.get('http://localhost:8000/users/get_user_info/', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-      setUser(response.data); // Guarda los datos del usuario
+        console.log("Datos del usuario:", response.data);
+
+        // Asegura que el ID está incluido antes de actualizar el estado
+        setUser(prevState => ({
+            ...prevState,
+            id: response.data.id || '',  // 🔹 Se asegura de que el id se guarde
+            name: response.data.name,
+            email: response.data.email,
+            username: response.data.username,
+            surname: response.data.surname,
+            phone: response.data.phone
+        }));
+
     } catch (error) {
-      console.error('Error obteniendo datos del usuario', error);
-      Alert.alert('Error', 'No se pudo obtener la información del usuario.');
+        console.error('Error obteniendo datos del usuario', error);
+        Alert.alert('Error', 'No se pudo obtener la información del usuario.');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchUserData();
@@ -73,7 +99,10 @@ export default function UserProfileScreen() {
       await axios.put('http://localhost:8000/users/update/', editedUser, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUser(editedUser);
+      setUser(prevState => ({
+        ...prevState, // Mantiene el id y otros campos
+        ...editedUser // Sobreescribe los campos editados
+      }));
       setModalVisible(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
@@ -118,6 +147,32 @@ export default function UserProfileScreen() {
         }
     }
   };
+  const fetchPastReservations = async () => {
+    try {
+        if (!user.id) {  // 🔹 Asegura que `user.id` está definido antes de hacer la petición
+            Alert.alert("Error", "No se encontró el ID del usuario.");
+            return;
+        }
+
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+            Alert.alert("Error", "No tienes sesión iniciada.");
+            return;
+        }
+
+        const response = await axios.get<Reservation[]>(`http://localhost:8000/user_past_bookings/${user.id}/`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setReservations(response.data);
+        setReservationsModalVisible(true);
+    } catch (error) {
+        console.error('Error obteniendo el historial de reservas:', error);
+        Alert.alert("Error", "No se pudo obtener el historial de reservas.");
+    }
+  };
+
+
 
   const handleLogout = async () => {
     try {
@@ -194,7 +249,7 @@ export default function UserProfileScreen() {
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton}>
+        <TouchableOpacity style={styles.optionButton} onPress={fetchPastReservations}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Historial de Reservas</Text>
         </TouchableOpacity>
@@ -275,12 +330,56 @@ export default function UserProfileScreen() {
               </View>
           </View>
       </Modal>
+      {/* Modal para Historial de Reservas */}
+      <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Historial de Reservas</Text>
+
+                  {reservations.length > 0 ? (
+                      <ScrollView style={{ maxHeight: 300 }}>
+                          {reservations.map((res, index) => (
+                              <View key={index} style={styles.reservationItem}>
+                                  <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
+                                  <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.name}</Text>
+                                  <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
+                              </View>
+                          ))}
+                      </ScrollView>
+                  ) : (
+                      <Text style={styles.noReservations}>No tienes reservas pasadas.</Text>
+                  )}
+
+                  <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setReservationsModalVisible(false)}>
+                      <Text style={styles.modalButtonText}>Cerrar</Text>
+                  </TouchableOpacity>
+              </View>
+          </View>
+      </Modal>
+
 
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  reservationItem: {
+    backgroundColor: '#f1f1f1',
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 8,
+    alignItems: 'center',
+},
+reservationText: {
+    fontSize: 16,
+    color: '#333',
+},
+noReservations: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: 'gray',
+    marginTop: 10,
+},
   deleteButton: {
     backgroundColor: '#d9534f',
     flexDirection: 'row',
