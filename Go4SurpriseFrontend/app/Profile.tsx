@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackground, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
@@ -6,6 +6,38 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 export default function UserProfileScreen() {
+  
+  const [user, setUser] = useState(null); // Estado para almacenar los datos del usuario
+  const [loading, setLoading] = useState(true);
+
+  // Función para obtener datos del usuario
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        router.replace('/LoginScreen'); // Redirige si no hay token
+        return;
+      }
+
+      const response = await axios.get('http://localhost:8000/users/get_user_info/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      console.log(response);
+
+      setUser(response.data); // Guarda los datos del usuario
+    } catch (error) {
+      console.error('Error obteniendo datos del usuario', error);
+      Alert.alert('Error', 'No se pudo obtener la información del usuario.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('accessToken');
@@ -55,10 +87,12 @@ export default function UserProfileScreen() {
       </ImageBackground>
       
       {/* Tarjeta del perfil */}
-      <View style={styles.profileCard}>
-        <Text style={styles.username}>Nombre de Usuario</Text>
-        <Text style={styles.email}>usuario@email.com</Text>
-      </View>
+      {user && (
+                <View style={styles.profileCard}>
+                  <Text style={styles.username}>{user.name}</Text>
+                  <Text style={styles.email}>{user.email}</Text>
+                </View>
+        )}
 
       {/* Opciones del perfil */}
       <View style={styles.optionsContainer}>
