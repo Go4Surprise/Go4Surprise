@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField,
@@ -14,8 +14,9 @@ import {
   Typography,
 } from "@mui/material";
 import axios, { AxiosError } from "axios";
-import { ScrollView, Text, StyleSheet } from "react-native";
+import { ScrollView, Text, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
+import { BASE_URL } from '../constants/apiUrl';
 
 interface Reserva {
   user: string | null;
@@ -40,6 +41,16 @@ export default function RegisterBooking() {
 
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  
+  // Add refs for the ScrollViews
+  const cityScrollViewRef = useRef<ScrollView>(null);
+  const categoryScrollViewRef = useRef<ScrollView>(null);
+  
+  // Add state for tracking mouse drag
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [activeScrollView, setActiveScrollView] = useState<'city' | 'category' | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,9 +91,9 @@ export default function RegisterBooking() {
     var date =
       reserva.experience_date.getFullYear() +
       "-" +
-      reserva.experience_date.getMonth() +
+      String(reserva.experience_date.getMonth() + 1).padStart(2, "0") +
       "-" +
-      reserva.experience_date.getDay();
+      String(reserva.experience_date.getDate()).padStart(2, "0");
     const data = {
       participants: reserva.participants,
       price: reserva.price,
@@ -93,7 +104,7 @@ export default function RegisterBooking() {
       category: reserva.category,
     };
     axios
-      .post(`http://localhost:8000/bookings/crear-reserva/`, data, {
+      .post(`${BASE_URL}/bookings/crear-reserva/`, data, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -105,22 +116,133 @@ export default function RegisterBooking() {
           error.response ? error.response.data : error.message
         ); // Handle error
       });
-    console.log(reserva);
+  };
+
+  // Mouse event handlers for drag scrolling
+  const handleMouseDown = (e: React.MouseEvent, scrollViewType: 'city' | 'category') => {
+    setIsDragging(true);
+    setStartX(e.pageX);
+    setActiveScrollView(scrollViewType);
+    
+    const scrollView = scrollViewType === 'city' ? 
+      cityScrollViewRef.current : categoryScrollViewRef.current;
+    
+    if (scrollView) {
+      setScrollLeft(scrollView.getScrollableNode().scrollLeft);
+    }
+    
+    // Prevent default to avoid text selection during drag
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.pageX;
+    const distance = startX - x;
+    
+    const scrollView = activeScrollView === 'city' ? 
+      cityScrollViewRef.current : categoryScrollViewRef.current;
+    
+    if (scrollView) {
+      scrollView.scrollTo({ x: scrollLeft + distance, animated: false });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setActiveScrollView(null);
+  };
+
+  // Add effect to handle mouse up outside the component
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        setActiveScrollView(null);
+      }
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
+  // Update mouse event handlers to also work with touch
+  const handleTouchStart = (e: React.TouchEvent, scrollViewType: 'city' | 'category') => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+    setActiveScrollView(scrollViewType);
+    
+    const scrollView = scrollViewType === 'city' ? 
+      cityScrollViewRef.current : categoryScrollViewRef.current;
+    
+    if (scrollView) {
+      setScrollLeft(scrollView.getScrollableNode().scrollLeft);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.touches[0].pageX;
+    const distance = startX - x;
+    
+    const scrollView = activeScrollView === 'city' ? 
+      cityScrollViewRef.current : categoryScrollViewRef.current;
+    
+    if (scrollView) {
+      scrollView.scrollTo({ x: scrollLeft + distance, animated: false });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setActiveScrollView(null);
   };
 
   return (
-    <ScrollView>
-      <Box sx={{ maxWidth: 600, padding: 3 }}>
+    <ScrollView contentContainerStyle={{ 
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <Box sx={{ 
+        maxWidth: 600, 
+        padding: 3, 
+        width: "100%", 
+        margin: "0 auto" 
+      }}>
         <form onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <Typography variant="h6">
               Elige tu ciudad: {reserva.location !== "" ? reserva.location : ""}
             </Typography>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 5 }}
-            >
+            <View style={{ height: 320 }}>
+              <ScrollView
+                ref={cityScrollViewRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 20 }}
+                style={{ 
+                  width: '100%',
+                  height: 320,
+                  marginBottom: 5,
+                  flexGrow: 0,
+                  cursor: isDragging && activeScrollView === 'city' ? 'grabbing' : 'grab'
+                }}
+                onMouseDown={(e) => handleMouseDown(e, 'city')}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onTouchStart={(e) => handleTouchStart(e, 'city')}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                scrollEventThrottle={16}
+                decelerationRate="normal"
+              >
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
                 onClick={() => setReserva({ ...reserva, location: "Sevilla" })}
@@ -224,6 +346,7 @@ export default function RegisterBooking() {
                 </div>
               </Button>
             </ScrollView>
+            </View>
 
             <Typography variant="h6">
               Elige una Categoria:{" "}
@@ -231,9 +354,22 @@ export default function RegisterBooking() {
             </Typography>
 
             <ScrollView
+              ref={categoryScrollViewRef}
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: 5 }}
+              style={{ 
+                marginBottom: 5,
+                cursor: isDragging && activeScrollView === 'category' ? 'grabbing' : 'grab'
+              }}
+              onMouseDown={(e) => handleMouseDown(e, 'category')}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onTouchStart={(e) => handleTouchStart(e, 'category')}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              scrollEventThrottle={16}
+              decelerationRate="normal"
             >
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
@@ -389,9 +525,9 @@ export default function RegisterBooking() {
                 onChange={handleSelectChange}
                 required // Usar el manejador específico para Select
               >
-                <MenuItem value={1}>20 €</MenuItem>
-                <MenuItem value={2}>40 €</MenuItem>
-                <MenuItem value={3}>60 €</MenuItem>
+                <MenuItem value={20}>20 €</MenuItem>
+                <MenuItem value={40}>40 €</MenuItem>
+                <MenuItem value={60}>60 €</MenuItem>
               </Select>
             </FormControl>
             <TextField

@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
 
 export default function Experiences() {
+  // Add ref for the ScrollView
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  // Add state for tracking mouse drag
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
   const experiences = [
     {
       title: 'Cena a ciegas',
@@ -57,10 +65,95 @@ export default function Experiences() {
       }
   ];
 
+  // Mouse event handlers for drag scrolling
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX);
+    
+    if (scrollViewRef.current) {
+      setScrollLeft(scrollViewRef.current.getScrollableNode().scrollLeft);
+    }
+    
+    // Prevent default to avoid text selection during drag
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.pageX;
+    const distance = startX - x;
+    
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: scrollLeft + distance, animated: false });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add effect to handle mouse up outside the component
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+      }
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging]);
+
+  // Touch event handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX);
+    
+    if (scrollViewRef.current) {
+      setScrollLeft(scrollViewRef.current.getScrollableNode().scrollLeft);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const x = e.touches[0].pageX;
+    const distance = startX - x;
+    
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ x: scrollLeft + distance, animated: false });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   return (
     <View style={styles.contentBox}>
       <Text style={styles.sectionTitle}>Algunas de las experiencias que ofrecemos</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollViewRef}
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={{ 
+          cursor: isDragging ? 'grabbing' : 'grab',
+          marginBottom: 5
+        }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        scrollEventThrottle={16}
+        decelerationRate="normal"
+      >
         {experiences.map((exp, index) => (
           <View key={index} style={styles.experienceCard}>
             <Image source={{ uri: exp.image }} style={styles.experienceImage} />

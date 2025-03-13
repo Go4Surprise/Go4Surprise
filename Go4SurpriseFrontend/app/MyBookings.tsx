@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { format, isBefore, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import { BASE_URL } from '../constants/apiUrl';
 
 interface Reserva {
   id: string;
@@ -48,14 +49,14 @@ const MyBookings = () => {
         return;
       }
 
-      const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { user_id: userId },
       });
 
       const usuarioId = usuarioResponse.data.usuario_id;
 
-      const response = await axios.get(`http://localhost:8000/bookings/users/${usuarioId}/`, {
+      const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

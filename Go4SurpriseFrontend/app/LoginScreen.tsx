@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/apiUrl';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function LoginScreen() {
         setErrorMessage(null);
         try {
             const response = await axios.post(
-                'http://localhost:8000/users/login/',
+                `${BASE_URL}/users/login/`,
                 { username, password },
                 { headers: { 'Content-Type': 'application/json' } }
             );

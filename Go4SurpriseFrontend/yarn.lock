@@ -5086,6 +5086,7 @@ globby@^11.0.1:
     npm "^11.2.0"
     react "18.3.1"
     react-dom "18.3.1"
+    react-leaflet "^4.2.1"
     react-native "0.76.7"
     react-native-gesture-handler "~2.20.2"
     react-native-google-places-autocomplete "^2.5.7"
@@ -6334,11 +6335,6 @@ lightningcss-win32-x64-msvc@1.27.0:
   version "1.27.0"
   resolved "https://registry.npmjs.org/lightningcss-win32-x64-msvc/-/lightningcss-win32-x64-msvc-1.27.0.tgz"
   integrity sha512-/OJLj94Zm/waZShL8nB5jsNj3CfNATLCTyFxZyouilfTmSoLDX7VlVAmhPHoZWVFp4vdmoiEbPEYC8HID3m6yw==
-
-lightningcss-darwin-arm64@1.27.0:
-  version "1.27.0"
-  resolved "https://registry.npmjs.org/lightningcss-darwin-arm64/-/lightningcss-darwin-arm64-1.27.0.tgz"
-  integrity sha512-Gl/lqIXY+d+ySmMbgDf0pgaWSqrWYxVHoc88q+Vhf2YNzZ8DwoRzGt5NZDVqqIW5ScpSnmmjcgXP87Dn2ylSSQ==
 
 lightningcss@~1.27.0:
   version "1.27.0"
