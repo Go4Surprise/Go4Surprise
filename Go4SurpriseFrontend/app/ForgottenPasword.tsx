@@ -1,109 +1,143 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ImageBackground } from 'react-native';
-import { useNavigation, Stack } from 'expo-router';
-import axios from 'axios';
+import { 
+    View, Text, TextInput, TouchableOpacity, 
+    StyleSheet, Image, Alert
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function ForgottenPasword() {
-  const navigation = useNavigation();
-  const [email, setEmail] = useState('');
-  const router = useRouter();
+export default function ForgottenPassword() {
+    const router = useRouter();
+    const [email, setEmail] = useState('');
 
-  const sendEmail = async () => {
-    
-  };
+    const sendEmail = async () => {
+        if (!email.trim()) {
+            Alert.alert('Error', 'Por favor, introduce un correo válido.');
+            return;
+        }
 
-  return (
-    <ImageBackground 
-      source={require('../assets/images/Background.jpg')} // Ruta de la imagen de fondo
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-      </>
-      <View style={styles.container}>
-        <Image source={require('../assets/images/logo.png')} style={styles.logo} />
-        <Text style={styles.title}>Go4Surprise</Text>
-        <Text style={styles.subtitle}>¿Tienes problemas para entrar?</Text>
+        try {
+            await axios.post('http://localhost:8000/users/forgot-password/', { email });
+            Alert.alert('Éxito', 'Hemos enviado un enlace de recuperación a tu correo.');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo procesar la solicitud. Inténtalo más tarde.');
+        }
+    };
 
-        <Text style={styles.textInfo}>Introduce tu correo electrónico y 
-          te enviaremos un enlace para que vuelvas a entrar en tu cuenta.</Text>
+    return (
+        <View style={styles.container}>
+            {/* Botón de Volver */}
+            <TouchableOpacity style={styles.backButton} onPress={() => router.push('/LoginScreen')}> 
+                <Ionicons name="arrow-back" size={24} color="#333" />
+            </TouchableOpacity>
 
-        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+            {/* Logo */}
+            <Image source={require('../assets/images/logo.png')} style={styles.logo} />
 
-        <TouchableOpacity style={styles.button} onPress={sendEmail}>
-          <Text style={styles.buttonText}>Enviar enlace de acceso</Text>
-        </TouchableOpacity>
+            {/* Tarjeta con el formulario */}
+            <View style={styles.card}>
+                <Text style={styles.title}>Recuperar Contraseña</Text>
 
-      </View>
-    </ImageBackground>
-  );
+                <Text style={styles.textInfo}>
+                    Introduce tu correo y te enviaremos un enlace para recuperar tu cuenta.
+                </Text>
+
+                <TextInput 
+                    style={styles.input} 
+                    placeholder="Correo electrónico" 
+                    value={email} 
+                    onChangeText={setEmail} 
+                    keyboardType="email-address" 
+                />
+
+                {/* Botón de envío */}
+                <TouchableOpacity style={styles.button} onPress={sendEmail}>
+                    <Text style={styles.buttonText}>Enviar enlace</Text>
+                </TouchableOpacity>
+
+                {/* Enlace a Login */}
+                <Text style={styles.loginText} onPress={() => router.push('/')}>
+                    ¿Ya la recordaste? <Text style={styles.loginLink}>Inicia sesión</Text>
+                </Text>
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)', // Leve transparencia para mejorar visibilidad
-    borderRadius: 10, // Para que no se vea tan cuadrado
-    margin: 20, // Da un poco de margen a los lados
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
-    resizeMode: 'contain',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#004AAD',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#777',
-    marginBottom: 20,
-  },
-  textInfo: {
-    fontSize: 12,
-    color: '#777',
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#333',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: '#777',
-  },
-  linkText: {
-    color: 'blue',
-    fontWeight: 'bold',
-  },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F4F4F4',
+        paddingHorizontal: 20,
+    },
+    backButton: {
+        position: 'absolute',
+        top: 50,
+        left: 20,
+    },
+    logo: {
+        width: 120,
+        height: 120,
+        resizeMode: 'contain',
+        marginBottom: 20,
+    },
+    card: {
+        width: '100%',
+        maxWidth: 400,
+        backgroundColor: '#FFF',
+        borderRadius: 12,
+        padding: 24,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 4,
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#1877F2',
+        marginBottom: 10,
+    },
+    textInfo: {
+        fontSize: 14,
+        color: '#606770',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    input: {
+        width: '100%',
+        padding: 14,
+        borderWidth: 1,
+        borderColor: '#CCC',
+        borderRadius: 8,
+        backgroundColor: '#F9F9F9',
+        marginBottom: 12,
+    },
+    button: {
+        backgroundColor: '#1877F2',
+        paddingVertical: 14,
+        borderRadius: 8,
+        alignItems: 'center',
+        width: '100%',
+        marginTop: 10,
+    },
+    buttonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    loginText: {
+        marginTop: 16,
+        fontSize: 14,
+        color: '#606770',
+    },
+    loginLink: {
+        color: '#1877F2',
+        fontWeight: 'bold',
+    },
 });
