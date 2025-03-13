@@ -1,74 +1,48 @@
-import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-  ImageBackground,
-} from "react-native";
-import { router, Stack } from "expo-router";
-import { useNavigation } from "expo-router";
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
+import { useWindowDimensions } from "react-native";
+import { router, Stack } from 'expo-router';
+import { useNavigation } from 'expo-router';
+import CountDown from './CountDown';
+import Reviews from './Reviews';
+import Experiences from './Experiences';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 600;
 
   return (
     <ScrollView style={styles.container}>
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-      </>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingHorizontal: width * 0.1 }]}>
         <View style={styles.logoContainer}>
-          <Image
-            source={require("../assets/images/logo.png")}
-            style={styles.logo}
-          />
+          <Image source={require("../assets/images/logo.png")} style={styles.logo} />
           <Text style={styles.title}>Go4Surprise</Text>
         </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.navLinks}>
-            <TouchableOpacity>
-              <Text style={styles.navText}>COUNT-DOWN</Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={styles.navText}>RESEÑAS</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push("/MyBookings")}>
-              <Text style={styles.navText}>MIS RESERVAS</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-
-        <TouchableOpacity
-          onPress={() => router.push("/Profile")}
-          style={{ alignSelf: "flex-start" }}
-        >
-          <Image
-            source={require("../assets/images/user-logo-none.png")}
-            style={styles.profileIcon}
-          />
+        <TouchableOpacity onPress={() => router.push("/Profile")}>
+          <Image source={require("../assets/images/user-logo-none.png")} style={styles.profileIcon} />
         </TouchableOpacity>
       </View>
-
+      <CountDown />
       <View style={styles.centeredContainer}>
         <ImageBackground
           source={require("../assets/images/LittleBackground.jpg")}
-          style={styles.background}
+          style={[styles.background, { height: width < 600 ? 250 : 350 }]} // 🔹 Ajusta altura según el ancho
           imageStyle={styles.image}
         >
           <View style={styles.overlayContent}>
-            <Text style={styles.subtitle}>
-              ¿No tienes ganas de organizar un evento? Deja que nosotros te
-              demos una sorpresa
+            <Text style={[styles.subtitle, { fontSize: isSmallScreen ? 30 : 50 }]}>
+              ATRÉVETE A UNA
             </Text>
-            <Text style={styles.subsubtitle}>
-              Descubre el evento 24 horas antes
+            <Text style={[styles.subtitle, { fontSize: isSmallScreen ? 30 : 50 }]}>
+              EXPERIENCIA SORPRESA
+            </Text>
+            <Text style={[styles.subsubtitle, { fontSize: isSmallScreen ? 18 : 30 }]}>
+              ¡Descubre la experiencia 24 horas antes!
             </Text>
             <TouchableOpacity
               style={styles.surpriseButton}
+              activeOpacity={0.8}
               onPress={() => router.push("/RegisterBookings")}
             >
               <Text style={styles.surpriseButtonText}>¡Sorpréndeme!</Text>
@@ -76,81 +50,8 @@ export default function HomeScreen() {
           </View>
         </ImageBackground>
       </View>
-
-      <View style={styles.contentBox}>
-        <Text style={styles.sectionTitle}>
-          ¿No te lo crees? Mira la opinión de otras personas
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.reviewCard}>
-            <Text style={styles.reviewUser}>Juan Pérez</Text>
-            <Text style={styles.reviewStars}>★★★★★</Text>
-            <Text style={styles.reviewDate}>1 de Enero, 2023</Text>
-            <Text style={styles.reviewContent}>
-              ¡Fue una experiencia increíble! Muy recomendable.
-            </Text>
-          </View>
-          <View style={styles.reviewCard}>
-            <Text style={styles.reviewUser}>María López</Text>
-            <Text style={styles.reviewStars}>★★★★☆</Text>
-            <Text style={styles.reviewDate}>15 de Febrero, 2023</Text>
-            <Text style={styles.reviewContent}>
-              Muy divertido, aunque me hubiera gustado más variedad.
-            </Text>
-          </View>
-          <View style={styles.reviewCard}>
-            <Text style={styles.reviewUser}>Carlos Gómez</Text>
-            <Text style={styles.reviewStars}>★★★★★</Text>
-            <Text style={styles.reviewDate}>10 de Marzo, 2023</Text>
-            <Text style={styles.reviewContent}>
-              Definitivamente lo haré otra vez. ¡Muy recomendado!
-            </Text>
-          </View>
-        </ScrollView>
-        <Text
-          style={styles.linkText}
-          onPress={() => navigation.navigate("MoreReviews")}
-        >
-          Más opiniones
-        </Text>
-      </View>
-
-      <View style={styles.contentBox}>
-        <Text style={styles.sectionTitle}>
-          Algunas de las experiencias que ofrecemos
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.experienceCard}>
-            <Image
-              source={{
-                uri: "https://e00-elmundo.uecdn.es/assets/multimedia/imagenes/2021/11/08/16363869596750.jpg",
-              }}
-              style={styles.experienceImage}
-            />
-            <Text style={styles.experienceTitle}>Cena a ciegas</Text>
-          </View>
-          <View style={styles.experienceCard}>
-            <Image
-              source={{
-                uri: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Escape_Room_-_%22The_Expedition%22_%28Escape_Quest_Bethesda%29.jpg",
-              }}
-              style={styles.experienceImage}
-            />
-            <Text style={styles.experienceTitle}>Escape Room</Text>
-          </View>
-          <View style={styles.experienceCard}>
-            <Image
-              source={{
-                uri: "https://d2exd72xrrp1s7.cloudfront.net/www/gu/guvk13n7fs5rboxjeh2z5up04degi9c5-c1860640-full/18cb1ec8f9c?width=2688&height=995&crop=true&q=40",
-              }}
-              style={styles.experienceImage}
-            />
-            <Text style={styles.experienceTitle}>
-              Aventura en la naturaleza
-            </Text>
-          </View>
-        </ScrollView>
-      </View>
+      <Reviews navigation={navigation} />
+      <Experiences />
     </ScrollView>
   );
 }
@@ -158,15 +59,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   logoContainer: {
     flexDirection: "row",
@@ -175,54 +79,82 @@ const styles = StyleSheet.create({
   logo: {
     width: 40,
     height: 40,
-    resizeMode: "contain",
-    marginRight: 10,
+    marginRight: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#004AAD",
   },
-  navLinks: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
+  profileIcon: {
+    width: 35,
+    height: 35,
   },
   navText: {
     fontSize: 14,
-    color: "#333",
-    fontWeight: "bold",
+    color: '#333',
+    fontWeight: 'bold',
     marginHorizontal: 50,
   },
-  profileIcon: {
-    width: 30,
-    height: 30,
-    resizeMode: "contain",
-  },
   centeredContainer: {
+    alignSelf: "center",
+    width: "80%",
     alignItems: "center",
+    justifyContent: "center",
     marginVertical: 20,
   },
   background: {
-    width: "90%",
-    height: 250,
+    width: "100%", // 🔹 Ocupará el 90% del ancho de la pantalla
     justifyContent: "center",
     alignItems: "center",
+    borderRadius: 20,
+    overflow: "hidden",
   },
   image: {
-    borderRadius: 15,
+    opacity: 0.6,
   },
   overlayContent: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    padding: 20,
-    borderRadius: 10,
     alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  subtitle: {
+    fontSize: 50,
+    fontWeight: "bold",
+    color: "#004AAD",
+    textAlign: "center",
+    marginBottom: 5,
+    textShadowColor: "rgba(3, 25, 120, 0.5)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  subsubtitle: {
+    fontSize: 30,
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  surpriseButton: {
+    backgroundColor: "blue",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    marginTop: 10,
+    shadowColor: "#FF6F61",
+    shadowOpacity: 0.4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  surpriseButtonText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#fff",
   },
   experienceCard: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#f9f9f9',
     padding: 10,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
     marginRight: 15,
   },
   experienceImage: {
@@ -232,29 +164,8 @@ const styles = StyleSheet.create({
   },
   experienceTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginTop: 5,
-  },
-  subtitle: {
-    fontSize: 18,
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  subsubtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  surpriseButton: {
-    backgroundColor: "#004AAD",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-  },
-  surpriseButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
   },
   contentBox: {
     padding: 20,
@@ -262,40 +173,40 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 10,
-    color: "#004AAD",
+    color: '#004AAD',
   },
   reviewContainer: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 8,
     marginBottom: 20,
   },
   reviewUser: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   reviewStars: {
     fontSize: 16,
-    color: "#FFD700",
+    color: '#FFD700',
   },
   reviewDate: {
     fontSize: 14,
-    color: "#777",
+    color: '#777',
   },
   reviewContent: {
     fontSize: 14,
-    color: "#333",
+    color: '#333',
   },
   linkText: {
-    color: "blue",
-    fontWeight: "bold",
-    textAlign: "center",
+    color: 'blue',
+    fontWeight: 'bold',
+    textAlign: 'center',
     borderRadius: 8,
   },
   reviewCard: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 8,
     marginRight: 15,
