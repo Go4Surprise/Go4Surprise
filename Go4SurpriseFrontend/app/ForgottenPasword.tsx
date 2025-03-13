@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../constants/apiUrl';
 
 export default function ForgottenPassword() {
     const router = useRouter();
@@ -18,7 +19,7 @@ export default function ForgottenPassword() {
         }
 
         try {
-            await axios.post('http://localhost:8000/users/forgot-password/', { email });
+            await axios.post(`${BASE_URL}/users/forgot-password/`, { email });
             Alert.alert('Éxito', 'Hemos enviado un enlace de recuperación a tu correo.');
         } catch (error) {
             Alert.alert('Error', 'No se pudo procesar la solicitud. Inténtalo más tarde.');

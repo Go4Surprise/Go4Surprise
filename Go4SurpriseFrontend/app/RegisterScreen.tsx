@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../constants/apiUrl';
 
 export default function RegisterScreen() {
     const router = useRouter();
@@ -18,7 +19,7 @@ export default function RegisterScreen() {
 
     const handleRegister = async () => {
         try {
-            await axios.post('http://localhost:8000/users/register/', {
+            await axios.post(`${BASE_URL}/users/register/`, {
                 username,
                 password,
                 name,

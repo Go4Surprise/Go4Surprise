@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -29,6 +30,14 @@ SECRET_KEY = 'django-insecure-9(ublthm*z4@l6q6r#a+bfe2e8$x6(dh#)$@+a*_w2*6s!7qiu
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+APPENGINE_URL = os.getenv('APPENGINE_URL')
+if APPENGINE_URL:
+    if not urlparse(APPENGINE_URL).scheme:
+        APPENGINE_URL = f'https://{APPENGINE_URL}'
+    ALLOWED_HOSTS.append(urlparse(APPENGINE_URL).netloc)
+    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
+    SECURE_SSL_REDIRECT = True
 
 # Application definition
 
@@ -55,13 +64,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -69,6 +77,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",  # Agrega la URL de tu Expo Go
     "http://localhost:8082"
 ]
+
+if APPENGINE_URL:
+    CORS_ALLOWED_ORIGINS.append(APPENGINE_URL)
+    frontend_url = "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+    CORS_ALLOWED_ORIGINS.append(frontend_url)
 
 ROOT_URLCONF = 'go4surprise.urls'
 
@@ -100,7 +113,10 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('DATABASE_URL'),
-        'PORT': '5432'
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require'
+        }
     }
 }
 
@@ -151,6 +167,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 from datetime import timedelta
 SIMPLE_JWT = {

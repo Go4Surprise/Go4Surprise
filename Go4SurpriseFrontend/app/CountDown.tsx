@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { differenceInDays, parseISO } from "date-fns";
+import { BASE_URL } from '../constants/apiUrl';
 
 export default function CountDown() {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
@@ -18,14 +19,14 @@ export default function CountDown() {
 
             if (!token || !userId) return;
 
-            const usuarioResponse = await axios.get(`http://localhost:8000/users/get-usuario-id/`, {
+            const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: { user_id: userId },
             });
 
             const usuarioId = usuarioResponse.data.usuario_id;
 
-            const response = await axios.get(`http://localhost:8000/bookings/users/${usuarioId}/`, {
+            const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 

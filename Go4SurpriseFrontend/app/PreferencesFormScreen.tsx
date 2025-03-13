@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Animated, I
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/apiUrl';
 
 const questions = [
   { id: 1, question: 'Si tu vida fuera una película, ¿qué género sería?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎸 Un concierto íntimo', '🎻 Un evento clásico', '🚫 Nada en especial'] },
@@ -93,7 +94,7 @@ export default function PreferencesFormScreen() {
       console.log("Datos enviados:", payload);
   
       await axios.patch(
-        "http://localhost:8000/users/preferences/",
+        `${BASE_URL}/users/preferences/`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
