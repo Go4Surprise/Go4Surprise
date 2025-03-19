@@ -82,6 +82,6 @@ class ReservaSerializer(serializers.ModelSerializer):
         now = timezone.now().date()
 
         if obj.experience_date - now <= timedelta(days=1):
-            return obj.experience.hint
+            return obj.experience.hint or "No hay información adicional disponible."
     
         return None
