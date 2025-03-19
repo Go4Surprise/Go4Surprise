@@ -6,6 +6,7 @@ from users.models import Usuario
 from .models import Booking
 from django.utils import timezone
 from experiences.serializers import ExperienceSerializer
+from datetime import datetime, timedelta
 
 class CrearReservaSerializer(serializers.ModelSerializer):
     participants= serializers.IntegerField(required=True)
@@ -65,6 +66,7 @@ class CrearReservaSerializer(serializers.ModelSerializer):
 
 class ReservaSerializer(serializers.ModelSerializer):
     experience = ExperienceSerializer()
+    hint = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -73,3 +75,13 @@ class ReservaSerializer(serializers.ModelSerializer):
 
     def get_experience(self, obj):
         return {"name": obj.experience.name} 
+    
+
+    def get_hint(self, obj):
+        # Devuelve la pista de la experiencia si faltan 24 horas o menos para la fecha de la experiencia.
+        now = timezone.now().date()
+
+        if obj.experience_date - now <= timedelta(days=1):
+            return obj.experience.hint
+    
+        return None
