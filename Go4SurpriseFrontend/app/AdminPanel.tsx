@@ -1,35 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { 
-    View, Text, StyleSheet, FlatList, TouchableOpacity, 
-    ActivityIndicator, Alert, useWindowDimensions 
+    View, Text, StyleSheet, TouchableOpacity, 
+    ActivityIndicator, Alert, useWindowDimensions, ScrollView 
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../constants/apiUrl';
-
-type User = {
-    id: number;
-    username: string;
-    email: string;
-    is_superuser: boolean;
-    is_staff: boolean;
-    date_joined: string;
-    first_name: string;
-    last_name: string;
-};
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AdminPanel() {
-    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const { width } = useWindowDimensions();
     const isMobile = width < 768;
+    const [adminName, setAdminName] = useState('Administrador');
 
     useEffect(() => {
         checkAdminStatus();
-        fetchUsers();
+        loadAdminName();
     }, []);
 
     const checkAdminStatus = async () => {
@@ -37,24 +24,17 @@ export default function AdminPanel() {
         if (isAdmin !== 'true') {
             Alert.alert('Acceso denegado', 'No tienes permisos para acceder a esta sección.');
             router.replace('/HomeScreen');
+        } else {
+            setLoading(false);
         }
     };
 
-    const fetchUsers = async () => {
-        try {
-            const token = await AsyncStorage.getItem('accessToken');
-            const response = await axios.get(`${BASE_URL}/users/admin/list/`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            setUsers(response.data);
-            setLoading(false);
-        } catch (error) {
-            setError('Error al cargar los usuarios');
-            setLoading(false);
-            console.error('Error fetching users:', error);
+    const loadAdminName = async () => {
+        // You could fetch the admin's name from storage or API if needed
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+            // For now, just setting a generic name. In a real app, you might fetch user info
+            setAdminName('Administrador');
         }
     };
 
@@ -67,10 +47,6 @@ export default function AdminPanel() {
         router.replace('/LoginScreen');
     };
 
-    const viewUserDetails = (userId: number) => {
-        router.push(`/UserDetails/${userId}`);
-    };
-
     if (loading) {
         return (
             <View style={styles.centerContainer}>
@@ -79,61 +55,69 @@ export default function AdminPanel() {
         );
     }
 
-    if (error) {
-        return (
-            <View style={styles.centerContainer}>
-                <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.button} onPress={fetchUsers}>
-                    <Text style={styles.buttonText}>Reintentar</Text>
-                </TouchableOpacity>
-            </View>
-        );
-    }
-
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <View style={[styles.content, isMobile ? styles.contentMobile : styles.contentDesktop]}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>Panel de Administración</Text>
+                    <View style={styles.headerLeft}>
+                        <TouchableOpacity 
+                            style={styles.homeButton}
+                            onPress={() => router.push('/HomeScreen')}
+                        >
+                            <Ionicons name="home-outline" size={22} color="#1877F2" />
+                            <Text style={styles.homeButtonText}>Inicio</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.title}>Panel de Administración</Text>
+                    </View>
                     <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                         <Text style={styles.buttonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>
 
-                <View style={styles.card}>
-                    <Text style={styles.subtitle}>Lista de usuarios</Text>
-                    <View style={styles.listContainer}>
-                        <FlatList
-                            data={users}
-                            keyExtractor={(item) => item.id.toString()}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity 
-                                    style={styles.userItem}
-                                    onPress={() => viewUserDetails(item.id)}
-                                >
-                                    <View style={styles.userInfo}>
-                                        <Text style={styles.username}>{item.username}</Text>
-                                        <Text>{item.email}</Text>
-                                        <Text>
-                                            {item.first_name} {item.last_name}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.userStatus}>
-                                        {item.is_superuser && item.is_staff && (
-                                            <Text style={styles.adminBadge}>Admin</Text>
-                                        )}
-                                        {item.is_staff && !item.is_superuser && (
-                                            <Text style={styles.staffBadge}>Staff</Text>
-                                        )}
-                                    </View>
-                                </TouchableOpacity>
-                            )}
-                            ItemSeparatorComponent={() => <View style={styles.separator} />}
-                        />
+                <Text style={styles.welcomeText}>Bienvenido, {adminName}</Text>
+
+                <View style={styles.dashboardContainer}>
+                    <Text style={styles.sectionTitle}>Gestión de la Plataforma</Text>
+                    
+                    <View style={styles.cardsContainer}>
+                        <TouchableOpacity 
+                            style={styles.card}
+                            onPress={() => router.push('/AdminUserPanel')}
+                        >
+                            <View style={styles.cardIconContainer}>
+                                <Ionicons name="people" size={48} color="#1877F2" />
+                            </View>
+                            <Text style={styles.cardTitle}>Gestión de Usuarios</Text>
+                            <Text style={styles.cardDescription}>
+                                Administra los usuarios de la plataforma y gestiona cuentas.
+                            </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity style={styles.card}>
+                            <View style={styles.cardIconContainer}>
+                                <Ionicons name="stats-chart" size={48} color="#42B72A" />
+                            </View>
+                            <Text style={styles.cardTitle}>Estadísticas</Text>
+                            <Text style={styles.cardDescription}>
+                                Visualiza estadísticas y métricas de uso de la plataforma. No Implementado.
+                            </Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                            style={styles.card}
+                        >
+                            <View style={styles.cardIconContainer}>
+                                <Ionicons name="calendar" size={48} color="#FF6B00" />
+                            </View>
+                            <Text style={styles.cardTitle}>Gestión de Reservas</Text>
+                            <Text style={styles.cardDescription}>
+                                Administra las reservas, visualiza detalles y gestiona estados. No Implementado.
+                            </Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 
@@ -141,8 +125,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F2F5',
-        paddingTop: 50,
-        paddingHorizontal: 20,
     },
     centerContainer: {
         flex: 1,
@@ -150,11 +132,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     content: {
-        flex: 1,
-        width: '100%',
-        maxWidth: 1100,
+        padding: 20,
+        paddingTop: 50,
     },
     contentDesktop: {
+        width: '100%',
+        maxWidth: 1100,
         alignSelf: 'center',
     },
     contentMobile: {
@@ -166,75 +149,28 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 20,
     },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    homeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 15,
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#1877F2',
+    },
+    homeButtonText: {
+        marginLeft: 5,
+        color: '#1877F2',
+        fontWeight: 'bold',
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         color: '#333',
-    },
-    subtitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    card: {
-        flex: 1,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 5,
-    },
-    listContainer: {
-        flex: 1,
-    },
-    userItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    userInfo: {
-        flex: 1,
-    },
-    userStatus: {
-        flexDirection: 'row',
-    },
-    username: {
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    adminBadge: {
-        backgroundColor: '#1877F2',
-        color: 'white',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    staffBadge: {
-        backgroundColor: '#42B72A',
-        color: 'white',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 4,
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    separator: {
-        height: 1,
-        backgroundColor: '#E4E6EB',
-    },
-    button: {
-        backgroundColor: '#1877F2',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10,
     },
     logoutButton: {
         backgroundColor: '#E4144C',
@@ -247,9 +183,50 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    errorText: {
-        color: 'red',
-        fontSize: 16,
+    welcomeText: {
+        fontSize: 18,
+        color: '#555',
+        marginBottom: 30,
+    },
+    dashboardContainer: {
+        marginBottom: 30,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 15,
+    },
+    cardsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+        elevation: 5,
+        marginBottom: 20,
+        width: '48%',
+        minWidth: 280,
+    },
+    cardIconContainer: {
+        marginBottom: 15,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
         marginBottom: 10,
+    },
+    cardDescription: {
+        color: '#555',
+        fontSize: 14,
+        lineHeight: 20,
     },
 });

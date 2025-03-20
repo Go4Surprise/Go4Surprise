@@ -35,14 +35,7 @@ export default function LoginScreen() {
 
             Alert.alert('Éxito', 'Inicio de sesión correcto');
 
-            // Redirect based on admin status
-            if (is_superuser || is_staff) {
-                console.log("admin");
-                router.push('/AdminPanel');
-            } else {
-                console.log("no admin");
-                router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
-            }
+            router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
         } catch (error) {
             setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
         }

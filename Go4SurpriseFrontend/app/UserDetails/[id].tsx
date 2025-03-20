@@ -15,10 +15,9 @@ type User = {
     email: string;
     is_superuser: boolean;
     is_staff: boolean;
-    first_name: string;
-    last_name: string;
-    date_joined: string;
-    last_login: string;
+    name: string;
+    surname: string;
+    phone: string;
 };
 
 export default function UserDetails() {
@@ -113,7 +112,7 @@ export default function UserDetails() {
                             });
                             
                             Alert.alert('Éxito', 'Usuario eliminado correctamente');
-                            router.replace('/AdminPanel');
+                            router.replace('/AdminUserPanel');
                         } catch (error) {
                             Alert.alert('Error', 'No se pudo eliminar el usuario');
                             console.error('Error deleting user:', error);
@@ -136,7 +135,7 @@ export default function UserDetails() {
         return (
             <View style={styles.centerContainer}>
                 <Text style={styles.errorText}>{error || 'Usuario no encontrado'}</Text>
-                <TouchableOpacity style={styles.button} onPress={() => router.back()}>
+                <TouchableOpacity style={styles.button} onPress={() => router.push('/AdminUserPanel')}>
                     <Text style={styles.buttonText}>Volver</Text>
                 </TouchableOpacity>
             </View>
@@ -210,15 +209,29 @@ export default function UserDetails() {
                     </View>
 
                     <View style={styles.fieldGroup}>
+                        <Text style={styles.fieldLabel}>Teléfono:</Text>
+                        {isEditing ? (
+                            <TextInput
+                                style={styles.input}
+                                value={editData.phone}
+                                onChangeText={(text) => setEditData({...editData, phone: text})}
+                                keyboardType="phone-pad"
+                            />
+                        ) : (
+                            <Text style={styles.fieldValue}>{user.phone || 'No especificado'}</Text>
+                        )}
+                    </View>
+
+                    <View style={styles.fieldGroup}>
                         <Text style={styles.fieldLabel}>Nombre:</Text>
                         {isEditing ? (
                             <TextInput
                                 style={styles.input}
-                                value={editData.first_name}
-                                onChangeText={(text) => setEditData({...editData, first_name: text})}
+                                value={editData.name}
+                                onChangeText={(text) => setEditData({...editData, name: text})}
                             />
                         ) : (
-                            <Text style={styles.fieldValue}>{user.first_name || 'No especificado'}</Text>
+                            <Text style={styles.fieldValue}>{user.name || 'No especificado'}</Text>
                         )}
                     </View>
 
@@ -227,11 +240,11 @@ export default function UserDetails() {
                         {isEditing ? (
                             <TextInput
                                 style={styles.input}
-                                value={editData.last_name}
-                                onChangeText={(text) => setEditData({...editData, last_name: text})}
+                                value={editData.surname}
+                                onChangeText={(text) => setEditData({...editData, surname: text})}
                             />
                         ) : (
-                            <Text style={styles.fieldValue}>{user.last_name || 'No especificado'}</Text>
+                            <Text style={styles.fieldValue}>{user.surname || 'No especificado'}</Text>
                         )}
                     </View>
 
@@ -262,20 +275,6 @@ export default function UserDetails() {
                         ) : (
                             <Text style={styles.fieldValue}>{user.is_staff ? 'Sí' : 'No'}</Text>
                         )}
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.fieldLabel}>Fecha de registro:</Text>
-                        <Text style={styles.fieldValue}>
-                            {new Date(user.date_joined).toLocaleDateString()}
-                        </Text>
-                    </View>
-
-                    <View style={styles.fieldGroup}>
-                        <Text style={styles.fieldLabel}>Último acceso:</Text>
-                        <Text style={styles.fieldValue}>
-                            {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Nunca'}
-                        </Text>
                     </View>
 
                     <TouchableOpacity
