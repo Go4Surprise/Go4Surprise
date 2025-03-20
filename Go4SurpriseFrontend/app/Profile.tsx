@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackg
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios, { AxiosError } from "axios";
+import axios, {  } from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 
 interface Reservation  {
@@ -121,7 +121,7 @@ export default function UserProfileScreen() {
             return;
         }
 
-        const response = await axios.post(
+        await axios.post(
             `${BASE_URL}/users/change_password/`,
             { current_password: currentPassword, new_password: newPassword },
             { headers: { Authorization: `Bearer ${token}` } }
@@ -264,7 +264,7 @@ export default function UserProfileScreen() {
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={fetchPastReservations}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => fetchPastReservations()}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Historial de Reservas</Text>
         </TouchableOpacity>
@@ -300,11 +300,11 @@ export default function UserProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
-            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
-            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} placeholder="Nombre" />
+            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} placeholder="Apellido" />
+            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} placeholder="Usuario" />
             <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
-            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} placeholder="Teléfono" keyboardType="phone-pad" />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
                 <Text style={styles.modalButtonText}>Guardar</Text>

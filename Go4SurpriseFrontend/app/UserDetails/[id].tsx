@@ -228,7 +228,7 @@ export default function UserDetails() {
                             <TextInput
                                 style={styles.input}
                                 value={editData.name}
-                                onChangeText={(text) => setEditData({...editData, name: text})}
+                                onChangeText={(text) => { setEditData({...editData, name: text}); }}
                             />
                         ) : (
                             <Text style={styles.fieldValue}>{user.name || 'No especificado'}</Text>
@@ -270,7 +270,7 @@ export default function UserDetails() {
                         {isEditing ? (
                             <Switch
                                 value={!!editData.is_staff}
-                                onValueChange={(value) => setEditData({...editData, is_staff: value})}
+                                onValueChange={(value) => { setEditData({...editData, is_staff: value}); }}
                             />
                         ) : (
                             <Text style={styles.fieldValue}>{user.is_staff ? 'Sí' : 'No'}</Text>

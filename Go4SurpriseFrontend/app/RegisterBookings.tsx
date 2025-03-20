@@ -13,8 +13,8 @@ import {
   Input,
   Typography,
 } from "@mui/material";
-import axios, { AxiosError } from "axios";
-import { ScrollView, Text, StyleSheet, View } from "react-native";
+import axios, {  } from "axios";
+import { ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 
@@ -107,7 +107,7 @@ export default function RegisterBooking() {
       .post(`${BASE_URL}/bookings/crear-reserva/`, data, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => {
+      .then(() => {
         router.push("/HomeScreen");
       })
       .catch((error) => {
@@ -393,7 +393,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "CULTURE" })}
+                onClick={() => { setReserva({ ...reserva, category: "CULTURE" }); }}
                 variant={reserva.category == "CULTURE" ? "outlined" : "text"}
               >
                 <div

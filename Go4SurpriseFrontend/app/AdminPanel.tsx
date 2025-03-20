@@ -15,8 +15,8 @@ export default function AdminPanel() {
     const [adminName, setAdminName] = useState('Administrador');
 
     useEffect(() => {
-        checkAdminStatus();
-        loadAdminName();
+        void checkAdminStatus();
+        void loadAdminName();
     }, []);
 
     const checkAdminStatus = async () => {

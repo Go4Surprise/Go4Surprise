@@ -29,7 +29,7 @@ export default function AdminPanel() {
 
     useEffect(() => {
         checkAdminStatus();
-        fetchUsers();
+        void fetchUsers();
     }, []);
 
     const checkAdminStatus = async () => {
@@ -112,7 +112,7 @@ export default function AdminPanel() {
                             renderItem={({ item }) => (
                                 <TouchableOpacity 
                                     style={styles.userItem}
-                                    onPress={() => viewUserDetails(item.id)}
+                                    onPress={() => { viewUserDetails(item.id); }}
                                 >
                                     <View style={styles.userInfo}>
                                         <Text style={styles.username}>{item.username}</Text>
