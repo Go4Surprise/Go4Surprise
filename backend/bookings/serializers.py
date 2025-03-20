@@ -85,3 +85,63 @@ class ReservaSerializer(serializers.ModelSerializer):
             return obj.experience.hint or "No hay información adicional disponible."
     
         return None
+    
+
+class AdminBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+
+class AdminBookingUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating Booking model from admin panel"""
+
+    participants = serializers.IntegerField(required=False)
+    price = serializers.FloatField(write_only=True, required=False)
+    booking_date = serializers.DateField(write_only=True, required=False)
+    experience_date = serializers.DateField(required=False)
+    cancellable = serializers.BooleanField(required=False)
+    status = serializers.ChoiceField(
+        choices=['PENDING', 'CANCELLED', 'CONFIRMED'],
+        required=False
+    )
+
+    class Meta:
+        model = Booking
+        fields = '__all__'
+
+    def validate(self, data):
+        if len(data) == 0:
+            raise serializers.ValidationError("No hay ningún campo para actualizar.")
+        return data
+
+    def update(self, instance, validated_data):
+        participants = validated_data.pop('participants', None)
+        price = validated_data.pop('price', None)
+        booking_date = validated_data.pop('booking_date', None)
+        experience_date = validated_data.pop('experience_date', None)
+        cancellable = validated_data.pop('cancellable', None)
+        status = validated_data.pop('status', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        try:
+            booking = instance.booking
+            if participants is not None:
+                booking.participants = participants
+            if price is not None:
+                booking.price = price
+            if booking_date is not None:
+                booking.booking_date = booking_date
+            if experience_date is not None: 
+                booking.experience_date = experience_date
+            if cancellable is not None:
+                booking.cancellable = cancellable
+            if status is not None:
+                booking.status = status
+        except Booking.DoesNotExist:
+            pass
+
+        return instance
