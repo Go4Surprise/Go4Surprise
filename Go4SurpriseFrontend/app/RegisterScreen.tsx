@@ -28,37 +28,37 @@ export default function RegisterScreen() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const validateFields = () => {
-        let newErrors: { 
-            username?: string; 
-            password?: string; 
-            name?: string; 
-            surname?: string; 
-            email?: string; 
-            phone?: string; 
-        } = {};
-
-        if (!username) newErrors.username = "El nombre de usuario es obligatorio";
-        if (!password) {
-            newErrors.password = "La contraseña es obligatoria";
-        } else if (password.length < 6) {
+        const validations = [
+            { field: "username", value: username, message: "El nombre de usuario es obligatorio" },
+            { field: "password", value: password, message: "La contraseña es obligatoria" },
+            { field: "name", value: name, message: "El nombre es obligatorio" },
+            { field: "surname", value: surname, message: "El apellido es obligatorio" },
+            { field: "email", value: email, message: "El correo es obligatorio" },
+            { field: "phone", value: phone, message: "El teléfono es obligatorio" },
+        ];
+    
+        let newErrors: Record<string, string> = {};
+    
+        // Validaciones generales (campos vacíos)
+        validations.forEach(({ field, value, message }) => {
+            if (!value) newErrors[field] = message;
+        });
+    
+        // Validaciones específicas
+        if (password && password.length < 6) {
             newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         }
-        if (!name) newErrors.name = "El nombre es obligatorio";
-        if (!surname) newErrors.surname = "El apellido es obligatorio";
-        if (!email) {
-            newErrors.email = "El correo es obligatorio";
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
+        if (email && !/\S+@\S+\.\S+/.test(email)) {
             newErrors.email = "El correo electrónico no es válido";
         }
-        if (!phone) {
-            newErrors.phone = "El teléfono es obligatorio";
-        } else if (!/^\d{9}$/.test(phone)) {
+        if (phone && !/^\d{9}$/.test(phone)) {
             newErrors.phone = "El teléfono debe tener 9 dígitos";
         }
-
-        setErrors(newErrors); 
-        return Object.keys(newErrors).length === 0; 
+    
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
+    
 
     const checkUsernameExists = async () => {
         setErrorMessage(null); 
