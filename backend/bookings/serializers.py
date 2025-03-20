@@ -78,10 +78,10 @@ class ReservaSerializer(serializers.ModelSerializer):
     
 
     def get_hint(self, obj):
-        # Devuelve la pista de la experiencia si faltan 24 horas o menos para la fecha de la experiencia.
+        # Devuelve la pista de la experiencia si faltan 48 horas o menos para la fecha de la experiencia.
         now = timezone.now().date()
 
-        if obj.experience_date - now <= timedelta(days=1):
+        if obj.experience_date - now <= timedelta(days=2):
             return obj.experience.hint or "No hay información adicional disponible."
     
         return None

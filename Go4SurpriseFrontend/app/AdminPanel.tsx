@@ -105,13 +105,14 @@ export default function AdminPanel() {
                         
                         <TouchableOpacity 
                             style={styles.card}
+                            onPress={() => router.push('/AdminBookingsPanel')}
                         >
                             <View style={styles.cardIconContainer}>
                                 <Ionicons name="calendar" size={48} color="#FF6B00" />
                             </View>
                             <Text style={styles.cardTitle}>Gestión de Reservas</Text>
                             <Text style={styles.cardDescription}>
-                                Administra las reservas, visualiza detalles y gestiona estados. No Implementado.
+                                Administra las reservas, visualiza detalles y gestiona estados.
                             </Text>
                         </TouchableOpacity>
                     </View>
