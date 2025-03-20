@@ -127,21 +127,19 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
 
-        try:
-            booking = instance.booking
-            if participants is not None:
-                booking.participants = participants
-            if price is not None:
-                booking.price = price
-            if booking_date is not None:
-                booking.booking_date = booking_date
-            if experience_date is not None: 
-                booking.experience_date = experience_date
-            if cancellable is not None:
-                booking.cancellable = cancellable
-            if status is not None:
-                booking.status = status
-        except Booking.DoesNotExist:
-            pass
+        # Removed erroneous block that accessed instance.booking
+        if participants is not None:
+            instance.participants = participants
+        if price is not None:
+            instance.price = price
+        if booking_date is not None:
+            instance.booking_date = booking_date
+        if experience_date is not None: 
+            instance.experience_date = experience_date
+        if cancellable is not None:
+            instance.cancellable = cancellable
+        if status is not None:
+            instance.status = status
 
+        instance.save()
         return instance

@@ -3,7 +3,7 @@ import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
     ActivityIndicator, Alert, useWindowDimensions
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
@@ -20,14 +20,22 @@ const AdminBookings = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null); // New state for success message
     const router = useRouter();
     const { width } = useWindowDimensions();
+    const searchParams = useLocalSearchParams();
     const isMobile = width < 768;
 
     useEffect(() => {
         checkAdminStatus();
         fetchBookings();
-    }, []);
+
+        // Show the success message if passed in the navigation params
+        if (searchParams.successMessage) {
+            setSuccessMessage(searchParams.successMessage as string);
+            setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+        }
+    }, [searchParams.successMessage]); // Add dependency to re-trigger when params change
 
     const checkAdminStatus = async () => {
         const isAdmin = await AsyncStorage.getItem('isAdmin');
@@ -58,7 +66,16 @@ const AdminBookings = () => {
     const handleDeleteBooking = (bookingId: string) => {
         Alert.alert('Eliminar Reserva', '¿Estás seguro de que quieres eliminar esta reserva?', [
             { text: 'Cancelar', style: 'cancel' },
-            { text: 'Eliminar', onPress: async () => deleteBooking(bookingId) },
+            { 
+                text: 'Eliminar', 
+                onPress: async () => {
+                    const success = await deleteBooking(bookingId);
+                    if (success) {
+                        setSuccessMessage('La reserva se ha eliminado correctamente.');
+                        setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+                    }
+                } 
+            },
         ]);
     };
 
@@ -69,21 +86,29 @@ const AdminBookings = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             fetchBookings();
+            return true;
         } catch (error) {
             Alert.alert('Error', 'No se pudo eliminar la reserva.');
+            return false;
         }
     };
 
+    const handleBookingPress = (bookingId: string) => {
+        router.push(`/AdminBookingsDetail?id=${bookingId}`);
+    };
+
     const renderItem = ({ item }: { item: Booking }) => (
-        <View style={styles.card}>
-            <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
-            <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
-            <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
-            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
-                <Ionicons name="trash" size={16} color="white" />
-                <Text style={styles.deleteButtonText}>Eliminar</Text>
-            </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
+            <View style={styles.card}>
+                <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
+                <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
+                <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
+                <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
+                    <Ionicons name="trash" size={16} color="white" />
+                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                </TouchableOpacity>
+            </View>
+        </TouchableOpacity>
     );
 
     if (loading) return <ActivityIndicator style={styles.loader} size="large" color="#1877F2" />;
@@ -95,6 +120,7 @@ const AdminBookings = () => {
                 <Ionicons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.title}>Gestión de Reservas</Text>
+            {successMessage && <Text style={styles.successText}>{successMessage}</Text>} {/* Display success message */}
             <FlatList
                 data={bookings}
                 keyExtractor={(item) => item.id.toString()}
@@ -127,6 +153,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         textAlign: 'center',
         marginTop: 10,
+    },
+    successText: {
+        color: 'green',
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 10,
     },
     card: {
         backgroundColor: 'white',

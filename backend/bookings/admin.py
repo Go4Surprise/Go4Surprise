@@ -36,25 +36,59 @@ def admin_booking_list(request):
 @swagger_auto_schema(
     method="get",
     responses={
-        200: openapi.Response("Reserva obtenida correctamente", AdminBookingSerializer()),
-        403: openapi.Response("Acceso denegado - Solo administradores"),
+        200: openapi.Response("Detalles de la reserva obtenidos correctamente", AdminBookingSerializer()),
         404: openapi.Response("Reserva no encontrada"),
     },
-    operation_summary="Obtener detalle de reserva",
-    operation_description="Devuelve la información de una reserva específica (solo para administradores)",
+    operation_summary="Obtener detalles de una reserva",
+    operation_description="Devuelve los detalles de una reserva específica (solo para administradores)",
 )
-@api_view(['GET'])
+@swagger_auto_schema(
+    method="put",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'experience_id': openapi.Schema(type=openapi.TYPE_STRING, format='uuid', description="ID de la experiencia"),
+            'hint': openapi.Schema(type=openapi.TYPE_STRING, description="Pista para la experiencia"),
+        },
+        required=['experience_id'],
+    ),
+    responses={
+        200: openapi.Response("Reserva actualizada correctamente", AdminBookingSerializer()),
+        400: openapi.Response("Datos inválidos"),
+        404: openapi.Response("Reserva o experiencia no encontrada"),
+    },
+    operation_summary="Actualizar experiencia y pista de una reserva",
+    operation_description="Permite asignar una experiencia existente y actualizar la pista de una reserva específica (solo para administradores)",
+)
+@api_view(['GET', 'PUT'])
 @permission_classes([IsAdminUser])
 def admin_booking_detail(request, pk):
     """
-    Retrieve a specific booking (admin only)
+    Retrieve or update a specific booking (admin only)
     """
     try:
         booking = Booking.objects.get(pk=pk)
-        serializer = AdminBookingSerializer(booking, context={'request': request})
-        return Response(serializer.data)
     except Booking.DoesNotExist:
         return Response({"error": "Reserva no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = AdminBookingSerializer(booking, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    if request.method == 'PUT':
+        experience_id = request.data.get('experience_id')
+        hint = request.data.get('hint')
+
+        try:
+            experience = Experience.objects.get(id=experience_id)
+            booking.experience = experience
+            if hint:
+                booking.experience.hint = hint
+                booking.experience.save()
+            booking.save()
+            return Response(AdminBookingSerializer(booking, context={'request': request}).data)
+        except Experience.DoesNotExist:
+            return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @swagger_auto_schema(
