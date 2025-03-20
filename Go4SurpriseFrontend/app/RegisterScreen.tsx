@@ -38,13 +38,13 @@ export default function RegisterScreen() {
         ];
     
         let newErrors: Record<string, string> = {};
-    
-        // Validaciones generales (campos vacíos)
+
         validations.forEach(({ field, value, message }) => {
-            if (!value) newErrors[field] = message;
+            if (typeof field === "string" && typeof message === "string" && !value) {
+                newErrors[field] = message;
+            }
         });
     
-        // Validaciones específicas
         if (password && password.length < 6) {
             newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         }
@@ -93,7 +93,7 @@ export default function RegisterScreen() {
             });
 
             Alert.alert('Registro exitoso');
-            router.push('/PreferencesFormScreen');
+            router.push('/LoginScreen');
         } catch (error) {
             setErrorMessage('Error al hacer el registro. Verifica que todos los campos están correctos');
         }
