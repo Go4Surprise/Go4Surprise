@@ -40,7 +40,12 @@ export default function RegisterScreen() {
         let newErrors: Record<string, string> = {};
 
         validations.forEach(({ field, value, message }) => {
-            if (typeof field === "string" && typeof message === "string" && !value) {
+            if (
+                typeof field === "string" &&
+                typeof message === "string" &&
+                /^[a-zA-Z_]+$/.test(field) &&
+                !value
+            ) {
                 newErrors[field] = message;
             }
         });
