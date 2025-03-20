@@ -26,11 +26,12 @@ export default function LoginScreen() {
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
-            const { access, user_id, refresh, id, preferences_set } = response.data;
+            const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff } = response.data;
             await AsyncStorage.setItem('accessToken', access);
             await AsyncStorage.setItem('userId', user_id.toString());
             await AsyncStorage.setItem('refreshToken', refresh);
             await AsyncStorage.setItem('id', id);
+            await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
 
             Alert.alert('Éxito', 'Inicio de sesión correcto');
 

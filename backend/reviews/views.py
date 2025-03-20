@@ -27,10 +27,9 @@ def post(request):
     serializer = CreateReviewSerializer(data=request.data)
 
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        review = serializer.save()  # 👈 Guarda y obtiene la instancia
+        return Response(CreateReviewSerializer(review).data, status=status.HTTP_201_CREATED)  # 👈 Devolver el serializado con el ID
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @swagger_auto_schema(
     method='get',

@@ -68,16 +68,26 @@ def update_preferences(request):
     data = request.data
     print("Datos recibidos:", data)  
 
+    invalid_fields = {}
+
     for category in ['music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure']:
-        if category in data and isinstance(data[category], list):  
-            preferences.__setattr__(category, data[category])
+        if category in data:
+            if not isinstance(data[category], list):  # Validar que sea una lista
+                invalid_fields[category] = "Debe ser una lista"
+            else:
+                preferences.__setattr__(category, data[category])
+
+    # Si hay errores, devolver un 400
+    if invalid_fields:
+        return Response({"error": "Datos inválidos", "detalles": invalid_fields}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = PreferencesSerializer(preferences, data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
