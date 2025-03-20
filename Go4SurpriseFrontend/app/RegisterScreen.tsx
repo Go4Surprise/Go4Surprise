@@ -89,9 +89,10 @@ export default function RegisterScreen() {
                 />
 
                 {/* Botón de Registro */}
-                <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                <TouchableOpacity style={styles.button} onPress={() => handleRegister()}>
                     <Text style={styles.buttonText}>Registrarse</Text>
                 </TouchableOpacity>
+
 
                 {/* Enlace a Login */}
                 <Text style={styles.loginText} onPress={() => router.push('/LoginScreen')}>

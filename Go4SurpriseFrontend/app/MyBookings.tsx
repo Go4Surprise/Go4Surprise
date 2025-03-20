@@ -86,7 +86,7 @@ const MyBookings = () => {
       "¿Estás seguro de que quieres cancelar esta reserva?",
       [
         { text: "No", style: "cancel" },
-        { text: "Sí", onPress: () => console.log("Reserva cancelada:", id) },
+        { text: "Sí", onPress: () => { console.log("Reserva cancelada:", id); } },
       ]
     );
   };

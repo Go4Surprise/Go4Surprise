@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Animated, Image } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -34,7 +34,7 @@ export default function PreferencesFormScreen() {
         setToken(storedToken);
       }
     };
-    fetchToken();
+    void fetchToken();
     fadeIn();
   }, [currentQuestionIndex]);
 
@@ -118,7 +118,7 @@ export default function PreferencesFormScreen() {
             styles.optionButton, 
             selectedOptions[questions[currentQuestionIndex]?.category || '']?.includes(option) && styles.selectedOption
           ]}
-          onPress={() => handleOptionSelect(option)}
+          onPress={() => { handleOptionSelect(option); }}
         >
           <Text style={styles.optionText}>{option}</Text>
         </TouchableOpacity>
