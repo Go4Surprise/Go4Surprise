@@ -1,4 +1,6 @@
 from django.urls import path
+
+from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_user_update
 from .views import register_user, login_user, update_preferences, get_usuario_id
 from .views import get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password
 
@@ -12,4 +14,9 @@ urlpatterns = [
     path('delete/', delete_user_account, name='delete_user_account'),
     path('change_password/', change_password, name='change_password'),
 
+    # Admin routes
+    path('admin/list/', admin_user_list, name='admin_user_list'),
+    path('admin/detail/<int:pk>/', admin_user_detail, name='admin_user_detail'),
+    path('admin/update/<int:pk>/', admin_user_update, name='admin_user_update'),
+    path('admin/delete/<int:pk>/', admin_user_delete, name='admin_user_delete'),
 ]
