@@ -41,6 +41,71 @@
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md en rama auto-changelog
+
+### ♻️ Refactorización
+- refactor: Fixed security issues, identified by codify
+- refactor: fix codacy issues
+- refactor: Added changes suggested by codify
+- Merge branch 'main' of https://github.com/Go4Surprise/Go4Surprise refactor: merge branch main
+
+### ⚡ Mejoras de rendimiento
+- perfil completo
+
+### 🧪 Pruebas
+- tests users
+- tests reviews
+- tests experiences
+- tests de booking, casos positivos y negativos
+
+### 🔧 Otros cambios
+- style: saving local changes before pull
+- style: saving local changes before pull
+
+## Cambios en PR (2025-03-23)
+
+### 🚀 Nuevas funcionalidades
+- feat: Add user birthdate in frontend
+- feat: user-birthdate backend
+- feat: auto changelog on pull request to main
+- feat: incluir los mensajes de error en la pantalla
+- feat: incluir en el backend la comprobación de que el username no existe
+- feat: Continous Integration with codacy
+- feat: Add conventional Commits without api keys
+- feat: user profile backend
+- feat: user get method
+- feat: user get method
+- feat: user profile screen
+- feat: formulario de preferencias básico
+
+### 🐛 Correcciones
+- fix: delete workflow that is not working
+- fix: autochangelog to run locally
+- fix: change url of changelog workflow
+- fix: add detection to changelog workflow
+- fix: add permision to changelog workflow
+- fix: add permision to changelog workflow
+- fix: auto-changelog
+- fix: intentar solucionar los errores del codacy, parte 2
+- fix: solucionar los errores del codacy, parte 1
+- fix: el boton al registrate ya te redirige bien al login
+- fix: reducir el número de ifs con las validaciones de las propiedades
+- fix: changelog action
+- fix: Arreglos y mejoras en panel de administración
+- fix login
+- fix: Quitar 2 preguntas de la encuesta acordadas en la reunión
+- fix: cambio para que se haga el cuestionario tras registrarse
+- fix: Manejo correcto de preferencias inexistentes
+- Merge pull request #18 from Go4Surprise/login-registro-formulario
+- fix: arreglo login y añadido formulario de preferencias
+- Merge pull request #6 from Go4Surprise/base-datos
+- fix: django and postgres discrepancies
+
+### 📚 Documentación
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md en rama auto-changelog
 
 ### ♻️ Refactorización
