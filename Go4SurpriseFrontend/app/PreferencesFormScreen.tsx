@@ -47,8 +47,18 @@ export default function PreferencesFormScreen() {
   };
 
   const handleOptionSelect = (option: string) => {
-    const category = questions[currentQuestionIndex]?.category || '';
-    let updatedSelections = selectedOptions[category] || [];
+    // Get the current question safely
+    const currentQuestion = currentQuestionIndex !== undefined && currentQuestionIndex >= 0 && 
+      currentQuestionIndex < questions.length ? questions[currentQuestionIndex] : null;
+    
+    // Extract the category from the current question with a fallback
+    const category = currentQuestion?.category || '';
+    
+    // Safely get the current selections for this category
+    let updatedSelections: string[] = []; 
+    if (category && Object.prototype.hasOwnProperty.call(selectedOptions, category)) {
+      updatedSelections = [...(selectedOptions[category] || [])];
+    }
     
     if (option === '🚫 Nada en especial' || option === '🚫 Prefiero no responder') {
       updatedSelections = [option];
@@ -108,21 +118,34 @@ export default function PreferencesFormScreen() {
   
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
-      <Text style={styles.question}>{questions[currentQuestionIndex]?.question || ''}</Text>
+      <Text style={styles.question}>{currentQuestionIndex != null && questions[currentQuestionIndex]?.question || ''}</Text>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
   
-      {questions[currentQuestionIndex]?.options?.map((option, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.optionButton, 
-            selectedOptions[questions[currentQuestionIndex]?.category || '']?.includes(option) && styles.selectedOption
-          ]}
-          onPress={() => handleOptionSelect(option)}
-        >
-          <Text style={styles.optionText}>{option}</Text>
-        </TouchableOpacity>
-      ))}
+      {currentQuestionIndex != null && questions[currentQuestionIndex]?.options?.map((option, index) => {
+        // Extract category safely
+        const category = questions[currentQuestionIndex]?.category || '';
+        
+        // Get selections for this category safely
+        const categorySelections = category && Object.prototype.hasOwnProperty.call(selectedOptions, category) 
+          ? selectedOptions[category] || [] 
+          : [];
+        
+        // Check if the option is selected
+        const isSelected = categorySelections.includes(option);
+        
+        return (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.optionButton, 
+              isSelected && styles.selectedOption
+            ]}
+            onPress={() => handleOptionSelect(option)}
+          >
+            <Text style={styles.optionText}>{option}</Text>
+          </TouchableOpacity>
+        );
+      })}
   
       <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
         <Text style={styles.buttonText}>Siguiente</Text>

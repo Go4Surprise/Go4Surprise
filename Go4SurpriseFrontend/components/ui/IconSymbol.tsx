@@ -39,5 +39,8 @@ export function IconSymbol({
   style?: StyleProp<ViewStyle>;
   weight?: SymbolWeight;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  // Since name is typed as IconSymbolName, we know it exists in MAPPING
+  // But we'll add a safety check anyway
+  const iconName = MAPPING[name] ?? 'help-outline'; // Fallback icon
+  return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }

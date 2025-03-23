@@ -44,6 +44,12 @@ export default function ParallaxScrollView({
     };
   });
 
+  // Safely get the background color based on the color scheme
+  const headerBgColor = colorScheme && 
+    Object.prototype.hasOwnProperty.call(headerBackgroundColor, colorScheme)
+      ? headerBackgroundColor[colorScheme]
+      : headerBackgroundColor.light; // Use light theme as fallback
+
   return (
     <ThemedView style={styles.container}>
       <Animated.ScrollView
@@ -54,7 +60,7 @@ export default function ParallaxScrollView({
         <Animated.View
           style={[
             styles.header,
-            { backgroundColor: headerBackgroundColor[colorScheme] },
+            { backgroundColor: headerBgColor },
             headerAnimatedStyle,
           ]}>
           {headerImage}
