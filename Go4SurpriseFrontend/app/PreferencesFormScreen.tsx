@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Animated, Image } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 
-const questions = [
+type Question = {
+  id: number;
+  question: string;
+  category: string;
+  options: string[];
+};
+
+type CategorySelections = Record<string, string[]>;
+type Preferences = Record<string, string[]>;
+
+const questions: Question[] = [
   { id: 1, question: 'Si tu vida fuera una película, ¿qué género sería?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎸 Un concierto íntimo', '🎻 Un evento clásico', '🚫 Nada en especial'] },
   { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro', '🎉 Un evento local', '🚫 Nada en especial'] },
   { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
@@ -14,29 +24,35 @@ const questions = [
   { id: 6, question: '¿Cómo describirías tu espíritu aventurero?', category: 'Aventura', options: ['⛰️ Adrenalina pura', '🪂 Amo las alturas', '🌲 Explorar la naturaleza', '💪 Reto físico extremo', '🚫 Nada en especial'] },
 ];
 
-export default function PreferencesFormScreen() {
+export default function PreferencesFormScreen(): React.ReactElement {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [preferences, setPreferences] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
-  const [inputValue, setInputValue] = useState('');
-  const [error, setError] = useState('');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [preferences, setPreferences] = useState<Preferences>({});
+  const [selectedOptions, setSelectedOptions] = useState<CategorySelections>({});
+  const [error, setError] = useState<string>('');
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
     const fetchToken = async () => {
-      const storedToken = await AsyncStorage.getItem('accessToken');
-      if (!storedToken) {
-        Alert.alert('Error', 'No token found. Please log in again.');
+      try {
+        const storedToken = await AsyncStorage.getItem('accessToken');
+        if (!storedToken) {
+          Alert.alert('Error', 'No token found. Please log in again.');
+          router.push('/LoginScreen');
+        } else {
+          setToken(storedToken);
+        }
+      } catch (error) {
+        console.error('Error fetching token:', error);
+        Alert.alert('Error', 'Hubo un problema al recuperar tu sesión');
         router.push('/LoginScreen');
-      } else {
-        setToken(storedToken);
       }
     };
+    
     fetchToken();
     fadeIn();
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, router]);
 
   const fadeIn = () => {
     Animated.timing(fadeAnim, {
@@ -47,40 +63,64 @@ export default function PreferencesFormScreen() {
   };
 
   const handleOptionSelect = (option: string) => {
-    // Get the current question safely
-    const currentQuestion = currentQuestionIndex !== undefined && currentQuestionIndex >= 0 && 
-      currentQuestionIndex < questions.length ? questions[currentQuestionIndex] : null;
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
     
-    // Extract the category from the current question with a fallback
-    const category = currentQuestion?.category || '';
+    const category = currentQuestion.category;
+    // Solución más segura: usar Object.entries para encontrar la categoría correcta
+    const currentSelections = [...(Object.entries(selectedOptions)
+      .find(([key]) => key === category)?.[1] || [])];
     
-    // Safely get the current selections for this category
-    let updatedSelections: string[] = []; 
-    if (category && Object.prototype.hasOwnProperty.call(selectedOptions, category)) {
-      updatedSelections = [...(selectedOptions[category] || [])];
-    }
+    let updatedSelections: string[];
     
     if (option === '🚫 Nada en especial' || option === '🚫 Prefiero no responder') {
       updatedSelections = [option];
     } else {
-      updatedSelections = updatedSelections.includes(option)
-        ? updatedSelections.filter(item => item !== option)
-        : [...updatedSelections.filter(item => item !== '🚫 Nada en especial' && item !== '🚫 Prefiero no responder'), option];
+      // Si ya está seleccionado, quitarlo
+      if (currentSelections.includes(option)) {
+        updatedSelections = currentSelections.filter(item => item !== option);
+      } else {
+        // Si no está seleccionado, añadirlo y quitar opciones neutrales
+        updatedSelections = [
+          ...currentSelections.filter(item => 
+            item !== '🚫 Nada en especial' && item !== '🚫 Prefiero no responder'
+          ), 
+          option
+        ];
+      }
     }
     
-    setSelectedOptions((prev) => ({ ...prev, [category]: updatedSelections }));
+    // Crear un nuevo objeto de opciones seleccionadas de manera segura
+    const newSelectedOptions = Object.entries(selectedOptions).reduce(
+      (acc, [key, value]) => {
+        acc[key] = key === category ? updatedSelections : value;
+        return acc;
+      },
+      {} as CategorySelections
+    );
+    
+    // Para categorías que aún no existen en el objeto
+    if (!Object.keys(newSelectedOptions).includes(category)) {
+      newSelectedOptions[category] = updatedSelections;
+    }
+    
+    setSelectedOptions(newSelectedOptions);
     setError('');
   };
 
   const nextQuestion = () => {
-    const category = questions[currentQuestionIndex].category;
+    const currentQuestion = questions[currentQuestionIndex];
+    if (!currentQuestion) return;
+    
+    const category = currentQuestion.category;
     if (!selectedOptions[category]?.length) {
       setError('Debes seleccionar al menos una opción.');
       return;
     }
-    setPreferences((prev) => ({ ...prev, [category]: selectedOptions[category] || [] }));
-    setInputValue('');
+    
+    setPreferences(prev => ({ ...prev, [category]: selectedOptions[category] || [] }));
     setError('');
+    
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
@@ -112,43 +152,45 @@ export default function PreferencesFormScreen() {
       Alert.alert("¡Listo!", "Tus preferencias han sido guardadas.");
       router.push("/HomeScreen");
     } catch (error) {
+      console.error("Error guardando preferencias:", error);
       Alert.alert("Error", "No se pudieron guardar las preferencias");
     }
   };
   
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
-      <Text style={styles.question}>{currentQuestionIndex != null && questions[currentQuestionIndex]?.question || ''}</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-  
-      {currentQuestionIndex != null && questions[currentQuestionIndex]?.options?.map((option, index) => {
-        // Extract category safely
-        const category = questions[currentQuestionIndex]?.category || '';
-        
-        // Get selections for this category safely
-        const categorySelections = category && Object.prototype.hasOwnProperty.call(selectedOptions, category) 
-          ? selectedOptions[category] || [] 
-          : [];
-        
-        // Check if the option is selected
-        const isSelected = categorySelections.includes(option);
-        
-        return (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.optionButton, 
-              isSelected && styles.selectedOption
-            ]}
-            onPress={() => handleOptionSelect(option)}
-          >
-            <Text style={styles.optionText}>{option}</Text>
-          </TouchableOpacity>
-        );
-      })}
-  
+      {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
+        <>
+          <Text style={styles.question}>{questions[currentQuestionIndex].question}</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      
+          {questions[currentQuestionIndex].options.map((option, index) => {
+            const category = questions[currentQuestionIndex].category;
+            // Solución más segura para obtener selecciones de categoría
+            const categorySelections = Object.entries(selectedOptions)
+              .find(([key]) => key === category)?.[1] || [];
+            const isSelected = categorySelections.includes(option);
+            
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.optionButton, 
+                  isSelected ? styles.selectedOption : null
+                ]}
+                onPress={() => handleOptionSelect(option)}
+              >
+                <Text style={styles.optionText}>{option}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </>
+      ) : null}
+
       <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
-        <Text style={styles.buttonText}>Siguiente</Text>
+        <Text style={styles.buttonText}>
+          {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
+        </Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -167,14 +209,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-  },
-  input: {
-    width: '80%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginVertical: 10,
   },
   optionButton: {
     backgroundColor: '#007BFF',
