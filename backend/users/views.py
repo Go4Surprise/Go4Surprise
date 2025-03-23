@@ -8,6 +8,7 @@ from .serializers import RegisterSerializer, LoginSerializer, PreferencesSeriali
 from .models import Preferences
 from django.contrib.auth.models import User
 from .models import Usuario
+from django.http import JsonResponse
 
 @swagger_auto_schema(
     method="post",
@@ -228,3 +229,11 @@ def change_password(request):
     user.save()
 
     return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def check_username_exists(request, username):
+    if not username:
+        return JsonResponse({'error': 'El nombre del usuario no puede estar vacío'}, status=400)
+    
+    exists = User.objects.filter(username=username).exists()
+    return JsonResponse({'exists': exists})
