@@ -1,28 +1,50 @@
-name: Release
+name: Update Changelog On Any Branch
+
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - '**'  # Se activa en cualquier rama
+    paths-ignore:
+      - 'CHANGELOG.md'  # Evita bucles infinitos al ignorar cambios en el propio changelog
+
 jobs:
-  release:
-    name: Release
+  update-changelog:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+          fetch-depth: 0  # Necesario para acceder a todo el historial de commits
+      
+      # Obtener el nombre de la rama actual
+      - name: Get branch name
+        id: branch-name
+        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+      
+      # Configurar Git
+      - name: Setup Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+      
+      # Generar changelog después de cada commit en cualquier rama
+      - name: Generate changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v3
         with:
-          node-version: 'lts/*'
-      - name: Install dependencies
-        run: npm ci
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          git-message: 'docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.BRANCH_NAME }}'
+          preset: 'angular'
+          output-file: 'CHANGELOG.md'
+          release-count: 0  # Incluye todas las versiones
+          skip-on-empty: false  # Genera changelog incluso si no hay commits convencionales
+          skip-version-file: true  # No actualiza versión
+          skip-tag: true  # No crea tags
+
+      # Push de los cambios al changelog si existen
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: steps.changelog.outputs.skipped == 'false'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.branch-name.outputs.BRANCH_NAME }}
