@@ -15,12 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0  # Necesario para acceder a todo el historial de commits
           token: ${{ secrets.GITHUB_TOKEN }}  # Token explícito
           ref: ${{ github.event.pull_request.head.ref }}  # Checkout de la rama del PR
           repository: ${{ github.event.pull_request.head.repo.full_name }}  # Repositorio del PR
+      
+      # Capturar la rama del PR en una variable de entorno
+      - name: Set PR branch as environment variable
+        run: echo "PR_HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
       
       # Configurar Git
       - name: Setup Git
@@ -28,10 +32,10 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
       
-      # Generar changelog
+      # Generar changelog con una versión fija mediante SHA
       - name: Generate Changelog
         id: generate_changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        uses: heinrichreimer/github-changelog-generator-action@317abb8402a3e9ebcc3deb36d59bc6caf0ae6d00 # v2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issues: true
@@ -51,18 +55,18 @@ jobs:
             echo "modified=false" >> $GITHUB_OUTPUT
           fi
       
-      # Commit y push de los cambios si hay modificaciones
+      # Commit y push de los cambios si hay modificaciones - CORREGIDO
       - name: Commit changes
         if: steps.git-check.outputs.modified == 'true'
         run: |
           git add CHANGELOG.md
           git commit -m "docs(changelog): actualizar CHANGELOG.md para PR a main"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:$PR_HEAD_REF
       
-      # Comentar en el PR
+      # Comentar en el PR con versión fija mediante SHA
       - name: Comment PR
         if: steps.git-check.outputs.modified == 'true'
-        uses: actions/github-script@v6
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
