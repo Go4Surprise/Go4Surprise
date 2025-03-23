@@ -23,7 +23,7 @@ jobs:
       # Obtener el nombre de la rama actual
       - name: Get branch name
         id: branch-name
-        run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+        run: echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
       
       # Configurar Git con GITHUB_TOKEN para evitar problemas de autenticación
       - name: Setup Git
@@ -44,17 +44,20 @@ jobs:
           unreleased: true
           addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
       
-      # Verificar si hay cambios en el changelog
+      # Verificar si hay cambios en el changelog - corregido el formato
       - name: Check for changes
         id: git-check
         run: |
-          git status --porcelain
-          echo "modified=$(if git status --porcelain | grep 'CHANGELOG.md'; then echo 'true'; else echo 'false'; fi)" >> $GITHUB_OUTPUT
+          if git status --porcelain | grep -q 'CHANGELOG.md'; then
+            echo "modified=true" >> $GITHUB_OUTPUT
+          else
+            echo "modified=false" >> $GITHUB_OUTPUT
+          fi
       
       # Commit y push de los cambios si hay modificaciones
       - name: Commit changes
         if: steps.git-check.outputs.modified == 'true'
         run: |
           git add CHANGELOG.md
-          git commit -m "docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.BRANCH_NAME }}"
-          git push origin ${{ steps.branch-name.outputs.BRANCH_NAME }}
+          git commit -m "docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.branch_name }}"
+          git push origin ${{ steps.branch-name.outputs.branch_name }}
