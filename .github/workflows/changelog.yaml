@@ -18,9 +18,9 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0  # Necesario para acceder a todo el historial de commits
-          token: ${{ secrets.GITHUB_TOKEN }}  # Token explícito
-          ref: ${{ github.event.pull_request.head.ref }}  # Checkout de la rama del PR
-          repository: ${{ github.event.pull_request.head.repo.full_name }}  # Repositorio del PR
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
       
       # Capturar la rama del PR en una variable de entorno
       - name: Set PR branch as environment variable
@@ -32,26 +32,62 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
       
-      # Enfoque alternativo: Usar conventional-changelog-cli directamente
-      - name: Setup Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524a9df77aab3a4da79 # v4.0.2
-        with:
-          node-version: '20'
-          
-      # Instalar conventional-changelog-cli
-      - name: Install conventional-changelog CLI
-        run: npm install -g conventional-changelog-cli
-        
-      # Generar changelog
+      # Generar changelog manualmente usando git log y scripts de bash
       - name: Generate changelog
         run: |
-          # Si el archivo CHANGELOG.md no existe, crea uno con encabezado
+          # Si CHANGELOG.md no existe, crear uno
           if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog\n\n" > CHANGELOG.md
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
           fi
+
+          # Obtener la fecha actual
+          DATE=$(date +"%Y-%m-%d")
           
-          # Genera un changelog temporal
-          conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+          # Crear archivo de changelog temporal
+          echo "## Cambios en PR (${DATE})" > temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Extraer commits convencionales y formatearlos
+          echo "### 🚀 Nuevas funcionalidades" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^feat" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🐛 Correcciones" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^fix" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 📚 Documentación" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^docs" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### ♻️ Refactorización" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^refactor" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### ⚡ Mejoras de rendimiento" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^perf" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🧪 Pruebas" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^test" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🔧 Otros cambios" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^chore\|^ci\|^build\|^style" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Combinar el changelog temporal con el existente
+          cat temp_changelog.md CHANGELOG.md > new_changelog.md
+          mv new_changelog.md CHANGELOG.md
+          rm temp_changelog.md
       
       # Verificar si hay cambios en el changelog
       - name: Check for changes
