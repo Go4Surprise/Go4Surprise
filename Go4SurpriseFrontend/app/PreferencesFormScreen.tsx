@@ -5,7 +5,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 
-type Question = {
+interface Question {
   id: number;
   question: string;
   category: string;
@@ -28,7 +28,6 @@ export default function PreferencesFormScreen(): React.ReactElement {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [preferences, setPreferences] = useState<Preferences>({});
   const [selectedOptions, setSelectedOptions] = useState<CategorySelections>({});
   const [error, setError] = useState<string>('');
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -69,7 +68,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     const category = currentQuestion.category;
     // Solución más segura: usar Object.entries para encontrar la categoría correcta
     const currentSelections = [...(Object.entries(selectedOptions)
-      .find(([key]) => key === category)?.[1] || [])];
+      .find(([key]) => key === category)?.[1] ?? [])];
     
     let updatedSelections: string[];
     
@@ -96,7 +95,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
         acc[key] = key === category ? updatedSelections : value;
         return acc;
       },
-      {} as CategorySelections
+      {}
     );
     
     // Para categorías que aún no existen en el objeto
@@ -118,7 +117,6 @@ export default function PreferencesFormScreen(): React.ReactElement {
       return;
     }
     
-    setPreferences(prev => ({ ...prev, [category]: selectedOptions[category] || [] }));
     setError('');
     
     if (currentQuestionIndex < questions.length - 1) {
@@ -168,7 +166,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
             const category = questions[currentQuestionIndex].category;
             // Solución más segura para obtener selecciones de categoría
             const categorySelections = Object.entries(selectedOptions)
-              .find(([key]) => key === category)?.[1] || [];
+            .find(([key]) => key === category)?.[1] ?? [];
             const isSelected = categorySelections.includes(option);
             
             return (
