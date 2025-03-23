@@ -1,14 +1,14 @@
-name: Update Changelog On Any Branch
+name: Update Changelog On PR to Main
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
     branches:
-      - '**'  # Se activa en cualquier rama
-    paths-ignore:
-      - 'CHANGELOG.md'  # Evita bucles infinitos al ignorar cambios en el propio changelog
+      - main  # Se activa solo en PRs hacia main
 
 permissions:
   contents: write  # Permisos explícitos para modificar el contenido del repositorio
+  pull-requests: write  # Permisos para comentar en el PR
 
 jobs:
   update-changelog:
@@ -19,19 +19,16 @@ jobs:
         with:
           fetch-depth: 0  # Necesario para acceder a todo el historial de commits
           token: ${{ secrets.GITHUB_TOKEN }}  # Token explícito
+          ref: ${{ github.event.pull_request.head.ref }}  # Checkout de la rama del PR
+          repository: ${{ github.event.pull_request.head.repo.full_name }}  # Repositorio del PR
       
-      # Obtener el nombre de la rama actual
-      - name: Get branch name
-        id: branch-name
-        run: echo "branch_name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
-      
-      # Configurar Git con GITHUB_TOKEN para evitar problemas de autenticación
+      # Configurar Git
       - name: Setup Git
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
       
-      # Usar una acción más sencilla para generar el changelog
+      # Generar changelog
       - name: Generate Changelog
         id: generate_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
@@ -44,7 +41,7 @@ jobs:
           unreleased: true
           addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
       
-      # Verificar si hay cambios en el changelog - corregido el formato
+      # Verificar si hay cambios en el changelog
       - name: Check for changes
         id: git-check
         run: |
@@ -59,5 +56,19 @@ jobs:
         if: steps.git-check.outputs.modified == 'true'
         run: |
           git add CHANGELOG.md
-          git commit -m "docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.branch_name }}"
-          git push origin ${{ steps.branch-name.outputs.branch_name }}
+          git commit -m "docs(changelog): actualizar CHANGELOG.md para PR a main"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+      
+      # Comentar en el PR
+      - name: Comment PR
+        if: steps.git-check.outputs.modified == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Changelog actualizado automáticamente con los cambios del PR.'
+            })
