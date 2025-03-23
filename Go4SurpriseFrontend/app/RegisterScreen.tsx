@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { 
     View, Text, TextInput, TouchableOpacity, 
-    StyleSheet, Image, Alert
+    StyleSheet, Image, Alert, Platform, Button
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { TextField } from '@mui/material';
 
 export default function RegisterScreen() {
     const router = useRouter();
@@ -16,6 +18,7 @@ export default function RegisterScreen() {
     const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
+    const [birthdate, setBirthdate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
 
     const [errors, setErrors] = useState<{ 
         username?: string; 
@@ -59,7 +62,6 @@ export default function RegisterScreen() {
         return Object.keys(newErrors).length === 0;
     };
     
-
     const checkUsernameExists = async () => {
         setErrorMessage(null); 
         try {
@@ -82,6 +84,12 @@ export default function RegisterScreen() {
         }
 
         setErrorMessage(null); 
+        var date =
+            birthdate.getFullYear() +
+            "-" +
+            String(birthdate.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(birthdate.getDate()).padStart(2, "0");
         try {
             await axios.post(`${BASE_URL}/users/register/`, {
                 username,
@@ -90,6 +98,7 @@ export default function RegisterScreen() {
                 surname,
                 email,
                 phone,
+                date,
             });
 
             Alert.alert('Registro exitoso');
@@ -161,6 +170,29 @@ export default function RegisterScreen() {
                 />
                 {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
+                {/* Selector de fecha nativo */}
+                    <TextField
+                                  label="Fecha de la Experiencia"
+                                  name="birthdate"
+                                  type="date"
+                                  fullWidth
+                                  style={{marginTop: "2%"}}
+                                  InputLabelProps={{
+                                    shrink: true,
+                                  }}
+                                  inputProps={{
+                                    max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+                                      .toISOString()
+                                      .split("T")[0], // Prevent past dates
+                                  }}
+                                  // Convertimos la fecha a formato string (yyyy-MM-dd)
+                                  value={birthdate.toISOString().split("T")[0]}
+                                  onChange={(e) => {
+                                    const dateValue = new Date(e.target.value);
+                                    setBirthdate(dateValue);
+                                  }}
+                                />
+
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
                 <TouchableOpacity style={styles.button} onPress={handleRegister}>
@@ -221,6 +253,25 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#F9F9F9',
         marginBottom: 6,
+    },
+    dateContainer: {
+        width: '100%',
+        marginVertical: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#CCC',
+        borderRadius: 8,
+        backgroundColor: '#F9F9F9',
+    },
+    dateLabel: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 4,
+    },
+    dateValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 10,
     },
     errorText: {
         color: 'red',
