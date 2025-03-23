@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { 
     View, Text, TextInput, TouchableOpacity, 
-    StyleSheet, Image, Alert, Platform, Button
+    StyleSheet, Image, Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { TextField } from '@mui/material';
 
 export default function RegisterScreen() {
