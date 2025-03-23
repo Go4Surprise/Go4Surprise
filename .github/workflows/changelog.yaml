@@ -7,6 +7,9 @@ on:
     paths-ignore:
       - 'CHANGELOG.md'  # Evita bucles infinitos al ignorar cambios en el propio changelog
 
+permissions:
+  contents: write  # Permisos explícitos para modificar el contenido del repositorio
+
 jobs:
   update-changelog:
     runs-on: ubuntu-latest
@@ -15,36 +18,43 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Necesario para acceder a todo el historial de commits
+          token: ${{ secrets.GITHUB_TOKEN }}  # Token explícito
       
       # Obtener el nombre de la rama actual
       - name: Get branch name
         id: branch-name
         run: echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
       
-      # Configurar Git
+      # Configurar Git con GITHUB_TOKEN para evitar problemas de autenticación
       - name: Setup Git
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
       
-      # Generar changelog después de cada commit en cualquier rama
-      - name: Generate changelog
-        id: changelog
-        uses: TriPSs/conventional-changelog-action@v3
+      # Usar una acción más sencilla para generar el changelog
+      - name: Generate Changelog
+        id: generate_changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          git-message: 'docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.BRANCH_NAME }}'
-          preset: 'angular'
-          output-file: 'CHANGELOG.md'
-          release-count: 0  # Incluye todas las versiones
-          skip-on-empty: false  # Genera changelog incluso si no hay commits convencionales
-          skip-version-file: true  # No actualiza versión
-          skip-tag: true  # No crea tags
-
-      # Push de los cambios al changelog si existen
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        if: steps.changelog.outputs.skipped == 'false'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.branch-name.outputs.BRANCH_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issues: true
+          issuesWoLabels: true
+          pullRequests: true
+          prWoLabels: true
+          unreleased: true
+          addSections: '{"documentation":{"prefix":"**Documentation:**","labels":["documentation"]}}'
+      
+      # Verificar si hay cambios en el changelog
+      - name: Check for changes
+        id: git-check
+        run: |
+          git status --porcelain
+          echo "modified=$(if git status --porcelain | grep 'CHANGELOG.md'; then echo 'true'; else echo 'false'; fi)" >> $GITHUB_OUTPUT
+      
+      # Commit y push de los cambios si hay modificaciones
+      - name: Commit changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): actualizar CHANGELOG.md en rama ${{ steps.branch-name.outputs.BRANCH_NAME }}"
+          git push origin ${{ steps.branch-name.outputs.BRANCH_NAME }}
