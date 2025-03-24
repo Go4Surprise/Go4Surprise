@@ -1,15 +1,19 @@
 import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="LoginScreen" options={{ headerShown: false }} />
-      <Stack.Screen name="RegisterScreen" options={{ headerShown: false }} />
-      <Stack.Screen name="ForgottenPasword" options={{ headerShown: false }} />
-      <Stack.Screen name="HomeScreen" options={{ headerShown: false }} />
-      <Stack.Screen name="MyBookings" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="LoginScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="RegisterScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="ForgottenPasword" options={{ headerShown: false }} />
+        <Stack.Screen name="HomeScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="MyBookings" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      </Stack>
+      {Platform.OS === 'web' && <div id="root-portal" style={{ zIndex: 99999 }} />}
+    </>
   );
 }

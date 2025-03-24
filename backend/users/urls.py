@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import register_user, login_user, update_preferences, get_usuario_id
-from .views import get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password
+from .views import get_usuario_id, get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password, GoogleLogin
 
 urlpatterns = [
     path('register/', register_user, name='register'),
@@ -11,5 +10,6 @@ urlpatterns = [
     path('update/', update_user_profile, name='update_user_profile'),
     path('delete/', delete_user_account, name='delete_user_account'),
     path('change_password/', change_password, name='change_password'),
+    path('social/google/', GoogleLogin.as_view(), name='google_login'),
 
 ]

@@ -12,7 +12,8 @@ class Usuario(models.Model):
     surname = models.CharField(max_length=100)
     pfp = models.ImageField(upload_to='', null=True, blank=True)
     email = models.EmailField()
-    phone = models.CharField(max_length=15)
+    phone = models.CharField(max_length=15, blank=True)
+    birthdate = models.DateField(null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="usuario")
 
     class Meta:
@@ -23,6 +24,10 @@ class Usuario(models.Model):
     
     def __str__(self):
         return f"{self.name} {self.surname}"
+
+    @property
+    def is_profile_complete(self):
+        return self.birthdate is not None and bool(self.phone)
 
 
 class Preferences(models.Model):
@@ -37,7 +42,8 @@ class Preferences(models.Model):
 
     def __str__(self):
         return f"Preferences for {self.usuario}"
-    
+
+
 @receiver(post_save, sender=Usuario)
 def create_user_preferences(sender, instance, created, **kwargs):
     if created:

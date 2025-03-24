@@ -8,6 +8,39 @@ from .serializers import RegisterSerializer, LoginSerializer, PreferencesSeriali
 from .models import Preferences
 from django.contrib.auth.models import User
 from .models import Usuario
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from .serializers import SocialLoginResponseSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+
+    def get_response(self):
+        user = self.user
+        try:
+            usuario = user.usuario
+        except Usuario.DoesNotExist:
+            logger.error(f"get_response - No Usuario found for user {user.username}")
+            # Create it here as a fallback (though save_user should handle this)
+            extra_data = self.sociallogin.account.extra_data
+            usuario = Usuario.objects.create(
+                user=user,
+                name=user.first_name or extra_data.get('given_name', ''),
+                surname=user.last_name or extra_data.get('family_name', ''),
+                email=user.email,
+                phone='',
+                birthdate='2000-01-01',
+            )
+        serializer = SocialLoginResponseSerializer(usuario, context={'request': self.request})
+        data = serializer.data
+        logger.info(f"Google login response: {data}")
+        return Response(data)
+
 
 @swagger_auto_schema(
     method="post",
@@ -127,15 +160,6 @@ def get_usuario_id(request):
         return Response({"error": "Entidad Usuario no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_info(request):
-    """Devuelve la información del usuario autenticado"""
-    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
-    serializer = UserSerializer(user)  
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 @swagger_auto_schema(
     method="put",
     request_body=UserUpdateSerializer,
@@ -160,6 +184,8 @@ def update_user_profile(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @swagger_auto_schema(
     method="delete",
     responses={
@@ -190,7 +216,9 @@ def delete_user_account(request):
         print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
         return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 from django.contrib.auth import authenticate
+
 
 @swagger_auto_schema(
     method="post",
