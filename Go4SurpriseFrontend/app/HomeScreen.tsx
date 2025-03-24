@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
 import { useWindowDimensions } from "react-native";
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { useNavigation } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import CountDown from './CountDown';
 import Reviews from './Reviews';
 import Experiences from './Experiences';
@@ -11,6 +13,17 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 600;
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if user is admin when component mounts
+    void checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    const adminStatus = await AsyncStorage.getItem('isAdmin');
+    setIsAdmin(adminStatus === 'true');
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -19,9 +32,20 @@ export default function HomeScreen() {
           <Image source={require("../assets/images/logo.png")} style={styles.logo} />
           <Text style={styles.title}>Go4Surprise</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push("/Profile")}>
-          <Image source={require("../assets/images/user-logo-none.png")} style={styles.profileIcon} />
-        </TouchableOpacity>
+        <View style={styles.headerRightContainer}>
+          {isAdmin && (
+            <TouchableOpacity 
+              style={styles.adminButton}
+              onPress={() => router.push("/AdminPanel")}
+            >
+              <Ionicons name="shield-checkmark" size={24} color="#1877F2" />
+              <Text style={styles.adminText}>Admin</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => router.push("/Profile")}>
+            <Image source={require("../assets/images/user-logo-none.png")} style={styles.profileIcon} />
+          </TouchableOpacity>
+        </View>
       </View>
       <CountDown />
       <View style={styles.centeredContainer}>
@@ -211,5 +235,25 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 15,
     width: 200,
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 15,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#1877F2',
+    backgroundColor: 'rgba(24, 119, 242, 0.1)',
+  },
+  adminText: {
+    marginLeft: 5,
+    color: '#1877F2',
+    fontWeight: 'bold',
   },
 });

@@ -13,6 +13,7 @@ from dj_rest_auth.registration.views import SocialLoginView
 from .serializers import SocialLoginResponseSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 import logging
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -160,6 +161,15 @@ def get_usuario_id(request):
         return Response({"error": "Entidad Usuario no encontrada"}, status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    """Devuelve la información del usuario autenticado"""
+    user = request.user.usuario  # Asegúrate de que `usuario` es la relación correcta
+    serializer = UserSerializer(user)  
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 @swagger_auto_schema(
     method="put",
     request_body=UserUpdateSerializer,
@@ -256,3 +266,12 @@ def change_password(request):
     user.save()
 
     return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def check_username_exists(request, username):
+    if not username:
+        return JsonResponse({'error': 'El nombre del usuario no puede estar vacío'}, status=400)
+    
+    exists = User.objects.filter(username=username).exists()
+    return JsonResponse({'exists': exists})

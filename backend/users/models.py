@@ -13,7 +13,7 @@ class Usuario(models.Model):
     pfp = models.ImageField(upload_to='', null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=15, blank=True)
-    birthdate = models.DateField(null=True, blank=True)
+    birthdate = models.DateField(null=True, blank=True, default='2003-11-07')
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="usuario")
 
     class Meta:

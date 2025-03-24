@@ -57,6 +57,7 @@ class LoginSerializer(serializers.Serializer):
         return {
             "id": usuario.id,
             "user_id": user.id,
+            "birthdate": usuario.birthdate,
             "username": user.username,
             "name": usuario.name,
             "surname": usuario.surname,
@@ -67,7 +68,6 @@ class LoginSerializer(serializers.Serializer):
             "access": str(tokens.access_token),
             "refresh": str(tokens),
             "preferences_set": preferences_set,
-            "profile_complete": profile_complete,
         }
 
 
@@ -86,8 +86,11 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ['id', 'user', 'name', 'surname', 'email', 'phone', 'birthdate', 'pfp', 'preferences', 'username']
-    
+        fields = [
+            'id', 'user', 'name', 'surname', 'email',
+            'phone', 'pfp', 'preferences', 'username'
+        ]
+
     def get_pfp(self, obj):
         request = self.context.get('request')
         if obj.pfp:
@@ -126,6 +129,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             for attr, value in user_data.items():
                 setattr(user, attr, value)
             user.save()
+
         return instance
 
 

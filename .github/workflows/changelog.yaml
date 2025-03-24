@@ -1,0 +1,122 @@
+name: Update Changelog On PR to Main
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main  # Se activa solo en PRs hacia main
+
+permissions:
+  contents: write  # Permisos explícitos para modificar el contenido del repositorio
+  pull-requests: write  # Permisos para comentar en el PR
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 0  # Necesario para acceder a todo el historial de commits
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      
+      # Capturar la rama del PR en una variable de entorno
+      - name: Set PR branch as environment variable
+        run: echo "PR_HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+      
+      # Configurar Git
+      - name: Setup Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+      
+      # Generar changelog manualmente usando git log y scripts de bash
+      - name: Generate changelog
+        run: |
+          # Si CHANGELOG.md no existe, crear uno
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+          # Obtener la fecha actual
+          DATE=$(date +"%Y-%m-%d")
+          
+          # Crear archivo de changelog temporal
+          echo "## Cambios en PR (${DATE})" > temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Extraer commits convencionales y formatearlos
+          echo "### 🚀 Nuevas funcionalidades" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^feat" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🐛 Correcciones" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^fix" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 📚 Documentación" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^docs" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### ♻️ Refactorización" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^refactor" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### ⚡ Mejoras de rendimiento" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^perf" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🧪 Pruebas" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^test" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          echo "### 🔧 Otros cambios" >> temp_changelog.md
+          git log --pretty=format:"- %s" --grep="^chore\|^ci\|^build\|^style" HEAD >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          echo "" >> temp_changelog.md
+          
+          # Combinar el changelog temporal con el existente
+          cat temp_changelog.md CHANGELOG.md > new_changelog.md
+          mv new_changelog.md CHANGELOG.md
+          rm temp_changelog.md
+      
+      # Verificar si hay cambios en el changelog
+      - name: Check for changes
+        id: git-check
+        run: |
+          if git status --porcelain | grep -q 'CHANGELOG.md'; then
+            echo "modified=true" >> $GITHUB_OUTPUT
+          else
+            echo "modified=false" >> $GITHUB_OUTPUT
+          fi
+      
+      # Commit y push de los cambios si hay modificaciones
+      - name: Commit changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git add CHANGELOG.md
+          git commit -m "docs(changelog): actualizar CHANGELOG.md para PR a main"
+          git push origin HEAD:$PR_HEAD_REF
+      
+      # Comentar en el PR
+      - name: Comment PR
+        if: steps.git-check.outputs.modified == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Changelog actualizado automáticamente con los cambios del PR.'
+            })
