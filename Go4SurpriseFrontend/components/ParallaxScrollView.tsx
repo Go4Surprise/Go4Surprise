@@ -44,6 +44,11 @@ export default function ParallaxScrollView({
     };
   });
 
+  // Get the background color based on the color scheme without using square bracket notation
+  const headerBgColor = colorScheme === 'dark' 
+    ? headerBackgroundColor.dark 
+    : headerBackgroundColor.light;
+
   return (
     <ThemedView style={styles.container}>
       <Animated.ScrollView
@@ -54,7 +59,7 @@ export default function ParallaxScrollView({
         <Animated.View
           style={[
             styles.header,
-            { backgroundColor: headerBackgroundColor[colorScheme] },
+            { backgroundColor: headerBgColor },
             headerAnimatedStyle,
           ]}>
           {headerImage}

@@ -25,7 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9(ublthm*z4@l6q6r#a+bfe2e8$x6(dh#)$@+a*_w2*6s!7qiu'
+# Get SECRET_KEY from environment variable only
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
+# Raise an error if SECRET_KEY is not set in production
+if SECRET_KEY is None:
+    # For development/testing only, generate a random key
+    import secrets
+    SECRET_KEY = secrets.token_urlsafe(50)
+    print("WARNING: Using a randomly generated SECRET_KEY. Set DJANGO_SECRET_KEY environment variable for production.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -75,7 +83,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
     'rest_framework_simplejwt',   
-
 ]
 
 MIDDLEWARE = [

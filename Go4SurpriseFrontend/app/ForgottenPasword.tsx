@@ -63,7 +63,7 @@ export default function ForgottenPassword() {
                 />
 
                 {/* Botón de envío */}
-                <TouchableOpacity style={styles.button} onPress={sendEmail}>
+                <TouchableOpacity style={styles.button} onPress={() => void sendEmail()}>
                     <Text style={styles.buttonText}>Enviar enlace</Text>
                 </TouchableOpacity>
 
