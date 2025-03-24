@@ -310,6 +310,8 @@ export default function PreferencesFormScreen(): React.ReactElement {
         return require('../assets/images/gastronomia.png');
       case 'Ocio Nocturno':
         return require('../assets/images/ocionocturno.png');
+      case 'Aventura':
+        return require('../assets/images/aventura.png');
       default:
         return null;
     }
