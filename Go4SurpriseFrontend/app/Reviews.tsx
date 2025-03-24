@@ -14,55 +14,55 @@ export default function Reviews({ navigation }) {
         {
             user: 'Juan Pérez',
             stars: '★★★★★',
-            date: '1 de Enero, 2023',
+            date: '1 de Enero, 2025',
             content: '¡Fue una experiencia increíble! Muy recomendable.',
         },
         {
             user: 'María López',
             stars: '★★★★☆',
-            date: '15 de Febrero, 2023',
+            date: '15 de Febrero, 2025',
             content: 'Muy divertido, aunque me hubiera gustado más variedad.',
         },
         {
             user: 'Carlos Gómez',
             stars: '★★★★★',
-            date: '10 de Marzo, 2023',
+            date: '10 de Marzo, 2025',
             content: 'Definitivamente lo haré otra vez. ¡Muy recomendado!',
         },
         {
             user: 'Laura Martínez',
             stars: '★★★★★',
-            date: '15 de Febrero, 2023',
+            date: '15 de Febrero, 2025',
             content: 'Una experiencia única. Volveré sin duda. ¡Totalmente recomendable!'
         },
         {
             user: 'Javier Sánchez',
             stars: '★★★★★',
-            date: '5 de Enero, 2023',
+            date: '5 de Enero, 2025',
             content: 'Increíble servicio. Todo perfecto desde el inicio hasta el final.'
         },
         {
             user: 'Ana Rodríguez',
             stars: '★★★★★',
-            date: '22 de Enero, 2023',
+            date: '28 de Diciembre, 2024',
             content: '¡Un plan genial! Lo disfruté mucho, totalmente lo que buscaba.'
         },
         {
             user: 'Pablo López',
             stars: '★★★★★',
-            date: '1 de Marzo, 2023',
+            date: '1 de Marzo, 2025',
             content: 'Una experiencia inolvidable. Todo estuvo impecable. ¡Muy recomendable!'
         },
         {
             user: 'Marta García',
             stars: '★★★★★',
-            date: '7 de Febrero, 2023',
+            date: '7 de Febrero, 2025',
             content: 'Pasamos un día increíble, sin duda repetiré. ¡Lo mejor de todo fue la atención!'
         },
         {
             user: 'Enrique Fernández',
             stars: '★★★★★',
-            date: '18 de Marzo, 2023',
+            date: '18 de Marzo, 2025',
             content: 'Perfecto en todos los aspectos. Un plan diferente y divertido. ¡Lo haré de nuevo!'
         }
 
