@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 
-type ExperienceCardProps = {
+interface ExperienceCardProps {
   experience: {
     title: string;
     image: string;

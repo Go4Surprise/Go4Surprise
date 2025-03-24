@@ -41,7 +41,7 @@ export default function Reviews({ navigation }) {
     useEffect(() => {
         const handleGlobalMouseUp = () => isDragging && setIsDragging(false);
         document.addEventListener('mouseup', handleGlobalMouseUp);
-        return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+        return () => { document.removeEventListener('mouseup', handleGlobalMouseUp); };
     }, [isDragging]);
 
     return (
@@ -52,13 +52,13 @@ export default function Reviews({ navigation }) {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={{ cursor: isDragging ? 'grabbing' : 'grab', marginBottom: 5 }}
-                onMouseDown={(e) => handleInteractionStart(e.pageX)}
-                onMouseMove={(e) => handleInteractionMove(e.pageX)}
-                onMouseUp={() => setIsDragging(false)}
-                onMouseLeave={() => setIsDragging(false)}
-                onTouchStart={(e) => handleInteractionStart(e.touches[0].pageX, true)}
-                onTouchMove={(e) => handleInteractionMove(e.touches[0].pageX)}
-                onTouchEnd={() => setIsDragging(false)}
+                onMouseDown={(e) => { handleInteractionStart(e.pageX); }}
+                onMouseMove={(e) => { handleInteractionMove(e.pageX); }}
+                onMouseUp={() => { setIsDragging(false); }}
+                onMouseLeave={() => { setIsDragging(false); }}
+                onTouchStart={(e) => { handleInteractionStart(e.touches[0].pageX, true); }}
+                onTouchMove={(e) => { handleInteractionMove(e.touches[0].pageX); }}
+                onTouchEnd={() => { setIsDragging(false); }}
                 scrollEventThrottle={16}
                 decelerationRate="normal"
             >

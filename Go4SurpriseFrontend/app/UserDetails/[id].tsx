@@ -101,13 +101,12 @@ export default function UserDetails() {
                     { 
                         text: "Cancelar", 
                         style: "cancel", 
-                        onPress: () => resolve(false) 
+                        onPress: () => { resolve(false); } 
                     },
                     { 
                         text: "Eliminar", 
                         style: "destructive",
-                        onPress: () => resolve(true)
-                    }
+                        onPress: () => { resolve(true); }                    }
                 ]
             );
         });
@@ -176,7 +175,7 @@ export default function UserDetails() {
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.saveButton, saving && styles.disabledButton]}
-                                    onPress={async() => {await void handleSave()}}
+                                    onPress={() => void handleSave()}
                                     disabled={saving}
                                 >
                                     <Text style={styles.buttonText}>

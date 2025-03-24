@@ -1,7 +1,6 @@
 // components/AdminDashboard.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet } from 'react-native';
 import DashboardCard from './DashboardCard';
 
 interface AdminDashboardProps {
@@ -24,7 +23,7 @@ const AdminDashboard = ({ router }: AdminDashboardProps) => {
             description: 'Visualiza estadísticas y métricas de uso de la plataforma. No Implementado.',
             icon: 'stats-chart',
             color: '#42B72A',
-            onPress: () => {},
+            onPress: () => null
         },
         {
             id: 'reservations',
@@ -32,7 +31,7 @@ const AdminDashboard = ({ router }: AdminDashboardProps) => {
             description: 'Administra las reservas, visualiza detalles y gestiona estados. No Implementado.',
             icon: 'calendar',
             color: '#FF6B00',
-            onPress: () => {},
+            onPress: () => null
         }
     ];
 

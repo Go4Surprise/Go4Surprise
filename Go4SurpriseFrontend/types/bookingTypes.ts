@@ -25,12 +25,12 @@ export interface ScrollHandlers {
   ref: RefObject<ScrollView>;
   isDragging: boolean;
   isActive: boolean;
-  onMouseDown: (e: React.MouseEvent) => void;
-  onMouseMove: (e: React.MouseEvent) => void;
+  onMouseDown: () => void;
+  onMouseMove: () => void;
   onMouseUp: () => void;
   onMouseLeave: () => void;
-  onTouchStart: (e: React.TouchEvent) => void;
-  onTouchMove: (e: React.TouchEvent) => void;
+  onTouchStart: () => void;
+  onTouchMove: () => void;
   onTouchEnd: () => void;
 }
 
@@ -39,11 +39,11 @@ export interface ScrollViewProps {
   ref: RefObject<ScrollView>;
   isDragging: boolean;
   isActive: boolean;
-  onMouseDown: (e: React.MouseEvent) => void;
-  onMouseMove: (e: React.MouseEvent) => void;
+  onMouseDown: () => void;
+  onMouseMove: () => void;
   onMouseUp: () => void;
   onMouseLeave: () => void;
-  onTouchStart: (e: React.TouchEvent) => void;
-  onTouchMove: (e: React.TouchEvent) => void;
+  onTouchStart: () => void;
+  onTouchMove: () => void;
   onTouchEnd: () => void;
 }

@@ -10,12 +10,12 @@ import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 
 // Types
-import { ScrollHandlers, CardProps, Reservation, ScrollViewProps } from "./types/bookingTypes";
+import { ScrollHandlers, CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
 
 // Data
-import { cities, categories } from "./data/bookingData";
+import { cities, categories } from "../data/bookingData";
 
-// Components
+// Card Components
 const CityCard = ({ city, isSelected, onSelect }: CardProps) => (
   <Button
     style={{ width: 200, height: 300, margin: 5 }}
@@ -48,6 +48,7 @@ const CategoryCard = ({ category, isSelected, onSelect }: CardProps) => (
   </Button>
 );
 
+// Horizontal Scrollable Component
 const HorizontalScrollable = ({ children, scrollViewProps }: { 
   children: React.ReactNode, 
   scrollViewProps: ScrollViewProps 
@@ -74,6 +75,145 @@ const HorizontalScrollable = ({ children, scrollViewProps }: {
   </ScrollView>
 );
 
+// Scrolling hooks and handlers
+const useScrollHandlers = (scrollViewRef: React.RefObject<ScrollView>, scrollState: any, setScrollState: any, scrollViewType: 'city' | 'category') => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const scrollView = scrollViewRef.current;
+    if (scrollView) {
+      setScrollState({
+        isDragging: true,
+        startX: e.pageX,
+        scrollLeft: scrollView.getScrollableNode().scrollLeft,
+        activeScrollView: scrollViewType
+      });
+    }
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!scrollState.isDragging || scrollState.activeScrollView !== scrollViewType) return;
+    const x = e.pageX;
+    const distance = scrollState.startX - x;
+    const scrollView = scrollViewRef.current;
+    if (scrollView) {
+      scrollView.scrollTo({ x: scrollState.scrollLeft + distance, animated: false });
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const scrollView = scrollViewRef.current;
+    if (scrollView) {
+      setScrollState({
+        isDragging: true,
+        startX: e.touches[0].pageX,
+        scrollLeft: scrollView.getScrollableNode().scrollLeft,
+        activeScrollView: scrollViewType
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!scrollState.isDragging || scrollState.activeScrollView !== scrollViewType) return;
+    const x = e.touches[0].pageX;
+    const distance = scrollState.startX - x;
+    const scrollView = scrollViewRef.current;
+    if (scrollView) {
+      scrollView.scrollTo({ x: scrollState.scrollLeft + distance, animated: false });
+    }
+  };
+
+  const resetScroll = () => {
+    setScrollState(prev => ({ ...prev, isDragging: false, activeScrollView: null }));
+  };
+
+  return {
+    ref: scrollViewRef,
+    isDragging: scrollState.isDragging,
+    isActive: scrollState.activeScrollView === scrollViewType,
+    onMouseDown: handleMouseDown,
+    onMouseMove: handleMouseMove,
+    onMouseUp: resetScroll,
+    onMouseLeave: resetScroll,
+    onTouchStart: handleTouchStart,
+    onTouchMove: handleTouchMove,
+    onTouchEnd: resetScroll
+  };
+};
+
+// Form fields component
+const BookingFormFields = ({ 
+  reserva, 
+  handleTextFieldChange, 
+  handleSelectChange 
+}: { 
+  reserva: Reservation, 
+  handleTextFieldChange: any, 
+  handleSelectChange: any 
+}) => (
+  <>
+    <FormControl fullWidth>
+      <InputLabel>Duración</InputLabel>
+      <Select
+        label="Duration"
+        name="duration"
+        value={reserva.duration}
+        onChange={handleSelectChange}
+        required
+      >
+        {[1, 2, 3, 4].map(h => (
+          <MenuItem key={h} value={h}>{h} hora{h > 1 ? 's' : ''}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+    
+    <FormControl fullWidth>
+      <InputLabel>Precio</InputLabel>
+      <Select
+        label="precio"
+        name="price"
+        value={reserva.price}
+        onChange={handleSelectChange}
+        required
+      >
+        {[20, 40, 60].map(price => (
+          <MenuItem key={price} value={price}>{price} €</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+    
+    <TextField
+      label="Participantes"
+      name="participants"
+      type="number"
+      fullWidth
+      value={reserva.participants}
+      onChange={handleTextFieldChange}
+      required
+    />
+    
+    <TextField
+      label="Fecha de la Experiencia"
+      name="experience_date"
+      type="date"
+      fullWidth
+      InputLabelProps={{ shrink: true }}
+      inputProps={{
+        min: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0],
+      }}
+      value={reserva.experience_date.toISOString().split("T")[0]}
+      onChange={(e) => {
+        const dateValue = new Date(e.target.value);
+        handleTextFieldChange({
+          target: { name: "experience_date", value: dateValue },
+        });
+      }}
+    />
+  </>
+);
+
+// Main component
 export default function RegisterBooking() {
   // State
   const [reserva, setReserva] = useState<Reservation>({
@@ -109,7 +249,7 @@ export default function RegisterBooking() {
         console.error("Error fetching user data:", error);
       }
     };
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   // Handle mouse up outside component
@@ -120,13 +260,12 @@ export default function RegisterBooking() {
       }
     };
     document.addEventListener('mouseup', handleGlobalMouseUp);
-    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    return () => { document.removeEventListener('mouseup', handleGlobalMouseUp); };
   }, [scrollState.isDragging]);
 
   // Input handlers
   const handleTextFieldChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | 
-       { target: { name: string; value: unknown } }
+    e: { target: { name: string; value: unknown } }
   ) => {
     const { name, value } = e.target;
     setReserva(prev => ({ ...prev, [name]: value }));
@@ -135,73 +274,6 @@ export default function RegisterBooking() {
   const handleSelectChange = (e: SelectChangeEvent<number>) => {
     const { name, value } = e.target;
     setReserva(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Scroll handlers
-  const getScrollHandlers = (scrollViewType: 'city' | 'category'): ScrollHandlers => {
-    const scrollViewRef = scrollViewType === 'city' ? cityScrollViewRef : categoryScrollViewRef;
-    
-    const handleMouseDown = (e: React.MouseEvent) => {
-      const scrollView = scrollViewRef.current;
-      if (scrollView) {
-        setScrollState({
-          isDragging: true,
-          startX: e.pageX,
-          scrollLeft: scrollView.getScrollableNode().scrollLeft,
-          activeScrollView: scrollViewType
-        });
-      }
-      e.preventDefault();
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-      if (!scrollState.isDragging || scrollState.activeScrollView !== scrollViewType) return;
-      const x = e.pageX;
-      const distance = scrollState.startX - x;
-      const scrollView = scrollViewRef.current;
-      if (scrollView) {
-        scrollView.scrollTo({ x: scrollState.scrollLeft + distance, animated: false });
-      }
-    };
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-      const scrollView = scrollViewRef.current;
-      if (scrollView) {
-        setScrollState({
-          isDragging: true,
-          startX: e.touches[0].pageX,
-          scrollLeft: scrollView.getScrollableNode().scrollLeft,
-          activeScrollView: scrollViewType
-        });
-      }
-    };
-
-    const handleTouchMove = (e: React.TouchEvent) => {
-      if (!scrollState.isDragging || scrollState.activeScrollView !== scrollViewType) return;
-      const x = e.touches[0].pageX;
-      const distance = scrollState.startX - x;
-      const scrollView = scrollViewRef.current;
-      if (scrollView) {
-        scrollView.scrollTo({ x: scrollState.scrollLeft + distance, animated: false });
-      }
-    };
-
-    const resetScroll = () => {
-      setScrollState(prev => ({ ...prev, isDragging: false, activeScrollView: null }));
-    };
-
-    return {
-      ref: scrollViewRef,
-      isDragging: scrollState.isDragging,
-      isActive: scrollState.activeScrollView === scrollViewType,
-      onMouseDown: handleMouseDown,
-      onMouseMove: handleMouseMove,
-      onMouseUp: resetScroll,
-      onMouseLeave: resetScroll,
-      onTouchStart: handleTouchStart,
-      onTouchMove: handleTouchMove,
-      onTouchEnd: resetScroll
-    };
   };
 
   // Form submission
@@ -248,9 +320,9 @@ export default function RegisterBooking() {
     );
   };
 
-  // Get scroll handlers
-  const cityScrollProps = getScrollHandlers('city');
-  const categoryScrollProps = getScrollHandlers('category');
+  // Get scroll handlers using custom hook
+  const cityScrollProps = useScrollHandlers(cityScrollViewRef, scrollState, setScrollState, 'city');
+  const categoryScrollProps = useScrollHandlers(categoryScrollViewRef, scrollState, setScrollState, 'category');
 
   return (
     <ScrollView contentContainerStyle={{ 
@@ -288,69 +360,15 @@ export default function RegisterBooking() {
                   key={category.id}
                   category={category}
                   isSelected={reserva.category === category.id}
-                  onSelect={() => setReserva(prev => ({ ...prev, category: category.id }))}
+                  onSelect={() => { setReserva(prev => ({ ...prev, category: category.id })); }}
                 />
               ))}
             </HorizontalScrollable>
 
-            <FormControl fullWidth>
-              <InputLabel>Duración</InputLabel>
-              <Select
-                label="Duration"
-                name="duration"
-                value={reserva.duration}
-                onChange={handleSelectChange}
-                required
-              >
-                {[1, 2, 3, 4].map(h => (
-                  <MenuItem key={h} value={h}>{h} hora{h > 1 ? 's' : ''}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            <FormControl fullWidth>
-              <InputLabel>Precio</InputLabel>
-              <Select
-                label="precio"
-                name="price"
-                value={reserva.price}
-                onChange={handleSelectChange}
-                required
-              >
-                {[20, 40, 60].map(price => (
-                  <MenuItem key={price} value={price}>{price} €</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            <TextField
-              label="Participantes"
-              name="participants"
-              type="number"
-              fullWidth
-              value={reserva.participants}
-              onChange={handleTextFieldChange}
-              required
-            />
-            
-            <TextField
-              label="Fecha de la Experiencia"
-              name="experience_date"
-              type="date"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              inputProps={{
-                min: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                  .toISOString()
-                  .split("T")[0],
-              }}
-              value={reserva.experience_date.toISOString().split("T")[0]}
-              onChange={(e) => {
-                const dateValue = new Date(e.target.value);
-                handleTextFieldChange({
-                  target: { name: "experience_date", value: dateValue },
-                });
-              }}
+            <BookingFormFields 
+              reserva={reserva}
+              handleTextFieldChange={handleTextFieldChange}
+              handleSelectChange={handleSelectChange}
             />
             
             <Button

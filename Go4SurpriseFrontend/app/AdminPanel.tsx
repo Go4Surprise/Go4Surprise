@@ -58,7 +58,7 @@ export default function AdminPanel() {
                 <AdminHeader 
                     router={router} 
                     adminName={adminName} 
-                    onLogout={handleLogout} 
+                    onLogout={() => void handleLogout} 
                 />
                 <AdminDashboard router={router} />
             </View>
