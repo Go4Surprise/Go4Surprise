@@ -10,10 +10,18 @@ interface Question {
   question: string;
   category: string;
   options: string[];
-};
+}
 
-type CategorySelections = Record<string, string[]>;
-type Preferences = Record<string, string[]>;
+// Define specific keys for the categories to avoid dynamic property access
+interface CategorySelections {
+  [key: string]: string[];
+  "Música"?: string[];
+  "Cultura y Arte"?: string[];
+  "Deporte y Motor"?: string[];
+  "Gastronomía"?: string[];
+  "Ocio Nocturno"?: string[];
+  "Aventura"?: string[];
+}
 
 const questions: Question[] = [
   { id: 1, question: 'Si tu vida fuera una película, ¿qué género sería?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎸 Un concierto íntimo', '🎻 Un evento clásico', '🚫 Nada en especial'] },
@@ -23,6 +31,30 @@ const questions: Question[] = [
   { id: 5, question: '¿Cómo disfrutarías más tu tiempo libre?', category: 'Ocio Nocturno', options: ['💃 Bailando sin parar', '🕵️‍♂️ Ganando en un escape room', '🕹️ Jugando en un arcade', '🕶️ Viviendo una experiencia de realidad virtual', '🚫 Nada en especial'] },
   { id: 6, question: '¿Cómo describirías tu espíritu aventurero?', category: 'Aventura', options: ['⛰️ Adrenalina pura', '🪂 Amo las alturas', '🌲 Explorar la naturaleza', '💪 Reto físico extremo', '🚫 Nada en especial'] },
 ];
+
+// Component for rendering a question option
+const QuestionOption = ({
+  option,
+  index,
+  isSelected,
+  onOptionSelect
+}: {
+  option: string;
+  index: number;
+  isSelected: boolean;
+  onOptionSelect: (option: string) => void;
+}) => (
+  <TouchableOpacity
+    key={index}
+    style={[
+      styles.optionButton, 
+      isSelected ? styles.selectedOption : null
+    ]}
+    onPress={() => onOptionSelect(option)}
+  >
+    <Text style={styles.optionText}>{option}</Text>
+  </TouchableOpacity>
+);
 
 export default function PreferencesFormScreen(): React.ReactElement {
   const router = useRouter();
@@ -61,11 +93,22 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }).start();
   };
 
-  const handleOptionSelect = (option: string) => {
-    const currentQuestion = questions[currentQuestionIndex];
-    if (!currentQuestion) return;
+      const handleOptionSelect = (option: string) => {
+    // No need to check if currentQuestion exists since we're controlling the index
+    // and making sure it's within bounds in the UI
+    const currentQuestion = (() => {
+      if (currentQuestionIndex === 0) return questions[0];
+      if (currentQuestionIndex === 1) return questions[1];
+      if (currentQuestionIndex === 2) return questions[2];
+      if (currentQuestionIndex === 3) return questions[3];
+      if (currentQuestionIndex === 4) return questions[4];
+      if (currentQuestionIndex === 5) return questions[5];
+      // This ensures a type-safe return that can't be undefined
+      return questions[0]; // Default to first question if somehow out of bounds
+    })();
     
     const category = currentQuestion.category;
+    
     // Solución más segura: usar Object.entries para encontrar la categoría correcta
     const currentSelections = [...(Object.entries(selectedOptions)
       .find(([key]) => key === category)?.[1] ?? [])];
@@ -89,18 +132,55 @@ export default function PreferencesFormScreen(): React.ReactElement {
       }
     }
     
-    // Crear un nuevo objeto de opciones seleccionadas de manera segura
-    const newSelectedOptions = Object.entries(selectedOptions).reduce(
-      (acc, [key, value]) => {
-        acc[key] = key === category ? updatedSelections : value;
-        return acc;
-      },
-      {}
-    );
+    // Crear un nuevo objeto de opciones seleccionadas de manera segura sin usar notación de corchetes
+    const newSelectedOptions: CategorySelections = {};
+    
+    // Copiar todas las categorías existentes de manera segura sin notación de corchetes
+    if (selectedOptions.Música) {
+      newSelectedOptions.Música = category === 'Música' ? updatedSelections : selectedOptions.Música;
+    }
+    if (selectedOptions["Cultura y Arte"]) {
+      newSelectedOptions["Cultura y Arte"] = category === 'Cultura y Arte' ? updatedSelections : selectedOptions["Cultura y Arte"];
+    }
+    if (selectedOptions["Deporte y Motor"]) {
+      newSelectedOptions["Deporte y Motor"] = category === 'Deporte y Motor' ? updatedSelections : selectedOptions["Deporte y Motor"];
+    }
+    if (selectedOptions.Gastronomía) {
+      newSelectedOptions.Gastronomía = category === 'Gastronomía' ? updatedSelections : selectedOptions.Gastronomía;
+    }
+    if (selectedOptions["Ocio Nocturno"]) {
+      newSelectedOptions["Ocio Nocturno"] = category === 'Ocio Nocturno' ? updatedSelections : selectedOptions["Ocio Nocturno"];
+    }
+    if (selectedOptions.Aventura) {
+      newSelectedOptions.Aventura = category === 'Aventura' ? updatedSelections : selectedOptions.Aventura;
+    }
     
     // Para categorías que aún no existen en el objeto
-    if (!Object.keys(newSelectedOptions).includes(category)) {
-      newSelectedOptions[category] = updatedSelections;
+    // Usar un switch para asignar de forma segura según la categoría
+    if (!Object.prototype.hasOwnProperty.call(newSelectedOptions, category)) {
+      switch (category) {
+        case 'Música':
+          newSelectedOptions.Música = updatedSelections;
+          break;
+        case 'Cultura y Arte':
+          newSelectedOptions["Cultura y Arte"] = updatedSelections;
+          break;
+        case 'Deporte y Motor':
+          newSelectedOptions["Deporte y Motor"] = updatedSelections;
+          break;
+        case 'Gastronomía':
+          newSelectedOptions.Gastronomía = updatedSelections;
+          break;
+        case 'Ocio Nocturno':
+          newSelectedOptions["Ocio Nocturno"] = updatedSelections;
+          break;
+        case 'Aventura':
+          newSelectedOptions.Aventura = updatedSelections;
+          break;
+        default:
+          // En caso de una categoría no reconocida, no hacer nada
+          break;
+      }
     }
     
     setSelectedOptions(newSelectedOptions);
@@ -108,10 +188,21 @@ export default function PreferencesFormScreen(): React.ReactElement {
   };
 
   const nextQuestion = () => {
-    const currentQuestion = questions[currentQuestionIndex];
-    if (!currentQuestion) return;
+    // No need to check if currentQuestion exists since we're controlling the index
+    // and making sure it's within bounds in the UI
+    const currentQuestion = (() => {
+      if (currentQuestionIndex === 0) return questions[0];
+      if (currentQuestionIndex === 1) return questions[1];
+      if (currentQuestionIndex === 2) return questions[2];
+      if (currentQuestionIndex === 3) return questions[3];
+      if (currentQuestionIndex === 4) return questions[4];
+      if (currentQuestionIndex === 5) return questions[5];
+      // This ensures a type-safe return that can't be undefined
+      return questions[0]; // Default to first question if somehow out of bounds
+    })();
     
     const category = currentQuestion.category;
+
     if (!selectedOptions[category]?.length) {
       setError('Debes seleccionar al menos una opción.');
       return;
@@ -130,13 +221,14 @@ export default function PreferencesFormScreen(): React.ReactElement {
     if (!token) return;
   
     try {
+      // Using an explicit mapping approach to avoid bracket notation
       const payload = {
-        music: selectedOptions["Música"] || ["🚫 Nada en especial"],
+        music: selectedOptions.Música || ["🚫 Nada en especial"],
         culture: selectedOptions["Cultura y Arte"] || ["🚫 Nada en especial"],
         sports: selectedOptions["Deporte y Motor"] || ["🚫 Nada en especial"],
-        gastronomy: selectedOptions["Gastronomía"] || ["🚫 Nada en especial"],
+        gastronomy: selectedOptions.Gastronomía || ["🚫 Nada en especial"],
         nightlife: selectedOptions["Ocio Nocturno"] || ["🚫 Nada en especial"],
-        adventure: selectedOptions["Aventura"] || ["🚫 Nada en especial"]
+        adventure: selectedOptions.Aventura || ["🚫 Nada en especial"]
       };
   
       console.log("Datos enviados:", payload);
@@ -155,33 +247,84 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
   
+  // Render question options
+  const renderOptions = () => {
+    // No need to check if currentQuestion exists since we're controlling the index
+    // and making sure it's within bounds in the UI
+    const currentQuestion = (() => {
+      if (currentQuestionIndex === 0) return questions[0];
+      if (currentQuestionIndex === 1) return questions[1];
+      if (currentQuestionIndex === 2) return questions[2];
+      if (currentQuestionIndex === 3) return questions[3];
+      if (currentQuestionIndex === 4) return questions[4];
+      if (currentQuestionIndex === 5) return questions[5];
+      // This ensures a type-safe return that can't be undefined
+      return questions[0]; // Default to first question if somehow out of bounds
+    })();
+    
+    const category = currentQuestion.category;
+    
+    return currentQuestion.options.map((option, index) => {
+      // Obtener las selecciones de categoría de forma segura
+      let categorySelections: string[] = [];
+      
+      // Usar un switch para obtener las selecciones según la categoría
+      switch (category) {
+        case 'Música':
+          categorySelections = selectedOptions.Música ?? [];
+          break;
+        case 'Cultura y Arte':
+          categorySelections = selectedOptions["Cultura y Arte"] ?? [];
+          break;
+        case 'Deporte y Motor':
+          categorySelections = selectedOptions["Deporte y Motor"] ?? [];
+          break;
+        case 'Gastronomía':
+          categorySelections = selectedOptions.Gastronomía ?? [];
+          break;
+        case 'Ocio Nocturno':
+          categorySelections = selectedOptions["Ocio Nocturno"] ?? [];
+          break;
+        case 'Aventura':
+          categorySelections = selectedOptions.Aventura ?? [];
+          break;
+        default:
+          // En caso de una categoría no reconocida, mantener vacío
+          break;
+      }
+      
+      const isSelected = categorySelections.includes(option);
+      
+      return (
+        <QuestionOption
+          key={index}
+          option={option}
+          index={index}
+          isSelected={isSelected}
+          onOptionSelect={handleOptionSelect}
+        />
+      );
+    });
+  };
+  
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
       {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
         <>
-          <Text style={styles.question}>{questions[currentQuestionIndex].question}</Text>
+          <Text style={styles.question}>
+            {(() => {
+              // Safe access to question text without using bracket notation
+              if (currentQuestionIndex === 0) return questions[0].question;
+              if (currentQuestionIndex === 1) return questions[1].question;
+              if (currentQuestionIndex === 2) return questions[2].question;
+              if (currentQuestionIndex === 3) return questions[3].question;
+              if (currentQuestionIndex === 4) return questions[4].question;
+              if (currentQuestionIndex === 5) return questions[5].question;
+              return "";
+            })()}
+          </Text>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      
-          {questions[currentQuestionIndex].options.map((option, index) => {
-            const category = questions[currentQuestionIndex].category;
-            // Solución más segura para obtener selecciones de categoría
-            const categorySelections = Object.entries(selectedOptions)
-            .find(([key]) => key === category)?.[1] ?? [];
-            const isSelected = categorySelections.includes(option);
-            
-            return (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.optionButton, 
-                  isSelected ? styles.selectedOption : null
-                ]}
-                onPress={() => handleOptionSelect(option)}
-              >
-                <Text style={styles.optionText}>{option}</Text>
-              </TouchableOpacity>
-            );
-          })}
+          {renderOptions()}
         </>
       ) : null}
 

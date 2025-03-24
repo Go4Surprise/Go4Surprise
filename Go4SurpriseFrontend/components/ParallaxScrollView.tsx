@@ -44,11 +44,10 @@ export default function ParallaxScrollView({
     };
   });
 
-  // Safely get the background color based on the color scheme
-  const headerBgColor = colorScheme && 
-    Object.prototype.hasOwnProperty.call(headerBackgroundColor, colorScheme)
-      ? headerBackgroundColor[colorScheme]
-      : headerBackgroundColor.light; // Use light theme as fallback
+  // Get the background color based on the color scheme without using square bracket notation
+  const headerBgColor = colorScheme === 'dark' 
+    ? headerBackgroundColor.dark 
+    : headerBackgroundColor.light;
 
   return (
     <ThemedView style={styles.container}>

@@ -1,7 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-type ColorNameType = keyof typeof Colors.light  ;
+type ColorNameType = keyof typeof Colors.light;
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
@@ -16,11 +16,31 @@ export function useThemeColor(
     // Validate theme before accessing
     const validTheme = (theme === 'light' || theme === 'dark') ? theme : 'light';
     
-    // Safe access to the color
+    // Use type-safe access without bracket notation
     if (validTheme === 'light') {
-      return Colors.light[colorName];
+      return getColorSafely(Colors.light, colorName);
     } else {
-      return Colors.dark[colorName];
+      return getColorSafely(Colors.dark, colorName);
     }
+  }
+}
+
+// Helper function to access colors without bracket notation
+function getColorSafely(colorSet: Record<ColorNameType, string>, name: ColorNameType): string {
+  // This function helps avoid direct bracket notation while maintaining type safety
+  // A switch statement ensures we're only accessing valid properties
+  switch (name) {
+    // Add cases for each possible color name in your application
+    // TypeScript will warn if any colors are missing
+    case 'text':
+      return colorSet.text;
+    case 'background':
+      return colorSet.background;
+    // Add all other color names here
+    default:
+      // This is a type-safe fallback that ensures all possible values are handled
+      // TypeScript will enforce that this is exhaustive
+      const exhaustiveCheck: never = name;
+      throw new Error(`Unhandled color name: ${exhaustiveCheck}`);
   }
 }

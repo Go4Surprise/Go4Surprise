@@ -3,7 +3,7 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight } from 'expo-symbols';
 import React from 'react';
-import { OpaqueColorValue, StyleProp, ViewStyle } from 'react-native';
+import { OpaqueColorValue, StyleProp, TextStyle } from 'react-native';
 
 // Add your SFSymbol to MaterialIcons mappings here.
 const MAPPING = {
@@ -36,11 +36,13 @@ export function IconSymbol({
   name: IconSymbolName;
   size?: number;
   color: string | OpaqueColorValue;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
   // Since name is typed as IconSymbolName, we know it exists in MAPPING
-  // But we'll add a safety check anyway
-  const iconName = MAPPING[name] ?? 'help-outline'; // Fallback icon
+  // But we'll add a safety check using Object.prototype.hasOwnProperty
+  const iconName = Object.prototype.hasOwnProperty.call(MAPPING, name) 
+    ? MAPPING[name] 
+    : 'help-outline'; // Fallback icon
   return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }
