@@ -14,14 +14,9 @@ interface Question {
 
 // Define specific keys for the categories to avoid dynamic property access
 interface CategorySelections {
-  [key: string]: string[];
-  "Música"?: string[];
-  "Cultura y Arte"?: string[];
-  "Deporte y Motor"?: string[];
-  "Gastronomía"?: string[];
-  "Ocio Nocturno"?: string[];
-  "Aventura"?: string[];
+  [key: string]: string[]; 
 }
+
 
 const questions: Question[] = [
   { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
@@ -301,6 +296,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
       {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
         <>
           <Text style={styles.question}>{getQuestionText()}</Text>
+          <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           {renderOptions()}
         </>
@@ -365,4 +361,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  helperText: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 10,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },  
+
 });
