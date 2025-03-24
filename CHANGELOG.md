@@ -291,6 +291,8 @@
 - feat: formulario de preferencias básico
 
 ### 🐛 Correcciones
+- fix: solve codacy error
+- fix: password adjustments
 - fix: userDetails asincrony
 - Merge pull request #41 from Go4Surprise/fix-codacy
 - Merge pull request #37 from Go4Surprise/fix/opiniones-recientes
@@ -379,6 +381,7 @@
 - feat: formulario de preferencias básico
 
 ### 🐛 Correcciones
+- fix: password adjustments
 - fix: userDetails asincrony
 - Merge pull request #41 from Go4Surprise/fix-codacy
 - Merge pull request #37 from Go4Surprise/fix/opiniones-recientes

@@ -377,7 +377,7 @@ export default function RegisterBooking() {
               fullWidth
               disabled={!isFormValid()}
             >
-              Register Booking
+              Registrar Reserva
             </Button>
           </Stack>
         </form>
