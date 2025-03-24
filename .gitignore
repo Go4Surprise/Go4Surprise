@@ -28,3 +28,4 @@ venv
 
 .qodo
 /backend/static
+/node_modules
