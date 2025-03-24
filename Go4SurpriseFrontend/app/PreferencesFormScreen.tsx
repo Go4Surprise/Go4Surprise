@@ -307,22 +307,24 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
   
-  const backgroundAnim = useRef(new Animated.Value(0)).current;
+  const backgroundScale = useRef(new Animated.Value(1)).current;
 
-  Animated.loop(
-    Animated.sequence([
-      Animated.timing(backgroundAnim, {
-        toValue: 20,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backgroundAnim, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ])
-  ).start();
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(backgroundScale, {
+          toValue: 1.05,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backgroundScale, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);  
   
   
   return (
@@ -333,9 +335,10 @@ export default function PreferencesFormScreen(): React.ReactElement {
             source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
             style={[
               styles.backgroundImage,
-              { transform: [{ translateY: backgroundAnim }] }
+              { transform: [{ scale: backgroundScale }] }
             ]}
           />
+
 
           <Text style={styles.question}>{getQuestionText()}</Text>
           <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
