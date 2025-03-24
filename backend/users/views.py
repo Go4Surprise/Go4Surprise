@@ -8,6 +8,7 @@ from .serializers import RegisterSerializer, LoginSerializer, PreferencesSeriali
 from .models import Preferences
 from django.contrib.auth.models import User
 from .models import Usuario
+from django.http import JsonResponse
 
 @swagger_auto_schema(
     method="post",
@@ -68,16 +69,26 @@ def update_preferences(request):
     data = request.data
     print("Datos recibidos:", data)  
 
+    invalid_fields = {}
+
     for category in ['music', 'culture', 'sports', 'gastronomy', 'nightlife', 'adventure']:
-        if category in data and isinstance(data[category], list):  
-            preferences.__setattr__(category, data[category])
+        if category in data:
+            if not isinstance(data[category], list):  # Validar que sea una lista
+                invalid_fields[category] = "Debe ser una lista"
+            else:
+                preferences.__setattr__(category, data[category])
+
+    # Si hay errores, devolver un 400
+    if invalid_fields:
+        return Response({"error": "Datos inválidos", "detalles": invalid_fields}, status=status.HTTP_400_BAD_REQUEST)
 
     serializer = PreferencesSerializer(preferences, data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -218,3 +229,11 @@ def change_password(request):
     user.save()
 
     return Response({"message": "Contraseña actualizada correctamente"}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def check_username_exists(request, username):
+    if not username:
+        return JsonResponse({'error': 'El nombre del usuario no puede estar vacío'}, status=400)
+    
+    exists = User.objects.filter(username=username).exists()
+    return JsonResponse({'exists': exists})

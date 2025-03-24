@@ -10,6 +10,10 @@ export default function RootLayout() {
       <Stack.Screen name="HomeScreen" options={{ headerShown: false }} />
       <Stack.Screen name="MyBookings" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="UserProfile" options={{ headerShown: false }} />
+
+      <Stack.Screen name="AdminPanel" options={{ headerShown: false }} />
+      <Stack.Screen name="AdminUserPanel" options={{ headerShown: false }} />
     </Stack>
   );
 }

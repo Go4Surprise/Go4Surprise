@@ -6,10 +6,17 @@ from .models import Reviews
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)  # 👈 Agregar explícitamente el campo id
+
     class Meta:
         model = Reviews
-        fields = ["puntuacion", "comentario", "user", "experience"]
+        fields = ["id","puntuacion", "comentario", "user", "experience"]
 
+    def create(self, validated_data):
+        """Método para asegurarse de que se devuelve la instancia con el ID"""
+        review = Reviews.objects.create(**validated_data)
+        return review  # 👈 Devolver la instancia guardada
+    
     def validate_puntuacion(self, value):
         if value < 0 or value > 5:
             raise serializers.ValidationError("La puntuación ha de estar entre 0 y 5")

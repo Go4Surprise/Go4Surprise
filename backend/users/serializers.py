@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp']
+        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp', 'birthdate']
 
     def create(self, validated_data):
         username = validated_data.pop('username')
@@ -59,6 +59,7 @@ class LoginSerializer(serializers.Serializer):
         return {
             "id": usuario.id,
             "user_id": user.id,
+            "birthdate": usuario.birthdate,
             "username": user.username,
             "name": usuario.name,
             "surname": usuario.surname,
@@ -68,6 +69,8 @@ class LoginSerializer(serializers.Serializer):
             "access": str(tokens.access_token),
             "refresh": str(tokens),
             "preferences_set": preferences_set,  
+            "is_superuser": user.is_superuser,
+            "is_staff": user.is_staff
         }
 
 class PreferencesSerializer(serializers.ModelSerializer):
@@ -89,7 +92,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = [
             'id', 'user', 'name', 'surname', 'email', 
-            'phone', 'pfp', 'preferences', 'username'
+            'phone', 'pfp', 'preferences', 'username', 'birthdate'
         ]
 
     def get_pfp(self, obj):
@@ -134,5 +137,78 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             for attr, value in user_data.items():
                 setattr(user, attr, value)
             user.save()
+
+        return instance
+    
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    """Serializer for User model - used by admin views"""
+    # Get related Usuario fields
+    name = serializers.CharField(source='usuario.name', read_only=True)
+    surname = serializers.CharField(source='usuario.surname', read_only=True)
+    phone = serializers.CharField(source='usuario.phone', read_only=True)
+    profile_id = serializers.IntegerField(source='usuario.id', read_only=True)
+    pfp = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'is_active', 'is_staff', 'is_superuser',
+            'profile_id', 'name', 'surname', 'phone', 'pfp'
+        ]
+
+    def get_pfp(self, obj):
+        """Return the profile picture URL if it exists"""
+        request = self.context.get('request')
+        try:
+            if obj.usuario and obj.usuario.pfp:
+                return request.build_absolute_uri(obj.usuario.pfp.url) if request else obj.usuario.pfp.url
+        except Usuario.DoesNotExist:
+            pass
+        return None
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating User model from admin panel"""
+
+    username = serializers.CharField(required=False)
+    name = serializers.CharField(write_only=True, required=False)
+    surname = serializers.CharField(write_only=True, required=False)
+    phone = serializers.CharField(write_only=True, required=False)
+    email = serializers.EmailField(required=False)
+    is_staff = serializers.BooleanField(required=False)
+    is_superuser = serializers.BooleanField(required=False)
+
+    class Meta:
+        model = User  # Changed from Usuario to User
+        fields = ['username', 'email', 'is_staff', 'is_superuser', 'name', 'surname', 'phone']
+
+    def validate(self, data):
+        if len(data) == 0:
+            raise serializers.ValidationError("No hay ningún campo para actualizar.")
+        return data
+
+    def update(self, instance, validated_data):
+        name = validated_data.pop('name', None)
+        surname = validated_data.pop('surname', None)
+        phone = validated_data.pop('phone', None)
+        email = validated_data.pop('email', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        try:
+            usuario = instance.usuario
+            if name is not None:
+                usuario.name = name
+            if surname is not None:
+                usuario.surname = surname
+            if phone is not None:
+                usuario.phone = phone
+            if email is not None:
+                usuario.email = email
+            usuario.save()
+        except Usuario.DoesNotExist:
+            pass
 
         return instance
