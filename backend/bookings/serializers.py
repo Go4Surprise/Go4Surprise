@@ -1,7 +1,7 @@
 import uuid
 from rest_framework import serializers
 
-from experiences.models import Experience
+from experiences.models import Experience, ExperienceCategory
 from users.models import Usuario
 from .models import Booking
 from django.utils import timezone
@@ -16,11 +16,14 @@ class CrearReservaSerializer(serializers.ModelSerializer):
     # Atributos de la experiencia
     location = serializers.CharField(required=True)
     duration = serializers.IntegerField(required=True)
-    category = serializers.ChoiceField(choices=Experience.ExperienceCategory.choices,required=True)
+    categories = serializers.ListField(
+        child=serializers.ChoiceField(choices=ExperienceCategory.choices),
+        required=True
+    )
 
     class Meta:
         model = Booking
-        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'duration', 'category']
+        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'duration', 'categories']
         
     def validate_user(self, value):
         """
@@ -34,6 +37,11 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Usuario ID debe ser un UUID válido")
         except Usuario.DoesNotExist:
             raise serializers.ValidationError("No se encontró ningún usuario con este ID")
+        
+    def validate_categories(self, value):
+        if len(value) > 3:
+            raise serializers.ValidationError("No puedes seleccionar más de 3 categorías.")
+        return value
     
     def create(self, validated_data):
         usuario_id = validated_data.pop('user', None)
@@ -72,4 +80,4 @@ class ReservaSerializer(serializers.ModelSerializer):
 
 
     def get_experience(self, obj):
-        return {"name": obj.experience.name} 
+        return {"name": obj.experience.title}

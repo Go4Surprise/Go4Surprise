@@ -3,18 +3,15 @@ import uuid
 
 # Create your models here.
 
-
-
-class Experience(models.Model):
-
-    class ExperienceCategory(models.TextChoices):
+class ExperienceCategory(models.TextChoices):
         ADVENTURE = "ADVENTURE", "Aventura"
         CULTURE = "CULTURE", "Cultura"
         SPORTS = "SPORTS", "Deporte"
         GASTRONOMY = "GASTRONOMY", "Gastronomía"
         NIGHTLIFE = "NIGHTLIFE", "Ocio nocturno"
         MUSIC = "MUSIC", "Música"
-        
+
+class Experience(models.Model):        
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=50, blank=True)
     description = models.TextField(blank=True)
@@ -23,7 +20,7 @@ class Experience(models.Model):
     duration = models.PositiveIntegerField()
     hint = models.CharField(max_length=255, blank=True)
     link = models.URLField(blank=True)
-    category = models.CharField(max_length=50, choices=ExperienceCategory.choices)
+    categories = models.JSONField(default=list, help_text="Lista de categorías (máximo 3)")
 
     class Meta:
         ordering = ['-price']
