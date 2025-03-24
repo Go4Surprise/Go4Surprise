@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -230,6 +230,13 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
 
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setError('');
+    }
+  };
+  
   const submitPreferences = async () => {
     if (!token) return;
   
@@ -337,11 +344,20 @@ export default function PreferencesFormScreen(): React.ReactElement {
         </>
       ) : null}
 
-      <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
-        <Text style={styles.buttonText}>
-          {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        {currentQuestionIndex > 0 && (
+          <TouchableOpacity style={styles.backButton} onPress={prevQuestion}>
+            <Text style={styles.buttonText}>Atrás</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
+          <Text style={styles.buttonText}>
+            {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
     </Animated.View>
   );
 }
@@ -414,5 +430,18 @@ const styles = StyleSheet.create({
   opacity: 0.08,
   zIndex: -1,
  },
+ backButton: {
+  backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 20,
+},
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  gap: 12,
+  marginTop: 20,
+},
+
 
 });
