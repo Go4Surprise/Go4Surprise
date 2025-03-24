@@ -10,7 +10,7 @@ import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 
 // Types
-import { ScrollHandlers, CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
+import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
 
 // Data
 import { cities, categories } from "../data/bookingData";
@@ -76,7 +76,7 @@ const HorizontalScrollable = ({ children, scrollViewProps }: {
 );
 
 // Scrolling hooks and handlers
-const useScrollHandlers = (scrollViewRef: React.RefObject<ScrollView>, scrollState: any, setScrollState: any, scrollViewType: 'city' | 'category') => {
+const useScrollHandlers = (scrollViewRef: React.RefObject<ScrollView>, scrollState: unknown, setScrollState: any, scrollViewType: 'city' | 'category') => {
   const handleMouseDown = (e: React.MouseEvent) => {
     const scrollView = scrollViewRef.current;
     if (scrollView) {

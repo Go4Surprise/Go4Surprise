@@ -6,7 +6,7 @@ interface ExperienceCardProps {
     title: string;
     image: string;
   };
-};
+}
 
 const ExperienceCard = ({ experience }: ExperienceCardProps) => {
   return (
