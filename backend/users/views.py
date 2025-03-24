@@ -1,14 +1,25 @@
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+
+from .tokens_custom import custom_token_generator
+
 from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
 from django.contrib.auth.models import User
 from .models import Usuario
 from django.http import JsonResponse
+from django.contrib.auth import authenticate
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from decouple import config
+from django.views.decorators.csrf import csrf_exempt
 
 @swagger_auto_schema(
     method="post",
@@ -191,7 +202,7 @@ def delete_user_account(request):
         print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
         return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-from django.contrib.auth import authenticate
+
 
 @swagger_auto_schema(
     method="post",
@@ -237,3 +248,58 @@ def check_username_exists(request, username):
     
     exists = User.objects.filter(username=username).exists()
     return JsonResponse({'exists': exists})
+
+
+
+@api_view(['POST'])
+def password_reset(request):
+    email = request.data.get('email')
+
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = get_object_or_404(Usuario, email=email)
+    
+    # Generate reset link
+    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    token = custom_token_generator.make_token(user)
+    frontend_url = request.data.get('BASE_URL')
+    reset_link = f"{frontend_url}/users/reset/{uidb64}/{token}/"
+
+    # Send email
+    send_mail(
+        subject="Password Reset Request",
+        message=f"Click the link below to reset your password:\n{reset_link}",
+        from_email=config('DEFAULT_FROM_EMAIL'),
+        recipient_list=[user.email],
+    )
+    return Response({'message': 'Password reset link sent to email'}, status=status.HTTP_200_OK)
+
+@csrf_exempt
+def password_reset_confirm(request, uidb64, token):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            new_password = data.get('password')
+
+            if not new_password:
+                return JsonResponse({'error': 'New password is required'}, status=400)
+
+            # Decode user ID
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = get_object_or_404(User, pk=uid)
+
+            # Validate token
+            if not custom_token_generator.check_token(user, token):
+                return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+            # Set new password
+            user.set_password(new_password)
+            user.save()
+
+            return JsonResponse({'message': 'Password reset successful'})
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)

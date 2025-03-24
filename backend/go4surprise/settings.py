@@ -30,15 +30,25 @@ SECRET_KEY = 'django-insecure-9(ublthm*z4@l6q6r#a+bfe2e8$x6(dh#)$@+a*_w2*6s!7qiu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "localhost:8081"]
 
 APPENGINE_URL = os.getenv('APPENGINE_URL')
 if APPENGINE_URL:
     if not urlparse(APPENGINE_URL).scheme:
         APPENGINE_URL = f'https://{APPENGINE_URL}'
     ALLOWED_HOSTS.append(urlparse(APPENGINE_URL).netloc)
-    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
+    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL, 
+                            "http://localhost:8081",
+                            "http://127.0.0.1:8081",]
     SECURE_SSL_REDIRECT = True
+
+CSRF_TRUSTED_ORIGINS = [ "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://localhost:3000",]
+
+CSRF_COOKIE_DOMAIN = "localhost"
+CSRF_COOKIE_SECURE = False
+
 
 # Application definition
 
@@ -69,9 +79,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -80,11 +90,21 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware'
 ]
 
+# Cross-Origin Resource Sharing
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Agrega la URL de tu frontend
     "http://localhost:8081",  # Agrega la URL de tu Expo Go
-    "http://localhost:8082"
+    "http://localhost:8082",
+    "http://127.0.0.1:8081",
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True # Not recommended for production
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'base_url',  # Add this line to allow the custom header
+]
+
 
 if APPENGINE_URL:
     CORS_ALLOWED_ORIGINS.append(APPENGINE_URL)
@@ -194,7 +214,7 @@ AUTHENTICATION_BACKENDS = (
 SITE_ID = 1
 
 # Email server configuration
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # Eliminate in production
 EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
