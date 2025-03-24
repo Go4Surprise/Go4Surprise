@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -290,11 +290,46 @@ export default function PreferencesFormScreen(): React.ReactElement {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     return currentQuestion.question;
   };
+
+  const getImageForCategory = (category: string) => {
+    switch (category) {
+      case 'Música':
+        return require('../assets/images/musica.png');
+      default:
+        return null;
+    }
+  };
+  
+  const backgroundAnim = useRef(new Animated.Value(0)).current;
+
+  Animated.loop(
+    Animated.sequence([
+      Animated.timing(backgroundAnim, {
+        toValue: 20,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(backgroundAnim, {
+        toValue: 0,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ])
+  ).start();
+  
   
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
       {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
         <>
+          <Animated.Image
+            source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
+            style={[
+              styles.backgroundImage,
+              { transform: [{ translateY: backgroundAnim }] }
+            ]}
+          />
+
           <Text style={styles.question}>{getQuestionText()}</Text>
           <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -317,7 +352,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFF5FC',
   },
   question: {
     fontSize: 22,
@@ -368,6 +403,16 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     paddingHorizontal: 20,
-  },  
+ },
+ backgroundImage: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+  opacity: 0.08,
+  zIndex: -1,
+ },
 
 });
