@@ -68,7 +68,7 @@ export default function LoginScreen() {
                                 value={password} 
                                 onChangeText={setPassword} 
                             />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                            <TouchableOpacity onPress={() => { setShowPassword(!showPassword); }}>
                                 <MaterialIcons 
                                     name={showPassword ? 'visibility' : 'visibility-off'} 
                                     size={24} 
