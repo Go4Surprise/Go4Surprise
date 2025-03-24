@@ -5,6 +5,16 @@ import { experiencesData } from '../data/experiencesData';
 import ExperienceCard from '../components/ExperienceCard';
 
 export default function Experiences() {
+  const { 
+    scrollViewRef, 
+    isDragging, 
+    handleMouseDown, 
+    handleMouseMove, 
+    handleMouseUp, 
+    handleTouchStart, 
+    handleTouchMove, 
+    handleTouchEnd 
+  } = useHorizontalScroll();
 
   return (
     <View style={styles.contentBox}>
