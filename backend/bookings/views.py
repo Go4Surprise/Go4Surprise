@@ -115,7 +115,7 @@ def obtener_reserva(request, id):
 @permission_classes([IsAuthenticated])
 def obtener_reservas_usuario(request, user_id):
     """
-    Obtiene una reserva por su ID
+    Obtiene las reservas de un usuario
     """
     try:
       usuario = get_object_or_404(Usuario, id=user_id)

@@ -26,6 +26,7 @@ interface Reserva {
   status: string;
   total_price: number;
   cancellable: boolean;
+  experience_hint: string;
 }
 
 const MyBookings = () => {
@@ -107,6 +108,13 @@ const MyBookings = () => {
         <Ionicons name="pricetag" size={16} color="#1877F2" /> {" "}
         <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
       </Text>
+
+      {item.experience_hint && (  // Solo mostramos la pista si existe
+        <Text style={styles.label}>
+          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
+          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
+        </Text>
+      )}
 
       {item.cancellable && (
         <TouchableOpacity style={styles.cancelButton} onPress={() => cancelarReserva(item.id)}>

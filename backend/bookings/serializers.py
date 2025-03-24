@@ -65,24 +65,19 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             return Booking.objects.create(**validated_data)
 
 class ReservaSerializer(serializers.ModelSerializer):
-    experience = ExperienceSerializer()
-    hint = serializers.SerializerMethodField()
+    experience_hint = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['id', 'participants', 'total_price', 'experience_date', 'cancellable', 'status', 'user', 'experience',
+                  'experience_hint']
 
-
-    def get_experience(self, obj):
-        return {"name": obj.experience.name} 
-    
-
-    def get_hint(self, obj):
+    def get_experience_hint(self, obj):
         # Devuelve la pista de la experiencia si faltan 48 horas o menos para la fecha de la experiencia.
         now = timezone.now().date()
 
         if obj.experience_date - now <= timedelta(days=2):
-            return obj.experience.hint or "No hay información adicional disponible."
+            return obj.experience.hint or "No hay ninguna pista para esta experiencia."
     
         return None
     
