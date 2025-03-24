@@ -24,7 +24,7 @@ interface CategorySelections {
 }
 
 const questions: Question[] = [
-  { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
+  { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
   { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro o espectáculos en vivo', '🧑‍🎨 Talleres creativos', '🚫 Nada en especial'] },
   { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo o competición', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
   { id: 4, question: '¿Qué tipo de experiencias gastronómicas disfrutas más?', category: 'Gastronomía', options: ['🎤 Un brunch con música en vivo', '🍷 Una cata de vinos', '👨‍🍳 Talleres de cocina', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
@@ -98,7 +98,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     currentSelections: string[], 
     option: string
   ): string[] => {
-    if (option === '🚫 Nada en especial' || option === '🚫 Prefiero no responder') {
+    if (option === '🚫 Nada en especial') {
       return [option];
     }
     
@@ -110,7 +110,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     // Si no está seleccionado, añadirlo y quitar opciones neutrales
     return [
       ...currentSelections.filter(item => 
-        item !== '🚫 Nada en especial' && item !== '🚫 Prefiero no responder'
+        item !== '🚫 Nada en especial'
       ), 
       option
     ];
