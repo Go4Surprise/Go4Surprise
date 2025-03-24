@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   width: '100%',
   height: '100%',
   resizeMode: 'cover',
-  opacity: 0.08,
+  opacity: 0.09,
   zIndex: -1,
  },
  backButton: {
