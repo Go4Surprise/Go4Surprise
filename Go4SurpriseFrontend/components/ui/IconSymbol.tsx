@@ -1,5 +1,3 @@
-// This file is a fallback for using MaterialIcons on Android and web.
-
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight } from 'expo-symbols';
 import React from 'react';
@@ -13,14 +11,13 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-} as Partial<
-  Record<
-    import('expo-symbols').SymbolViewProps['name'],
-    React.ComponentProps<typeof MaterialIcons>['name']
-  >
->;
+} as const;
 
+// Create a type from the keys of MAPPING
 export type IconSymbolName = keyof typeof MAPPING;
+
+// Create a safer Map for lookups
+const ICON_MAP = new Map(Object.entries(MAPPING));
 
 /**
  * An icon component that uses native SFSymbols on iOS, and MaterialIcons on Android and web. This ensures a consistent look across platforms, and optimal resource usage.
@@ -32,6 +29,7 @@ export function IconSymbol({
   size = 24,
   color,
   style,
+  weight,
 }: {
   name: IconSymbolName;
   size?: number;
@@ -39,10 +37,8 @@ export function IconSymbol({
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
 }) {
-  // Since name is typed as IconSymbolName, we know it exists in MAPPING
-  // But we'll add a safety check using Object.prototype.hasOwnProperty
-  const iconName = Object.prototype.hasOwnProperty.call(MAPPING, name) 
-    ? MAPPING[name] 
-    : 'help-outline'; // Fallback icon
+  // Use Map.get() instead of bracket notation for safer property access
+  const iconName = ICON_MAP.get(name) || 'help-outline'; // Fallback icon
+  
   return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }

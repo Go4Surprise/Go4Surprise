@@ -37,10 +37,11 @@ function getColorSafely(colorSet: Record<ColorNameType, string>, name: ColorName
     case 'background':
       return colorSet.background;
     // Add all other color names here
-    default:
+    default: {
       // This is a type-safe fallback that ensures all possible values are handled
       // TypeScript will enforce that this is exhaustive
-      const exhaustiveCheck: never = name;
-      throw new Error(`Unhandled color name: ${exhaustiveCheck}`);
+      // Convert to string explicitly to satisfy the restrict-template-expressions rule
+      throw new Error(`Unhandled color name: ${String(name)}`);
+    }
   }
 }
