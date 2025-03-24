@@ -66,10 +66,16 @@ export default function PreferencesFormScreen(): React.ReactElement {
 
   // Helper function to get the current question safely
   const getCurrentQuestion = (index: number): Question => {
-    if (index >= 0 && index < questions.length) {
-      return questions[index];
+    // Validate index is an integer
+    const safeIndex = Math.floor(Number(index));
+    
+    // Ensure index is within bounds of the array
+    if (!Number.isNaN(safeIndex) && safeIndex >= 0 && safeIndex < questions.length) {
+      return questions[safeIndex];
     }
-    return questions[0]; // Default to first question if somehow out of bounds
+    
+    // Default to first question if somehow out of bounds
+    return questions[0];
   };
 
   // Helper function to get category selections safely
@@ -122,50 +128,28 @@ export default function PreferencesFormScreen(): React.ReactElement {
     updatedSelections: string[],
     oldSelections: CategorySelections
   ): CategorySelections => {
-    const newSelectedOptions: CategorySelections = {};
+    const newSelectedOptions: CategorySelections = { ...oldSelections };
     
-    // Copy existing categories
-    if (oldSelections.Música) {
-      newSelectedOptions.Música = category === 'Música' ? updatedSelections : oldSelections.Música;
-    }
-    if (oldSelections["Cultura y Arte"]) {
-      newSelectedOptions["Cultura y Arte"] = category === 'Cultura y Arte' ? updatedSelections : oldSelections["Cultura y Arte"];
-    }
-    if (oldSelections["Deporte y Motor"]) {
-      newSelectedOptions["Deporte y Motor"] = category === 'Deporte y Motor' ? updatedSelections : oldSelections["Deporte y Motor"];
-    }
-    if (oldSelections.Gastronomía) {
-      newSelectedOptions.Gastronomía = category === 'Gastronomía' ? updatedSelections : oldSelections.Gastronomía;
-    }
-    if (oldSelections["Ocio Nocturno"]) {
-      newSelectedOptions["Ocio Nocturno"] = category === 'Ocio Nocturno' ? updatedSelections : oldSelections["Ocio Nocturno"];
-    }
-    if (oldSelections.Aventura) {
-      newSelectedOptions.Aventura = category === 'Aventura' ? updatedSelections : oldSelections.Aventura;
-    }
-    
-    // Handle new categories
-    if (!Object.prototype.hasOwnProperty.call(newSelectedOptions, category)) {
-      switch (category) {
-        case 'Música':
-          newSelectedOptions.Música = updatedSelections;
-          break;
-        case 'Cultura y Arte':
-          newSelectedOptions["Cultura y Arte"] = updatedSelections;
-          break;
-        case 'Deporte y Motor':
-          newSelectedOptions["Deporte y Motor"] = updatedSelections;
-          break;
-        case 'Gastronomía':
-          newSelectedOptions.Gastronomía = updatedSelections;
-          break;
-        case 'Ocio Nocturno':
-          newSelectedOptions["Ocio Nocturno"] = updatedSelections;
-          break;
-        case 'Aventura':
-          newSelectedOptions.Aventura = updatedSelections;
-          break;
-      }
+    // Update or add the category
+    switch (category) {
+      case 'Música':
+        newSelectedOptions.Música = updatedSelections;
+        break;
+      case 'Cultura y Arte':
+        newSelectedOptions["Cultura y Arte"] = updatedSelections;
+        break;
+      case 'Deporte y Motor':
+        newSelectedOptions["Deporte y Motor"] = updatedSelections;
+        break;
+      case 'Gastronomía':
+        newSelectedOptions.Gastronomía = updatedSelections;
+        break;
+      case 'Ocio Nocturno':
+        newSelectedOptions["Ocio Nocturno"] = updatedSelections;
+        break;
+      case 'Aventura':
+        newSelectedOptions.Aventura = updatedSelections;
+        break;
     }
     
     return newSelectedOptions;
@@ -221,7 +205,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     const category = currentQuestion.category;
 
-    if (!selectedOptions[category]?.length) {
+    if (!selectedOptions[category].length) {
       setError('Debes seleccionar al menos una opción.');
       return;
     }
@@ -265,29 +249,21 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
   
-  // Helper function to render a single option
-  const renderOption = (option: string, index: number, isSelected: boolean) => {
-    return (
-      <QuestionOption
-        key={index}
-        option={option}
-        index={index}
-        isSelected={isSelected}
-        onOptionSelect={handleOptionSelect}
-      />
-    );
-  };
-  
-  // Render question options - with reduced complexity
+  // Render question options - simplified
   const renderOptions = () => {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     const category = currentQuestion.category;
     const categorySelections = getCategorySelections(category, selectedOptions);
     
-    return currentQuestion.options.map((option, index) => {
-      const isSelected = categorySelections.includes(option);
-      return renderOption(option, index, isSelected);
-    });
+    return currentQuestion.options.map((option, index) => (
+      <QuestionOption
+        key={index}
+        option={option}
+        index={index}
+        isSelected={categorySelections.includes(option)}
+        onOptionSelect={handleOptionSelect}
+      />
+    ));
   };
   
   // Get the question text

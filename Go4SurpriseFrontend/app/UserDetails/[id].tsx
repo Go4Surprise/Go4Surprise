@@ -9,7 +9,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../../constants/apiUrl';
 
-type User = {
+interface User {
     id: number;
     username: string;
     email: string;
@@ -93,34 +93,42 @@ export default function UserDetails() {
     };
 
     const handleDeleteUser = async () => {
-        Alert.alert(
-            "Confirmar eliminación",
-            "¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { 
-                    text: "Eliminar", 
-                    style: "destructive",
-                    onPress:() => { void(async () => {
-                        try {
-                            const token = await AsyncStorage.getItem('accessToken');
-                            await axios.delete(`${BASE_URL}/users/admin/delete/${id}/`, {
-                                headers: {
-                                    Authorization: `Bearer ${token}`,
-                                    'Content-Type': 'application/json',
-                                },
-                            });
-                            
-                            Alert.alert('Éxito', 'Usuario eliminado correctamente');
-                            router.replace('/AdminUserPanel');
-                        } catch (error) {
-                            Alert.alert('Error', 'No se pudo eliminar el usuario');
-                            console.error('Error deleting user:', error);
-                        }
-        })();}
-                }
-            ]
-        );
+        const confirmed = await new Promise<boolean>((resolve) => {
+            Alert.alert(
+                "Confirmar eliminación",
+                "¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.",
+                [
+                    { 
+                        text: "Cancelar", 
+                        style: "cancel", 
+                        onPress: () => resolve(false) 
+                    },
+                    { 
+                        text: "Eliminar", 
+                        style: "destructive",
+                        onPress: () => resolve(true)
+                    }
+                ]
+            );
+        });
+    
+        if (!confirmed) return;
+    
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            await axios.delete(`${BASE_URL}/users/admin/delete/${id}/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            Alert.alert('Éxito', 'Usuario eliminado correctamente');
+            router.replace('/AdminUserPanel');
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo eliminar el usuario');
+            console.error('Error deleting user:', error);
+        }
     };
 
     if (loading) {
@@ -131,10 +139,10 @@ export default function UserDetails() {
         );
     }
 
-    if (error || !user) {
+    if (error ?? !user) {
         return (
             <View style={styles.centerContainer}>
-                <Text style={styles.errorText}>{error || 'Usuario no encontrado'}</Text>
+                <Text style={styles.errorText}>{error ?? 'Usuario no encontrado'}</Text>
                 <TouchableOpacity style={styles.button} onPress={() => router.push('/AdminUserPanel')}>
                     <Text style={styles.buttonText}>Volver</Text>
                 </TouchableOpacity>
@@ -168,7 +176,7 @@ export default function UserDetails() {
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.saveButton, saving && styles.disabledButton]}
-                                    onPress={async() => {await handleSave()}}
+                                    onPress={async() => {await void handleSave()}}
                                     disabled={saving}
                                 >
                                     <Text style={styles.buttonText}>
@@ -279,7 +287,7 @@ export default function UserDetails() {
 
                     <TouchableOpacity
                         style={styles.deleteButton}
-                        onPress={() => handleDeleteUser()}
+                        onPress={() => void handleDeleteUser()}
                     >
                         <Text style={styles.buttonText}>Eliminar Usuario</Text>
                     </TouchableOpacity>

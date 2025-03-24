@@ -30,7 +30,7 @@ export default function UserProfileScreen() {
     surname: '',
     phone: ''
   });
-  const [_loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
@@ -81,7 +81,7 @@ export default function UserProfileScreen() {
   }, []);
 
   const handleEditProfile = () => {
-      if (user) {
+      if (user != null) {
           setEditedUser({
               name: user.name || '',
               surname: user.surname || '', 
@@ -149,48 +149,91 @@ export default function UserProfileScreen() {
     }
   };
 
-  const fetchPastReservations = async () => {
-      try {
-          const token = await AsyncStorage.getItem("accessToken");
-          const userId = await AsyncStorage.getItem("userId");
+  // Helper function to get the user ID
+  const getUserIdFromToken = async (): Promise<string | null> => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const userId = await AsyncStorage.getItem("userId");
 
-          if (!token || !userId) {
-              Alert.alert("Error", "No tienes sesión iniciada.");
-              return;
-          }
-
-          // 📌 Obtener usuario_id desde la API
-          const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
-              headers: { Authorization: `Bearer ${token}` },
-              params: { user_id: userId }
-          });
-
-          const usuarioId = usuarioResponse.data.usuario_id;
-
-          // 📌 Obtener las reservas con usuarioId
-          const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
-              headers: { Authorization: `Bearer ${token}` },
-          });
-
-          console.log("Reservas obtenidas:", response.data);
-
-          if (Array.isArray(response.data)) {
-              setReservations(response.data);
-          } else {
-              throw new Error("Formato de datos incorrecto");
-          }
-
-          setReservationsModalVisible(true);
-
-      } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-              console.error('Error obteniendo el historial de reservas:', error.response?.data || error.message);
-              Alert.alert("Error", error.response?.data?.message || "No se pudo obtener el historial de reservas.");
-          } else {
-              console.error("Error inesperado:", error);
-              Alert.alert("Error", "Ocurrió un error inesperado.");
-          }
+      if (!token || !userId) {
+        Alert.alert("Error", "No tienes sesión iniciada.");
+        return null;
       }
+      return userId;
+    } catch (error) {
+      console.error("Error obteniendo userId:", error);
+      return null;
+    }
+  };
+
+  // Helper function to get the usuario_id from API
+  const getUsuarioId = async (userId: string, token: string): Promise<string | null> => {
+    try {
+      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { user_id: userId }
+      });
+      return usuarioResponse.data.usuario_id;
+    } catch (error) {
+      console.error("Error obteniendo usuario_id:", error);
+      return null;
+    }
+  };
+
+  // Helper function to fetch bookings from API
+  const fetchUserBookings = async (usuarioId: string, token: string): Promise<Reservation[]> => {
+    const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    console.log("Reservas obtenidas:", response.data);
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      throw new Error("Formato de datos incorrecto");
+    }
+  };
+
+  // Main function to fetch past reservations
+  const handleReservationError = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      console.error('Error obteniendo el historial de reservas:', error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data?.message || "No se pudo obtener el historial de reservas.");
+    } else {
+      console.error("Error inesperado:", error);
+      Alert.alert("Error", "Ocurrió un error inesperado.");
+    }
+  };
+  
+  const validateAuthData = async () => {
+    const token = await AsyncStorage.getItem("accessToken");
+    const userId = await getUserIdFromToken();
+    return { token, userId, isValid: !!userId && !!token };
+  };
+  
+  const getBookingData = async (userId: string, token: string) => {
+    const usuarioId = await getUsuarioId(userId, token);
+    if (!usuarioId) {
+      Alert.alert("Error", "No se pudo obtener la información del usuario.");
+      return null;
+    }
+    return await fetchUserBookings(usuarioId, token);
+  };
+  
+  const fetchPastReservations = async () => {
+    try {
+      const auth = await validateAuthData();
+      if (!auth.isValid) return;
+  
+      const bookings = await getBookingData(auth.userId!, auth.token!);
+      if (bookings) {
+        setReservations(bookings);
+        setReservationsModalVisible(true);
+      }
+    } catch (error: unknown) {
+      handleReservationError(error);
+    }
   };
 
   const handleLogout = async () => {
@@ -247,7 +290,7 @@ export default function UserProfileScreen() {
       </ImageBackground>
       
       {/* Tarjeta del perfil */}
-      {user && (
+      {user != null && (
                 <View style={styles.profileCard}>
                   <Text style={styles.username}>{user.name}</Text>
                   <Text style={styles.email}>{user.email}</Text>
@@ -397,6 +440,11 @@ const styles = StyleSheet.create({
       width: '90%',
       alignSelf: 'center',
       alignItems: 'center',
+  },
+  reservationText: {
+      fontSize: 16,
+      color: '#333',
+      marginVertical: 2,
   },
   reservationDate: {
       fontSize: 16,

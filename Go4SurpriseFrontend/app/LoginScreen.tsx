@@ -17,6 +17,20 @@ export default function LoginScreen() {
     const { width } = useWindowDimensions();
     const isMobile = width < 768; // Cuando el ancho es menor a 768px, pasamos a vista móvil
 
+    // Split the login functionality into smaller methods
+    const saveUserData = async (userData: any) => {
+        const { access, user_id, refresh, id, is_superuser, is_staff } = userData;
+        await AsyncStorage.setItem('accessToken', access);
+        await AsyncStorage.setItem('userId', user_id.toString());
+        await AsyncStorage.setItem('refreshToken', refresh);
+        await AsyncStorage.setItem('id', id);
+        await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
+    };
+
+    const navigateAfterLogin = (preferencesSet: boolean) => {
+        router.push(preferencesSet ? '/HomeScreen' : '/PreferencesFormScreen');
+    };
+
     const handleLogin = async () => {
         setErrorMessage(null);
         try {
@@ -26,20 +40,47 @@ export default function LoginScreen() {
                 { headers: { 'Content-Type': 'application/json' } }
             );
 
-            const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff } = response.data;
-            await AsyncStorage.setItem('accessToken', access);
-            await AsyncStorage.setItem('userId', user_id.toString());
-            await AsyncStorage.setItem('refreshToken', refresh);
-            await AsyncStorage.setItem('id', id);
-            await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
-
+            await saveUserData(response.data);
             Alert.alert('Éxito', 'Inicio de sesión correcto');
-
-            router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
+            navigateAfterLogin(response.data.preferences_set);
         } catch (error) {
             setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
         }
     };
+
+    const renderLoginForm = () => (
+        <View style={styles.card}>
+            <TextInput 
+                style={styles.input} 
+                placeholder="Username" 
+                value={username} 
+                onChangeText={setUsername} 
+            />
+            <TextInput 
+                style={styles.input} 
+                placeholder="Contraseña" 
+                secureTextEntry 
+                value={password} 
+                onChangeText={setPassword} 
+            />
+
+            {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+            <TouchableOpacity style={styles.button} onPress={() => void handleLogin()}>
+                <Text style={styles.buttonText}>Iniciar sesión</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.linkText} onPress={() => router.push('/ForgottenPasword')}>
+                ¿Has olvidado la contraseña?
+            </Text>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/RegisterScreen')}>
+                <Text style={styles.secondaryButtonText}>Crear una cuenta</Text>
+            </TouchableOpacity>
+        </View>
+    );
 
     return (
         <View style={styles.container}>
@@ -54,37 +95,7 @@ export default function LoginScreen() {
 
                 {/* SECCIÓN DERECHA - FORMULARIO */}
                 <View style={styles.rightSection}>
-                    <View style={styles.card}>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Username" 
-                            value={username} 
-                            onChangeText={setUsername} 
-                        />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Contraseña" 
-                            secureTextEntry 
-                            value={password} 
-                            onChangeText={setPassword} 
-                        />
-
-                        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
-                        <TouchableOpacity style={styles.button} onPress={() => void handleLogin()}>
-                            <Text style={styles.buttonText}>Iniciar sesión</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.linkText} onPress={() => router.push('/ForgottenPasword')}>
-                            ¿Has olvidado la contraseña?
-                        </Text>
-
-                        <View style={styles.divider} />
-
-                        <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/RegisterScreen')}>
-                            <Text style={styles.secondaryButtonText}>Crear una cuenta</Text>
-                        </TouchableOpacity>
-                    </View>
+                    {renderLoginForm()}
                 </View>
             </View>
         </View>
@@ -203,4 +214,3 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-
