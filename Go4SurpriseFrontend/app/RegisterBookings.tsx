@@ -428,7 +428,7 @@ export default function RegisterBooking() {
                       borderRadius: 8,
                     }}
                   />
-                  <Text>Deportes</Text>
+                  <Text>Deporte</Text>
                 </div>
               </Button>
               <Button

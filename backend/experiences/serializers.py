@@ -9,6 +9,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(max_digits=6, decimal_places=2, required=True)
     location = serializers.CharField(required=True)
     duration = serializers.IntegerField(required=True)
+    notas_adicionales = serializers.CharField(required=False)
     categories = serializers.ListField(
         child=serializers.ChoiceField(choices=ExperienceCategory.choices),
         required=True
