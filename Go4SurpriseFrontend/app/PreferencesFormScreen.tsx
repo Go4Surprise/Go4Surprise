@@ -302,6 +302,8 @@ export default function PreferencesFormScreen(): React.ReactElement {
     switch (category) {
       case 'Música':
         return require('../assets/images/musica.png');
+      case 'Cultura y Arte':
+        return require('../assets/images/cultura.png');
       default:
         return null;
     }
