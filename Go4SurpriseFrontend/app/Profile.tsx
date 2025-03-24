@@ -6,20 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError } from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 
-interface Reservation  {
-  id: string;
-  booking_date: string;
-  experience_date: string;
-  participants: number;
-  price: number;
-  status: string;
-  total_price: number;
-  experience: {  
-    title: string;
-  };
-}
-
-
 export default function UserProfileScreen() {
   
   const [user, setUser] = useState({
@@ -38,7 +24,6 @@ export default function UserProfileScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState(''); // Estado para manejar errores en el modal
   const [reservationsModalVisible, setReservationsModalVisible] = useState(false);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
 
 
   // Función para obtener datos del usuario
@@ -148,51 +133,6 @@ export default function UserProfileScreen() {
         }
     }
   };
-
-  const fetchPastReservations = async () => {
-      try {
-          const token = await AsyncStorage.getItem("accessToken");
-          const userId = await AsyncStorage.getItem("userId");
-
-          if (!token || !userId) {
-              Alert.alert("Error", "No tienes sesión iniciada.");
-              return;
-          }
-
-          // 📌 Obtener usuario_id desde la API
-          const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
-              headers: { Authorization: `Bearer ${token}` },
-              params: { user_id: userId }
-          });
-
-          const usuarioId = usuarioResponse.data.usuario_id;
-
-          // 📌 Obtener las reservas con usuarioId
-          const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
-              headers: { Authorization: `Bearer ${token}` },
-          });
-
-          console.log("Reservas obtenidas:", response.data);
-
-          if (Array.isArray(response.data)) {
-              setReservations(response.data);
-          } else {
-              throw new Error("Formato de datos incorrecto");
-          }
-
-          setReservationsModalVisible(true);
-
-      } catch (error: unknown) {
-          if (axios.isAxiosError(error)) {
-              console.error('Error obteniendo el historial de reservas:', error.response?.data || error.message);
-              Alert.alert("Error", error.response?.data?.message || "No se pudo obtener el historial de reservas.");
-          } else {
-              console.error("Error inesperado:", error);
-              Alert.alert("Error", "Ocurrió un error inesperado.");
-          }
-      }
-  };
-
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('accessToken');
@@ -269,9 +209,9 @@ export default function UserProfileScreen() {
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={fetchPastReservations}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/MyBookings')}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Historial de Reservas</Text>
+          <Text style={styles.optionText}>Reservas</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={handleLogout}>
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
@@ -351,74 +291,11 @@ export default function UserProfileScreen() {
               </View>
           </View>
       </Modal>
-      {/* Modal para Historial de Reservas */}
-      <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Historial de Reservas</Text>
-
-                  {reservations.length > 0 ? (
-                      <ScrollView style={{ maxHeight: 300 }}>
-                          {reservations.map((res, index) => (
-                              <View key={index} style={styles.reservationItem}>
-                                  <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
-                                  <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
-                                  <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
-                              </View>
-                          ))}
-                      </ScrollView>
-                  ) : (
-                      <Text style={styles.noReservations}>No tienes reservas pasadas.</Text>
-                  )}
-
-                  <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setReservationsModalVisible(false)}>
-                      <Text style={styles.modalButtonText}>Cerrar</Text>
-                  </TouchableOpacity>
-              </View>
-          </View>
-      </Modal>
-
-
-    </ScrollView>
+      </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  reservationItem: {
-      backgroundColor: '#ffffff',
-      padding: 15,
-      marginVertical: 8,
-      borderRadius: 10,
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
-      elevation: 3,
-      width: '90%',
-      alignSelf: 'center',
-      alignItems: 'center',
-  },
-  reservationDate: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: '#004AAD',
-  },
-  reservationExperience: {
-      fontSize: 18,
-      fontWeight: '600',
-      marginVertical: 4,
-      color: '#333',
-  },
-  reservationPrice: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: '#27ae60',
-  },
-  noReservations: {
-      textAlign: 'center',
-      fontSize: 16,
-      color: 'gray',
-      marginTop: 10,
-  },
   deleteButton: {
     backgroundColor: '#d9534f',
     flexDirection: 'row',
