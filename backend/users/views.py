@@ -14,12 +14,14 @@ from django.contrib.auth.models import User
 from .models import Usuario
 from django.http import JsonResponse
 from django.contrib.auth import authenticate
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from decouple import config
 from django.views.decorators.csrf import csrf_exempt
+import json
+import uuid
 
 @swagger_auto_schema(
     method="post",
@@ -258,48 +260,54 @@ def password_reset(request):
     if not email:
         return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = get_object_or_404(Usuario, email=email)
+    usuario = get_object_or_404(Usuario, email=email)
+    user = usuario.user
     
-    # Generate reset link
-    uidb64 = urlsafe_base64_encode(force_bytes(user.id))
+    # Generar enlace con el UUID de Usuario y token
+    uidb64 = urlsafe_base64_encode(force_bytes(str(usuario.id)))  
     token = custom_token_generator.make_token(user)
-    frontend_url = request.data.get('BASE_URL')
-    reset_link = f"{frontend_url}/users/reset/{uidb64}/{token}/"
+    reset_link = f"http://localhost:8081/PasswordResetConfirm?uidb64={uidb64}&token={token}"
 
-    # Send email
+    # Enviar email
     send_mail(
         subject="Password Reset Request",
         message=f"Click the link below to reset your password:\n{reset_link}",
         from_email=config('DEFAULT_FROM_EMAIL'),
         recipient_list=[user.email],
     )
-    return Response({'message': 'Password reset link sent to email'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Password reset link sent to email', 'reset_link': reset_link}, status=status.HTTP_200_OK)
+
 
 @csrf_exempt
 def password_reset_confirm(request, uidb64, token):
-    if request.method == 'POST':
-        try:
+    try:
+        # Decodificar UID como UUID
+        uid = uuid.UUID(force_str(urlsafe_base64_decode(uidb64)))  
+        usuario = get_object_or_404(Usuario, pk=uid)
+        user = usuario.user
+
+        # Validar el token
+        if not custom_token_generator.check_token(user, token):
+            return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+
+        if request.method == 'GET':
+            # Valida el token
+            return JsonResponse({'message': 'Token is valid, please enter your new password'}, status=200)
+
+        if request.method == 'POST':
+            # Cuando el frontend envíe una nueva contraseña, procesamos el cambio
             data = json.loads(request.body)
             new_password = data.get('password')
 
             if not new_password:
                 return JsonResponse({'error': 'New password is required'}, status=400)
 
-            # Decode user ID
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = get_object_or_404(User, pk=uid)
-
-            # Validate token
-            if not custom_token_generator.check_token(user, token):
-                return JsonResponse({'error': 'Invalid or expired token'}, status=400)
-
-            # Set new password
+            # Cambiar la contraseña
             user.set_password(new_password)
             user.save()
+            return JsonResponse({'message': 'Password reset successful'}, status=200)
 
-            return JsonResponse({'message': 'Password reset successful'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
-
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400) 
