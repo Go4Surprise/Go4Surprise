@@ -171,7 +171,7 @@ export default function RegisterScreen() {
 
                 {/* Selector de fecha nativo */}
                     <TextField
-                                  label="Fecha de la Experiencia"
+                                  label="Fecha de Nacimiento"
                                   name="birthdate"
                                   type="date"
                                   fullWidth
