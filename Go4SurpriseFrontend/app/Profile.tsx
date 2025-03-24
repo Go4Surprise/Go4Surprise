@@ -239,6 +239,11 @@ export default function UserProfileScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
+       {/* Botón para ir a HomeScreen */}
+       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
+        <Ionicons name="home" size={30} color="#fff" />
+      </TouchableOpacity>
+      
       {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
@@ -283,13 +288,7 @@ export default function UserProfileScreen() {
             <Text style={styles.deleteText}>Eliminar Cuenta</Text>
         </TouchableOpacity>
 
-      </View>
-
-      {/* Botón para ir a HomeScreen */}
-      <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
-        <Ionicons name="home" size={30} color="#fff" />
-      </TouchableOpacity>
-      
+      </View>      
       {/* Footer con logo pequeño y nombre de la app en línea */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Go4Surprise</Text>
@@ -525,19 +524,17 @@ const styles = StyleSheet.create({
   },
   homeButton: {
     position: 'absolute',
-    bottom: 20,
+    top: 40,           // Ajusta según altura de status bar
     left: 20,
     backgroundColor: '#004AAD',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
+    borderRadius: 20,
+    zIndex: 10,
+    elevation: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },  
   footer: {
     alignItems: 'center',
     marginTop: 100,
