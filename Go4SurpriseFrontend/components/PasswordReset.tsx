@@ -2,6 +2,9 @@ import { useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '@/constants/apiUrl';
 
+// ESTE ARCHIVO HABRÍA QUE BORRARLO
+// ESTE ARCHIVO HABRÍA QUE BORRARLO
+
 const PasswordReset = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');

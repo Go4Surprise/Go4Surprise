@@ -7,20 +7,30 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../constants/apiUrl';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function ForgottenPassword() {
     const router = useRouter();
     const [email, setEmail] = useState('');
 
     const sendEmail = async () => {
+        
         if (!email.trim()) {
             Alert.alert('Error', 'Por favor, introduce un correo válido.');
             return;
         }
 
         try {
-            await axios.post(`${BASE_URL}/users/forgot-password/`, { email });
+            const response = await axios.post(`${BASE_URL}/users/password_reset/`, { email, BASE_URL },
+                { headers: { 
+                    'Content-Type': 'application/json'
+                            },
+                withCredentials: true, // Make sure cookies are sent
+            }
+            );
             Alert.alert('Éxito', 'Hemos enviado un enlace de recuperación a tu correo.');
+            console.log("Response: ",response);
         } catch (error) {
             Alert.alert('Error', 'No se pudo procesar la solicitud. Inténtalo más tarde.');
         }
