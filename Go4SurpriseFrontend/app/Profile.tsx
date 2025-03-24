@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackg
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 
 interface Reservation  {
@@ -30,7 +30,7 @@ export default function UserProfileScreen() {
     surname: '',
     phone: ''
   });
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
@@ -77,7 +77,7 @@ export default function UserProfileScreen() {
 
 
   useEffect(() => {
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   const handleEditProfile = () => {
@@ -121,7 +121,7 @@ export default function UserProfileScreen() {
             return;
         }
 
-        const response = await axios.post(
+        await axios.post(
             `${BASE_URL}/users/change_password/`,
             { current_password: currentPassword, new_password: newPassword },
             { headers: { Authorization: `Bearer ${token}` } }
@@ -260,15 +260,15 @@ export default function UserProfileScreen() {
           <Ionicons name="person" size={20} color="#004AAD" style={styles.icon}/>
           <Text style={styles.optionText}>Editar Perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={() => setPasswordModalVisible(true)}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => { setPasswordModalVisible(true); }}>
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={fetchPastReservations}>
+        <TouchableOpacity style={styles.optionButton} onPress={() => void fetchPastReservations()}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Historial de Reservas</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={handleLogout}>
+        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={() => void handleLogout()}>
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
@@ -276,7 +276,7 @@ export default function UserProfileScreen() {
             style={[styles.optionButton, styles.deleteButton]} 
             onPress={() => {
                 console.log("🛠️ Botón de eliminar cuenta presionado."); // <-- Ver si se ejecuta
-                handleDeleteAccount();
+                void handleDeleteAccount();
             }}
         >
             <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
@@ -300,16 +300,16 @@ export default function UserProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
-            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
-            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
-            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
-            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} placeholder="Nombre" />
+            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} placeholder="Apellido" />
+            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} placeholder="Usuario" />
+            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => { setEditedUser({ ...editedUser, email: text }); }} placeholder="Email" keyboardType="email-address" />
+            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} placeholder="Teléfono" keyboardType="phone-pad" />
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
             </View>
@@ -342,10 +342,10 @@ export default function UserProfileScreen() {
                   />
 
                   <View style={styles.modalButtons}>
-                      <TouchableOpacity style={styles.modalButton} onPress={handleChangePassword}>
+                      <TouchableOpacity style={styles.modalButton} onPress={() => void handleChangePassword()}>
                           <Text style={styles.modalButtonText}>Guardar</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setPasswordModalVisible(false)}>
+                      <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setPasswordModalVisible(false); }}>
                           <Text style={styles.modalButtonText}>Cancelar</Text>
                       </TouchableOpacity>
                   </View>
@@ -372,8 +372,8 @@ export default function UserProfileScreen() {
                       <Text style={styles.noReservations}>No tienes reservas pasadas.</Text>
                   )}
 
-                  <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setReservationsModalVisible(false)}>
-                      <Text style={styles.modalButtonText}>Cerrar</Text>
+<TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setReservationsModalVisible(false); }}>
+<Text style={styles.modalButtonText}>Cerrar</Text>
                   </TouchableOpacity>
               </View>
           </View>

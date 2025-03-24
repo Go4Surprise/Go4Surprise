@@ -35,7 +35,7 @@ const MyBookings = () => {
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
-    fetchReservas();
+    void fetchReservas();
     fadeIn();
   }, []);
 
@@ -86,7 +86,7 @@ const MyBookings = () => {
       "¿Estás seguro de que quieres cancelar esta reserva?",
       [
         { text: "No", style: "cancel" },
-        { text: "Sí", onPress: () => console.log("Reserva cancelada:", id) },
+        { text: "Sí", onPress: () => { console.log("Reserva cancelada:", id); } },
       ]
     );
   };
@@ -109,14 +109,14 @@ const MyBookings = () => {
       </Text>
 
       {item.cancellable && (
-        <TouchableOpacity style={styles.cancelButton} onPress={() => cancelarReserva(item.id)}>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => { cancelarReserva(item.id); }}>
           <Ionicons name="close-circle" size={16} color="white" />
           <Text style={styles.cancelButtonText}>Cancelar</Text>
         </TouchableOpacity>
       )}
 
       {isBefore(parseISO(item.experience_date), new Date()) && (
-          <TouchableOpacity style={styles.reviewButton} onPress={() => console.log("Dejar reseña", item.id)}>
+          <TouchableOpacity style={styles.reviewButton} onPress={() => { console.log("Dejar reseña", item.id); }}>
             <Ionicons name="star" size={16} color="white" />
             <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
           </TouchableOpacity>
