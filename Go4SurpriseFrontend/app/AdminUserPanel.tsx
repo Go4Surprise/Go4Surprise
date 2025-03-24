@@ -8,7 +8,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 
-type User = {
+interface User {
     id: number;
     username: string;
     email: string;
@@ -28,8 +28,8 @@ export default function AdminPanel() {
     const isMobile = width < 768;
 
     useEffect(() => {
-        checkAdminStatus();
-        fetchUsers();
+        void checkAdminStatus();
+        void fetchUsers();
     }, []);
 
     const checkAdminStatus = async () => {
@@ -83,7 +83,7 @@ export default function AdminPanel() {
         return (
             <View style={styles.centerContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.button} onPress={fetchUsers}>
+                <TouchableOpacity style={styles.button} onPress={() => void fetchUsers()}>
                     <Text style={styles.buttonText}>Reintentar</Text>
                 </TouchableOpacity>
             </View>
@@ -98,7 +98,7 @@ export default function AdminPanel() {
                         <Text style={styles.backButtonText}>← Volver a Administración</Text>
                     </TouchableOpacity>
                     <Text style={styles.title}>Gestión de Usuarios</Text>
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={() => void handleLogout()}>
                         <Text style={styles.buttonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>
@@ -112,7 +112,7 @@ export default function AdminPanel() {
                             renderItem={({ item }) => (
                                 <TouchableOpacity 
                                     style={styles.userItem}
-                                    onPress={() => viewUserDetails(item.id)}
+                                    onPress={() => { viewUserDetails(item.id); }}
                                 >
                                     <View style={styles.userInfo}>
                                         <Text style={styles.username}>{item.username}</Text>

@@ -13,6 +13,7 @@ export default function RegisterScreen() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function RegisterScreen() {
     const [errors, setErrors] = useState<{ 
         username?: string; 
         password?: string; 
+        confirmPassword?: string;
         name?: string; 
         surname?: string; 
         email?: string; 
@@ -33,10 +35,10 @@ export default function RegisterScreen() {
         const validations = [
             { field: "username", value: username, message: "El nombre de usuario es obligatorio" },
             { field: "password", value: password, message: "La contraseña es obligatoria" },
+            { field: "confirmPassword", value: confirmPassword, message: "La confirmación de la contraseña es obligatoria" },
             { field: "name", value: name, message: "El nombre es obligatorio" },
             { field: "surname", value: surname, message: "El apellido es obligatorio" },
             { field: "email", value: email, message: "El correo es obligatorio" },
-            { field: "phone", value: phone, message: "El teléfono es obligatorio" },
         ];
     
         let newErrors: Record<string, string> = {};
@@ -50,10 +52,16 @@ export default function RegisterScreen() {
         if (password && password.length < 6) {
             newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         }
+
+        if (confirmPassword && confirmPassword !== password) {
+            newErrors.confirmPassword = "Las contraseñas no coinciden";
+        }
+
         if (email && !/\S+@\S+\.\S+/.test(email)) {
             newErrors.email = "El correo electrónico no es válido";
         }
-        if (phone && !/^\d{9}$/.test(phone)) {
+
+        if (phone && phone.length > 0 && !/^\d{9}$/.test(phone)) {
             newErrors.phone = "El teléfono debe tener 9 dígitos";
         }
     
@@ -137,6 +145,15 @@ export default function RegisterScreen() {
 
                 <TextInput 
                     style={styles.input} 
+                    placeholder="Confirmar Contraseña" 
+                    value={confirmPassword} 
+                    onChangeText={setConfirmPassword} 
+                    secureTextEntry 
+                />
+                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+
+                <TextInput 
+                    style={styles.input} 
                     placeholder="Nombre" 
                     value={name} 
                     onChangeText={setName} 
@@ -194,7 +211,7 @@ export default function RegisterScreen() {
 
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
-                <TouchableOpacity style={styles.button} onPress={handleRegister}>
+                <TouchableOpacity style={styles.button} onPress={() => void handleRegister()}>
                     <Text style={styles.buttonText}>Registrarse</Text>
                 </TouchableOpacity>
 

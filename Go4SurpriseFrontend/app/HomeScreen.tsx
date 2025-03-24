@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
 import { useWindowDimensions } from "react-native";
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     // Check if user is admin when component mounts
-    checkAdminStatus();
+    void checkAdminStatus();
   }, []);
 
   const checkAdminStatus = async () => {
