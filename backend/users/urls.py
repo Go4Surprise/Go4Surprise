@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_user_update
 from .views import register_user, login_user, update_preferences, get_usuario_id, check_username_exists

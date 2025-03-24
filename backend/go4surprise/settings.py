@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from urllib.parse import urlparse
+from decouple import config
 
 load_dotenv()
 
@@ -54,7 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'dj.rest_auth',
+    'dj_rest_auth',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -75,7 +76,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -185,9 +187,11 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False
 }
 
+# Email server configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP server
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.get('EMAIL_USER')  # Use environment variables in production!
-EMAIL_HOST_PASSWORD = os.get('EMAIL_PASSWORD')  # Use environment variables in production!
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Use environment variables in production!
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Use environment variables in production!
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
