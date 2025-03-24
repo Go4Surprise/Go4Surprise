@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_user_update
-from .views import register_user, login_user, update_preferences, get_usuario_id
+from .views import register_user, login_user, update_preferences, get_usuario_id, check_username_exists
 from .views import get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('update/', update_user_profile, name='update_user_profile'),
     path('delete/', delete_user_account, name='delete_user_account'),
     path('change_password/', change_password, name='change_password'),
+    path('check_username/<str:username>/', check_username_exists, name='check_username'),
 
     # Admin routes
     path('admin/list/', admin_user_list, name='admin_user_list'),

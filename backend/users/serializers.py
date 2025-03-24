@@ -14,7 +14,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp']
+        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp', 'birthdate']
 
     def create(self, validated_data):
         username = validated_data.pop('username')
@@ -59,6 +59,7 @@ class LoginSerializer(serializers.Serializer):
         return {
             "id": usuario.id,
             "user_id": user.id,
+            "birthdate": usuario.birthdate,
             "username": user.username,
             "name": usuario.name,
             "surname": usuario.surname,
@@ -91,7 +92,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = Usuario
         fields = [
             'id', 'user', 'name', 'surname', 'email', 
-            'phone', 'pfp', 'preferences', 'username'
+            'phone', 'pfp', 'preferences', 'username', 'birthdate'
         ]
 
     def get_pfp(self, obj):
