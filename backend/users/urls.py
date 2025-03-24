@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import register_user, login_user, update_preferences, get_usuario_id
 from .views import get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password
 from django.contrib.auth import views as auth_views
@@ -14,9 +14,7 @@ urlpatterns = [
     path('change_password/', change_password, name='change_password'),
 
     # reset password urls
-    path('password_reset/', auth_views.PasswordResetView.as_view(), namespace='password_reset'),
-    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), namespace='password_reset_done'),
-    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), namespace='password_reset_confirm'),
-    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), namespace='password_reset_complete'),
+    path('api/auth/', include('dj_rest_auth.urls')),  
+    path('api/auth/password/reset/', include('dj_rest_auth.registration.urls')),
 
 ]
