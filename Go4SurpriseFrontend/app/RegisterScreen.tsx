@@ -211,7 +211,7 @@ export default function RegisterScreen() {
 
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
-                <TouchableOpacity style={styles.button} onPress={() => handleRegister()}>
+                <TouchableOpacity style={styles.button} onPress={() => void handleRegister()}>
                     <Text style={styles.buttonText}>Registrarse</Text>
                 </TouchableOpacity>
 
