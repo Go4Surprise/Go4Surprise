@@ -38,7 +38,7 @@ export default function RegisterBooking() {
     category: "",
   });
 
-  const [_userId, setUserId] = useState<string | null>(null);
+  const [, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   
   // Add refs for the ScrollViews
