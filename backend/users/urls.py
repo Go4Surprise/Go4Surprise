@@ -17,8 +17,6 @@ urlpatterns = [
     path('check_username/<str:username>/', check_username_exists, name='check_username'),
 
     # reset password urls
-    path('api/auth/', include('dj_rest_auth.urls')),  
-    path('api/auth/password/reset/', include('dj_rest_auth.registration.urls')),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
