@@ -19,6 +19,10 @@ urlpatterns = [
     # reset password urls
     path('api/auth/', include('dj_rest_auth.urls')),  
     path('api/auth/password/reset/', include('dj_rest_auth.registration.urls')),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 
     # Admin routes
     path('admin/list/', admin_user_list, name='admin_user_list'),
