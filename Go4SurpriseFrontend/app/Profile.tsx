@@ -239,10 +239,15 @@ export default function UserProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
+            <Text style={styles.label}>Nombre</Text>
             <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+            <Text style={styles.label}>Apellidos</Text>
             <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+            <Text style={styles.label}>Usuario</Text>
             <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+            <Text style={styles.label}>Email</Text>
             <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+            <Text style={styles.label}>Teléfono</Text>
             <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
@@ -296,6 +301,13 @@ export default function UserProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 4,
+    color: '#333',
+  },  
   deleteButton: {
     backgroundColor: '#d9534f',
     flexDirection: 'row',
