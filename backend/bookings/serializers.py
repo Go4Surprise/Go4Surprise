@@ -18,12 +18,14 @@ class CrearReservaSerializer(serializers.ModelSerializer):
     duration = serializers.IntegerField(required=True)
     categories = serializers.ListField(
         child=serializers.ChoiceField(choices=ExperienceCategory.choices),
-        required=True
+        required=False
     )
+
+    notas_adicionales = serializers.CharField(required=False)
 
     class Meta:
         model = Booking
-        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'duration', 'categories']
+        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'duration', 'categories', 'notas_adicionales']
         
     def validate_user(self, value):
         """
@@ -51,9 +53,14 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                 booking_date = timezone.now().date()
                 total_price = validated_data['price'] * validated_data['participants']
                 
-                # Crea la experiencia si no existe ninguna para la localización, duración, categoría y precio
-                # Si ya existe, la asocia a la reserva
-                experience, created = Experience.objects.get_or_create(location=validated_data['location'], duration=validated_data['duration'], category=validated_data['category'], price=validated_data['price'])
+                # Crea la experiencia asociada a la reserva
+                experience = Experience.objects.create(
+                    location=validated_data['location'],
+                    duration=validated_data['duration'],
+                    categories=validated_data['categories'],
+                    price=validated_data['price'],
+                    notas_adicionales=validated_data.get('notas_adicionales', '')
+                )
                 
                 return Booking.objects.create(
                     experience=experience,
