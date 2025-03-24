@@ -181,3 +181,56 @@ def obtener_reservas_pasadas_usuario(request, user_id):
             {"error": f"Error del servidor: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@swagger_auto_schema(
+    method='put',
+    operation_id="update_booking_status",
+    operation_description="Actualizar el estado de una reserva",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'status': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="Nuevo estado de la reserva ('PENDING', 'CONFIRMED', 'CANCELLED')",
+                enum=['PENDING', 'CONFIRMED', 'CANCELLED']
+            ),
+        },
+        required=['status'],
+    ),
+    responses={
+        200: "OK",
+        400: "Bad Request",
+        404: "Not Found",
+        500: "Internal Server Error"
+    },
+    tags=['Booking']
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def actualizar_estado_reserva(request, id):
+    """
+    Actualiza el estado de una reserva específica
+    """
+    try:
+        reserva = get_object_or_404(Booking, id=id)
+        nuevo_estado = request.data.get('status')
+
+        if nuevo_estado not in ['PENDING', 'CONFIRMED', 'CANCELLED']:
+            return Response(
+                {"error": "Estado inválido. Debe ser 'PENDING', 'CONFIRMED' o 'CANCELLED'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reserva.status = nuevo_estado
+        reserva.save()
+        return Response({"message": "Estado actualizado correctamente."}, status=status.HTTP_200_OK)
+    except Http404:
+        return Response(
+            {"error": "Reserva no encontrada"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
