@@ -188,7 +188,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
       }
     };
     
-    fetchToken();
+    void fetchToken();
     fadeIn();
   }, [currentQuestionIndex, router]);
 
@@ -231,7 +231,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      submitPreferences();
+      void submitPreferences();
     }
   };
 

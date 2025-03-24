@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+
 
 // Use built-in __DEV__ variable which is true in development and false in production
 export const BASE_URL = __DEV__ 

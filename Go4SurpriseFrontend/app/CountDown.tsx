@@ -9,7 +9,7 @@ export default function CountDown() {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchNextBooking();
+        void fetchNextBooking();
     }, []);
 
     const fetchNextBooking = async () => {

@@ -15,8 +15,8 @@ export default function AdminPanel() {
     const [adminName, setAdminName] = useState('Administrador');
 
     useEffect(() => {
-        checkAdminStatus();
-        loadAdminName();
+        void checkAdminStatus();
+        void loadAdminName();
     }, []);
 
     const checkAdminStatus = async () => {
@@ -69,7 +69,7 @@ export default function AdminPanel() {
                         </TouchableOpacity>
                         <Text style={styles.title}>Panel de Administración</Text>
                     </View>
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={() => void handleLogout()}>
                         <Text style={styles.buttonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>

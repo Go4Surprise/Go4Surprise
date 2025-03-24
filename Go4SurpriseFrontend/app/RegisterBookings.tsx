@@ -10,11 +10,10 @@ import {
   Box,
   Stack,
   SelectChangeEvent,
-  Input,
   Typography,
 } from "@mui/material";
-import axios, { AxiosError } from "axios";
-import { ScrollView, Text, StyleSheet, View } from "react-native";
+import axios from "axios";
+import { ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 
@@ -39,7 +38,7 @@ export default function RegisterBooking() {
     category: "",
   });
 
-  const [userId, setUserId] = useState<string | null>(null);
+  const [_userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   
   // Add refs for the ScrollViews
@@ -61,7 +60,7 @@ export default function RegisterBooking() {
       setReserva({ ...reserva, user: storedUserId });
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   // Manejador para campos de tipo TextField (input)
@@ -107,7 +106,7 @@ export default function RegisterBooking() {
       .post(`${BASE_URL}/bookings/crear-reserva/`, data, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((response) => {
+      .then(() => {
         router.push("/HomeScreen");
       })
       .catch((error) => {
@@ -233,11 +232,10 @@ export default function RegisterBooking() {
                   flexGrow: 0,
                   cursor: isDragging && activeScrollView === 'city' ? 'grabbing' : 'grab'
                 }}
-                onMouseDown={(e) => handleMouseDown(e, 'city')}
-                onMouseMove={handleMouseMove}
+                onMouseDown={(e) => { handleMouseDown(e, 'city'); }}                onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                onTouchStart={(e) => handleTouchStart(e, 'city')}
+                onTouchStart={(e) => { handleTouchStart(e, 'city'); }}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 scrollEventThrottle={16}
@@ -245,7 +243,7 @@ export default function RegisterBooking() {
               >
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, location: "Sevilla" })}
+                onClick={() => { setReserva({ ...reserva, location: "Sevilla" }); }}
                 variant={reserva.location == "Sevilla" ? "outlined" : "text"}
               >
                 <div
@@ -265,7 +263,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, location: "Valencia" })}
+                onClick={() => { setReserva({ ...reserva, location: "Valencia" }); }}
                 variant={reserva.location == "Valencia" ? "outlined" : "text"}
               >
                 <div
@@ -286,8 +284,7 @@ export default function RegisterBooking() {
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
                 onClick={() =>
-                  setReserva({ ...reserva, location: "Barcelona" })
-                }
+                  { setReserva({ ...reserva, location: "Barcelona" }); }                }
                 variant={reserva.location == "Barcelona" ? "outlined" : "text"}
               >
                 <div
@@ -307,7 +304,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, location: "Madrid" })}
+                onClick={() => { setReserva({ ...reserva, location: "Madrid" }); }}
                 variant={reserva.location == "Madrid" ? "outlined" : "text"}
               >
                 <div
@@ -327,7 +324,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, location: "Bilbao" })}
+                onClick={() => { setReserva({ ...reserva, location: "Bilbao" }); }}
                 variant={reserva.location == "Bilbao" ? "outlined" : "text"}
               >
                 <div
@@ -361,11 +358,10 @@ export default function RegisterBooking() {
                 marginBottom: 5,
                 cursor: isDragging && activeScrollView === 'category' ? 'grabbing' : 'grab'
               }}
-              onMouseDown={(e) => handleMouseDown(e, 'category')}
-              onMouseMove={handleMouseMove}
+              onMouseDown={(e) => { handleMouseDown(e, 'category'); }}              onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
-              onTouchStart={(e) => handleTouchStart(e, 'category')}
+              onTouchStart={(e) => { handleTouchStart(e, 'category'); }}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               scrollEventThrottle={16}
@@ -373,7 +369,7 @@ export default function RegisterBooking() {
             >
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "MUSIC" })}
+                onClick={() => { setReserva({ ...reserva, category: "MUSIC" }); }}
                 variant={reserva.category == "MUSIC" ? "outlined" : "text"}
               >
                 <div
@@ -393,7 +389,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "CULTURE" })}
+                onClick={() => { setReserva({ ...reserva, category: "CULTURE" }); }}
                 variant={reserva.category == "CULTURE" ? "outlined" : "text"}
               >
                 <div
@@ -413,7 +409,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "SPORTS" })}
+                onClick={() => { setReserva({ ...reserva, category: "SPORTS" }); }}
                 variant={reserva.category == "SPORTS" ? "outlined" : "text"}
               >
                 <div
@@ -434,7 +430,7 @@ export default function RegisterBooking() {
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
                 onClick={() =>
-                  setReserva({ ...reserva, category: "GASTRONOMY" })
+                  { setReserva({ ...reserva, category: "GASTRONOMY" }); }
                 }
                 variant={
                   reserva.category == "GASTRONOMY" ? "outlined" : "text"
@@ -458,7 +454,7 @@ export default function RegisterBooking() {
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
                 onClick={() =>
-                  setReserva({ ...reserva, category: "NIGHTLIFE" })
+                  { setReserva({ ...reserva, category: "NIGHTLIFE" }); }
                 }
                 variant={
                   reserva.category == "NIGHTLIFE" ? "outlined" : "text"
@@ -481,7 +477,7 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "ADVENTURE" })}
+                onClick={() => { setReserva({ ...reserva, category: "ADVENTURE" }); }}
                 variant={reserva.category == "ADVENTURE" ? "outlined" : "text"}
               >
                 <div
