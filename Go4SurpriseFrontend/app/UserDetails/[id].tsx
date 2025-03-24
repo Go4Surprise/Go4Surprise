@@ -168,7 +168,7 @@ export default function UserDetails() {
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={[styles.saveButton, saving && styles.disabledButton]}
-                                    onPress={async() => {handleSave()}}
+                                    onPress={async() => {await handleSave()}}
                                     disabled={saving}
                                 >
                                     <Text style={styles.buttonText}>
