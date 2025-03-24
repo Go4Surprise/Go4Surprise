@@ -4,6 +4,7 @@ import {
   Dimensions, Animated, SafeAreaView
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function IntroPreferencesScreen() {
   const router = useRouter();
@@ -79,6 +80,17 @@ export default function IntroPreferencesScreen() {
     return () => subscription.remove();
   }, [screenHeight]);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      fadeAnim.setValue(0);  // Reinicia opacidad
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }).start();
+    }, [])
+  );  
+
   const handleStart = () => {
     Animated.timing(fadeAnim, {
       toValue: 0,
@@ -124,7 +136,7 @@ export default function IntroPreferencesScreen() {
             ]}
           />
 
-          <Text style={styles.welcome}>¡Bienvenido!</Text>
+          <Text style={styles.welcome}>¡Bienvenido/a!</Text>
           <Text style={styles.title}>
             ¡Prepárate para descubrir experiencias <Text style={styles.highlight}>sorpresa</Text>!
           </Text>
