@@ -35,7 +35,7 @@ export default function LoginScreen() {
 
             Alert.alert('Éxito', 'Inicio de sesión correcto');
 
-            router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
+            router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
         } catch (error) {
             setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
         }
