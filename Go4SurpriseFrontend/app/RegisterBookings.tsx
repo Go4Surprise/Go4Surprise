@@ -569,7 +569,7 @@ export default function RegisterBooking() {
                 reserva.participants == 0
               }
             >
-              Register Booking
+              Registrar Reserva
             </Button>
           </Stack>
         </form>

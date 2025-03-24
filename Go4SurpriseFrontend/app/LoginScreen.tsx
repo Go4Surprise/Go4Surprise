@@ -7,15 +7,17 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     
     const { width } = useWindowDimensions();
-    const isMobile = width < 768; // Cuando el ancho es menor a 768px, pasamos a vista móvil
+    const isMobile = width < 768;
 
     const handleLogin = async () => {
         setErrorMessage(null);
@@ -44,30 +46,36 @@ export default function LoginScreen() {
     return (
         <View style={styles.container}>
             <View style={[styles.content, isMobile ? styles.contentMobile : styles.contentDesktop]}>
-                {/* SECCIÓN IZQUIERDA - LOGO Y TEXTO */}
                 <View style={styles.leftSection}>
                     <Image source={require('../assets/images/logo.png')} style={styles.logo} />
                     <Text style={styles.description}>
-                    ¿No tienes ganas de organizar un evento? Deja que nosotros te demos una sorpresa
+                        ¿No tienes ganas de organizar un evento? Deja que nosotros te demos una sorpresa
                     </Text>
                 </View>
-
-                {/* SECCIÓN DERECHA - FORMULARIO */}
                 <View style={styles.rightSection}>
                     <View style={styles.card}>
                         <TextInput 
                             style={styles.input} 
-                            placeholder="Username" 
+                            placeholder="Nombre de usuario" 
                             value={username} 
                             onChangeText={setUsername} 
                         />
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder="Contraseña" 
-                            secureTextEntry 
-                            value={password} 
-                            onChangeText={setPassword} 
-                        />
+                        <View style={styles.passwordContainer}>
+                            <TextInput 
+                                style={styles.inputPassword} 
+                                placeholder="Contraseña" 
+                                secureTextEntry={!showPassword} 
+                                value={password} 
+                                onChangeText={setPassword} 
+                            />
+                            <TouchableOpacity onPress={() => { setShowPassword(!showPassword); }}>
+                                <MaterialIcons 
+                                    name={showPassword ? 'visibility' : 'visibility-off'} 
+                                    size={24} 
+                                    color="gray" 
+                                />
+                            </TouchableOpacity>
+                        </View>
 
                         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
@@ -201,6 +209,21 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#606770',
         textAlign: 'center',
+    },
+
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        backgroundColor: '#f9f9f9',
+        marginBottom: 10,
+        paddingHorizontal: 10,
+    },
+    inputPassword: {
+        flex: 1,
+        padding: 12,
     },
 });
 

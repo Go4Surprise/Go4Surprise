@@ -32,7 +32,7 @@ export default function Experiences() {
         image: 'https://www.outdoor-factory.com/wp-content/uploads/2018/03/Captura-de-pantalla-2016-04-12-a-las-21.41.11-1024x714.png',
       },
       {
-        title: 'Night club',
+        title: 'Club Nocturno',
         image: 'https://popmenucloud.com/lpgoauys/1b647efa-4899-4bd2-91f3-271071474244.jpg',
       },
       {
