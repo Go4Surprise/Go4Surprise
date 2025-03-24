@@ -83,9 +83,17 @@ class ReservaSerializer(serializers.ModelSerializer):
     
 
 class AdminBookingSerializer(serializers.ModelSerializer):
+    experience = ExperienceSerializer()  # Incluir el serializador de la experiencia
+
     class Meta:
         model = Booking
         fields = '__all__'
+
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experience
+        fields = ['id', 'name', 'description', 'hint']  # Aquí puedes agregar los campos que necesitas de la experiencia
 
 
 class AdminBookingUpdateSerializer(serializers.ModelSerializer):
@@ -100,10 +108,15 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
         choices=['PENDING', 'CANCELLED', 'CONFIRMED'],
         required=False
     )
+    hint = serializers.CharField(required=False, allow_blank=True)
+    duracion = serializers.IntegerField(required=False)
+    localizacion = serializers.CharField(required=False)
+    categoria = serializers.ChoiceField(choices=Experience.ExperienceCategory.choices, required=False)
 
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['participants', 'price', 'booking_date', 'experience_date', 'cancellable', 'status', 'hint', 'duracion',
+                  'localizacion', 'categoria']
 
     def validate(self, data):
         if len(data) == 0:
@@ -111,30 +124,14 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
         return data
 
     def update(self, instance, validated_data):
-        participants = validated_data.pop('participants', None)
-        price = validated_data.pop('price', None)
-        booking_date = validated_data.pop('booking_date', None)
-        experience_date = validated_data.pop('experience_date', None)
-        cancellable = validated_data.pop('cancellable', None)
-        status = validated_data.pop('status', None)
+        hint = validated_data.pop('hint', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        instance.save()
-
-        # Removed erroneous block that accessed instance.booking
-        if participants is not None:
-            instance.participants = participants
-        if price is not None:
-            instance.price = price
-        if booking_date is not None:
-            instance.booking_date = booking_date
-        if experience_date is not None: 
-            instance.experience_date = experience_date
-        if cancellable is not None:
-            instance.cancellable = cancellable
-        if status is not None:
-            instance.status = status
+        
+        if hint is not None and instance.experience:
+            instance.experience.hint = hint
+            instance.experience.save()
 
         instance.save()
         return instance

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from bookings.models import Booking
+from experiences.models import Experience
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -114,9 +115,14 @@ def admin_booking_update(request, pk):
     except Booking.DoesNotExist:
         return Response({"error": "Reserva no encontrada"}, status=status.HTTP_404_NOT_FOUND)
     
+    hint = request.data.get('hint', None)
     serializer = AdminBookingUpdateSerializer(booking, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
+        if hint is not None:
+            booking.experience.hint = hint
+            booking.experience.save()
+        
         return Response(AdminBookingSerializer(booking, context={'request': request}).data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

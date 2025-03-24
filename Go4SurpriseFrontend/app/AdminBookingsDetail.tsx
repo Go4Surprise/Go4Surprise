@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +19,7 @@ type BookingDetail = {
         location: string;
         duration: number;
         category: string;
+        hint: string | null;
     };
 };
 
@@ -27,6 +28,13 @@ const AdminBookingsDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+    const [experienceDate, setExperienceDate] = useState<string | null>(null);
+    const [participants, setParticipants] = useState<number | null>(null);
+    const [totalPrice, setTotalPrice] = useState<number | null>(null);
+    const [experienceLocation, setExperienceLocation] = useState<string | null>(null);
+    const [experienceDuration, setExperienceDuration] = useState<number | null>(null);
+    const [experienceCategory, setExperienceCategory] = useState<string | null>(null);
+    const [hint, setHint] = useState<string | null>(null);
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
@@ -44,6 +52,14 @@ const AdminBookingsDetail = () => {
                 },
             });
             setBooking(response.data);
+            setSelectedStatus(response.data.status);
+            setExperienceDate(response.data.experience_date);
+            setParticipants(response.data.participants);
+            setTotalPrice(response.data.total_price);
+            setExperienceLocation(response.data.experience.location);
+            setExperienceDuration(response.data.experience.duration);
+            setExperienceCategory(response.data.experience.category);
+            setHint(response.data.experience.hint || '');
         } catch (error) {
             setError('Error al cargar los detalles de la reserva. Por favor, inténtalo de nuevo.');
             console.error('Error fetching booking detail:', error);
@@ -53,15 +69,22 @@ const AdminBookingsDetail = () => {
     };
 
     const updateBookingStatus = async () => {
-        if (!selectedStatus) {
-            Alert.alert('Error', 'Por favor selecciona un estado.');
+        if (!selectedStatus || !experienceDate || !participants || !totalPrice) {
+            Alert.alert('Error', 'Por favor asegúrate de completar todos los campos.');
             return;
         }
+
         try {
             const token = await AsyncStorage.getItem('accessToken');
             await axios.put(
                 `${BASE_URL}/bookings/admin/update/${id}/`,
-                { status: selectedStatus },
+                {
+                    status: selectedStatus,
+                    hint: hint || "", // Enviar el hint vacío si no se ha ingresado nada
+                    experience_date: experienceDate,
+                    participants: participants,
+                    total_price: totalPrice,
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -71,7 +94,7 @@ const AdminBookingsDetail = () => {
             );
             router.push({
                 pathname: '/AdminBookingsPanel',
-                params: { successMessage: 'La reserva se ha actualizado correctamente.' }, // Pass success message explicitly
+                params: { successMessage: 'La reserva se ha actualizado correctamente.' },
             });
         } catch (error) {
             Alert.alert('Error', 'No se pudo actualizar el estado de la reserva.');
@@ -90,9 +113,29 @@ const AdminBookingsDetail = () => {
             <Text style={styles.title}>Detalle de la Reserva</Text>
             {booking && (
                 <View style={styles.card}>
-                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {booking.experience_date}</Text>
-                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {booking.participants}</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${booking.total_price}</Text>
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceDate ?? ''}
+                        onChangeText={setExperienceDate}
+                        placeholder="Ingrese la fecha de la experiencia"
+                    />
+                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={participants?.toString() ?? ''}
+                        onChangeText={(text) => setParticipants(Number(text))}
+                        keyboardType="numeric"
+                        placeholder="Número de participantes"
+                    />
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={totalPrice?.toString() ?? ''}
+                        onChangeText={(text) => setTotalPrice(Number(text))}
+                        keyboardType="numeric"
+                        placeholder="Precio total"
+                    />
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
                         <Picker
@@ -107,15 +150,25 @@ const AdminBookingsDetail = () => {
                             <Picker.Item label="Cancelada" value="CANCELLED" />
                         </Picker>
                     </View>
-                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {booking.experience.location}</Text>
-                    <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Duración: {booking.experience.duration} minutos</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categoría: {booking.experience.category}</Text>
-                    <Text style={styles.label}><Ionicons name="checkmark-circle" size={16} color="#1877F2" /> Cancelable: {booking.cancellable ? 'Sí' : 'No'}</Text>
+
+                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
+                    <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Duración: {experienceDuration} minutos</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categoría: {experienceCategory}</Text>
+                    
+                    <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={hint ?? ''}
+                        onChangeText={setHint}
+                        placeholder="Ingrese una pista para la experiencia..."
+                    />
+
+                    {/* Botón para actualizar */}
                     <TouchableOpacity
                         style={styles.updateButton}
                         onPress={updateBookingStatus}
                     >
-                        <Text style={styles.updateButtonText}>Actualizar Estado</Text>
+                        <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -195,6 +248,15 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         backgroundColor: '#f0f0f0',
         borderRadius: 6,
+    },
+    input: {
+        height: 40,
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+        backgroundColor: 'white',
     },
 });
 
