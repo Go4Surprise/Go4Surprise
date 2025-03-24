@@ -304,6 +304,8 @@ export default function PreferencesFormScreen(): React.ReactElement {
         return require('../assets/images/musica.png');
       case 'Cultura y Arte':
         return require('../assets/images/cultura.png');
+      case 'Deporte y Motor':
+        return require('../assets/images/deporte.png');
       default:
         return null;
     }
