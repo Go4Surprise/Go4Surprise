@@ -5,6 +5,7 @@ import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError } from "axios";
 import { BASE_URL } from '../constants/apiUrl';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function UserProfileScreen() {
   
@@ -14,12 +15,13 @@ export default function UserProfileScreen() {
     email: '',
     username: '',
     surname: '',
-    phone: ''
+    phone: '',
+    pfp: ''
   });
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState(''); // Estado para manejar errores en el modal
@@ -49,7 +51,8 @@ export default function UserProfileScreen() {
             email: response.data.email,
             username: response.data.username,
             surname: response.data.surname,
-            phone: response.data.phone
+            phone: response.data.phone,
+            pfp: response.data.pfp
         }));
 
     } catch (error) {
@@ -72,18 +75,49 @@ export default function UserProfileScreen() {
               surname: user.surname || '', 
               username: user.username || '',  
               email: user.email || '',
-              phone: user.phone || ''
+              phone: user.phone || '',
+              pfp: user.pfp || ''
           });
           setModalVisible(true);
       }
   };
 
+  const pickImage = async () => {
+
+    // Seleccionar una imagen de la galería
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images',],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+    });
+    console.log("Imagen detectada:", result);
+    if (!result.canceled) {
+          setEditedUser(prevState => ({ ...prevState, pfp: result.assets[0].uri })); // Actualiza el estado con la URI de la imagen seleccionada   
+    }
+  };
 
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      await axios.put(`${BASE_URL}/users/update/`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` }
+      const formData = new FormData();
+        formData.append('name', editedUser.name);
+        formData.append('surname', editedUser.surname);
+        formData.append('username', editedUser.username);
+        formData.append('email', editedUser.email);
+        formData.append('phone', editedUser.phone);
+        if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
+          const base64Data = editedUser.pfp.split(',')[1]; // Extraer solo los datos Base64
+          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+
+          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+          formData.append('pfp', pfpFile);
+        }
+      await axios.put(`${BASE_URL}/users/update/`, formData, {
+      headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+      }
       });
       setUser(prevState => ({
         ...prevState, // Mantiene el id y otros campos
@@ -187,14 +221,14 @@ export default function UserProfileScreen() {
       {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image source={user.pfp ? { uri: user.pfp } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
         </View>
       </ImageBackground>
       
       {/* Tarjeta del perfil */}
       {user && (
                 <View style={styles.profileCard}>
-                  <Text style={styles.username}>{user.name}</Text>
+                  <Text style={styles.username}>{user.name} {user.surname}</Text>
                   <Text style={styles.email}>{user.email}</Text>
                 </View>
         )}
@@ -249,6 +283,13 @@ export default function UserProfileScreen() {
             <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
             <Text style={styles.label}>Teléfono</Text>
             <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <Text style={styles.label}>Foto de Perfil</Text>
+            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
+            </TouchableOpacity>
+            {editedUser.pfp ? (
+                <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
+            ) : null}            
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
@@ -489,5 +530,22 @@ cancelButton: {
 modalButtonText: {
   color: 'white',
   fontWeight: 'bold',
+},
+imagePickerButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  marginVertical: 10,
+},
+imagePickerButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
+profileImagePreview: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  marginVertical: 10,
 },
 });
