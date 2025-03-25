@@ -1,7 +1,7 @@
 from django.urls import include, path
 from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_user_update
 from .views import password_reset, register_user, login_user, update_preferences, get_usuario_id, check_username_exists, password_reset_confirm
-from .views import get_user_info, register_user, login_user, update_preferences, update_user_profile, delete_user_account, change_password, GoogleLogin
+from .views import get_user_info, update_user_profile, delete_user_account, change_password, GoogleLogin
 from django.contrib.auth.views import PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.views.decorators.csrf import csrf_exempt
 

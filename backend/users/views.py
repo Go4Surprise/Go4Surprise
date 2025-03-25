@@ -5,9 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
-
 from .tokens_custom import custom_token_generator
-
 from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
 from django.contrib.auth.models import User
@@ -18,6 +16,17 @@ from .serializers import SocialLoginResponseSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 import logging
 from django.http import JsonResponse
+from django.contrib.auth import authenticate
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from decouple import config
+from django.views.decorators.csrf import csrf_exempt
+import json
+import uuid
+from django.conf import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,16 +55,6 @@ class GoogleLogin(SocialLoginView):
         logger.info(f"Google login response: {data}")
         return Response(data)
 
-from django.contrib.auth import authenticate
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from decouple import config
-from django.views.decorators.csrf import csrf_exempt
-import json
-import uuid
-from django.conf import settings
 
 @swagger_auto_schema(
     method="post",
@@ -230,9 +229,6 @@ def delete_user_account(request):
     except Exception as e:
         print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
         return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-from django.contrib.auth import authenticate
 
 
 @swagger_auto_schema(

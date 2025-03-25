@@ -83,14 +83,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
     'rest_framework_simplejwt',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'dj_rest_auth',
     'dj_rest_auth.registration',
-    'rest_framework.authtoken',
 ]
 
 REST_FRAMEWORK = {
