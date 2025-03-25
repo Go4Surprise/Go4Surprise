@@ -11,6 +11,7 @@ const PasswordResetConfirm = () => {
     const { uidb64, token } = useLocalSearchParams(); 
     const router = useRouter();
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     
@@ -23,8 +24,13 @@ const PasswordResetConfirm = () => {
             return;
         }
 
+        if (password !== confirmPassword) {
+            setError("Las contraseñas no coinciden.");
+            return;
+        }
+
         try {
-            await axios.post(`${BASE_URL}/users/reset/${uidb64}/${token}/`, { password });
+            await axios.post(`${BASE_URL}/users/reset/${uidb64}/${token}/`, { password, confirm_password: confirmPassword });
             setSuccessMessage("Contraseña restablecida correctamente. Redirigiendo...");
             setTimeout(() => router.push("/LoginScreen"), 3000);
         } catch (error) {
@@ -43,6 +49,16 @@ const PasswordResetConfirm = () => {
                 secureTextEntry 
                 value={password} 
                 onChangeText={setPassword} 
+            />
+
+            <Text style={styles.textInfo}>Confirme su nueva contraseña.</Text>
+
+            <TextInput 
+                style={styles.input} 
+                placeholder="Confirmar contraseña" 
+                secureTextEntry 
+                value={confirmPassword} 
+                onChangeText={setConfirmPassword} 
             />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}

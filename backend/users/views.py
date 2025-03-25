@@ -300,9 +300,13 @@ def password_reset_confirm(request, uidb64, token):
             # Cuando el frontend envíe una nueva contraseña, procesamos el cambio
             data = json.loads(request.body)
             new_password = data.get('password')
+            confirm_password = data.get('confirm_password')
 
-            if not new_password:
-                return JsonResponse({'error': 'New password is required'}, status=400)
+            if not new_password or not confirm_password:
+                return JsonResponse({'error': 'Both password fields are required'}, status=400)
+            
+            if new_password != confirm_password:
+                return JsonResponse({'error': 'Passwords do not match'}, status=400)
 
             # Cambiar la contraseña
             user.set_password(new_password)
