@@ -221,7 +221,7 @@ export default function UserProfileScreen() {
       {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={user.pfp ? { uri: user.pfp } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image source={user.pfp ? { uri: `${BASE_URL}${user.pfp}` } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
         </View>
       </ImageBackground>
       
