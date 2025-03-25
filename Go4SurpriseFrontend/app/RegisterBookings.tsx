@@ -25,7 +25,8 @@ interface Reserva {
   experience_date: Date;
   price: number;
   participants: number;
-  category: string;
+  categories: string[];
+  notas_adicionales: string;
 }
 
 export default function RegisterBooking() {
@@ -34,9 +35,10 @@ export default function RegisterBooking() {
     location: "",
     duration: 0,
     experience_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    price: 0,
-    participants: 0,
-    category: "",
+    price: 20,
+    participants: 1,
+    categories: [],
+    notas_adicionales: "",
   });
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -51,6 +53,11 @@ export default function RegisterBooking() {
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [activeScrollView, setActiveScrollView] = useState<'city' | 'category' | null>(null);
+
+  // Add validation state
+  const [errors, setErrors] = useState({
+    participants: false
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +78,16 @@ export default function RegisterBooking() {
       | { target: { name: string; value: any } }
   ) => {
     const { name, value } = e.target;
+    
+    // Validate participants if needed
+    if (name === "participants") {
+      const numValue = parseInt(value);
+      setErrors({
+        ...errors,
+        participants: numValue <= 0
+      });
+    }
+    
     setReserva({
       ...reserva,
       [name]: value,
@@ -101,7 +118,8 @@ export default function RegisterBooking() {
       experience_date: date,
       location: reserva.location,
       duration: reserva.duration,
-      category: reserva.category,
+      categories: reserva.categories,
+      notas_adicionales: reserva.notas_adicionales
     };
     axios
       .post(`${BASE_URL}/bookings/crear-reserva/`, data, {
@@ -201,6 +219,26 @@ export default function RegisterBooking() {
   const handleTouchEnd = () => {
     setIsDragging(false);
     setActiveScrollView(null);
+  };
+
+  const toggleCategory = (category: string) => {
+    setReserva(prev => {
+      if (prev.categories.includes(category)) {
+        return {
+          ...prev,
+          categories: prev.categories.filter(c => c !== category)
+        };
+      } 
+      
+      if (prev.categories.length >= 3) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        categories: [...prev.categories, category]
+      };
+    });
   };
 
   return (
@@ -349,8 +387,12 @@ export default function RegisterBooking() {
             </View>
 
             <Typography variant="h6">
-              Elige una Categoria:{" "}
-              {reserva.category !== "" ? reserva.category : ""}
+              Descarta categorías (Máximo 3, primer descarte gratuito, después 5€ por descarte): {reserva.categories.length > 0 ? 
+                reserva.categories.join(", ") : 
+                ""}
+              {reserva.categories.length >= 3 && 
+                <Typography variant="caption" color="warning.main"> (Máximo alcanzado)</Typography>
+              }
             </Typography>
 
             <ScrollView
@@ -373,8 +415,8 @@ export default function RegisterBooking() {
             >
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "MUSIC" })}
-                variant={reserva.category == "MUSIC" ? "outlined" : "text"}
+                onClick={() => toggleCategory("MUSIC")}
+                variant={reserva.categories.includes("MUSIC") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -393,8 +435,8 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "CULTURE" })}
-                variant={reserva.category == "CULTURE" ? "outlined" : "text"}
+                onClick={() => toggleCategory("CULTURE")}
+                variant={reserva.categories.includes("CULTURE") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -413,8 +455,8 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "SPORTS" })}
-                variant={reserva.category == "SPORTS" ? "outlined" : "text"}
+                onClick={() => toggleCategory("SPORTS")}
+                variant={reserva.categories.includes("SPORTS") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -433,12 +475,8 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() =>
-                  setReserva({ ...reserva, category: "GASTRONOMY" })
-                }
-                variant={
-                  reserva.category == "GASTRONOMY" ? "outlined" : "text"
-                }
+                onClick={() => toggleCategory("GASTRONOMY")}
+                variant={reserva.categories.includes("GASTRONOMY") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -457,12 +495,8 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() =>
-                  setReserva({ ...reserva, category: "NIGHTLIFE" })
-                }
-                variant={
-                  reserva.category == "NIGHTLIFE" ? "outlined" : "text"
-                }
+                onClick={() => toggleCategory("NIGHTLIFE")}
+                variant={reserva.categories.includes("NIGHTLIFE") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -481,8 +515,8 @@ export default function RegisterBooking() {
               </Button>
               <Button
                 style={{ width: 200, height: 300, margin: 5 }}
-                onClick={() => setReserva({ ...reserva, category: "ADVENTURE" })}
-                variant={reserva.category == "ADVENTURE" ? "outlined" : "text"}
+                onClick={() => toggleCategory("ADVENTURE")}
+                variant={reserva.categories.includes("ADVENTURE") ? "outlined" : "text"}
               >
                 <div
                   style={{ width: "100%", height: "80%", position: "relative" }}
@@ -523,13 +557,20 @@ export default function RegisterBooking() {
                 name="price"
                 value={reserva.price}
                 onChange={handleSelectChange}
-                required // Usar el manejador específico para Select
+                required
+                error={reserva.price <= 0}
               >
                 <MenuItem value={20}>20 €</MenuItem>
                 <MenuItem value={40}>40 €</MenuItem>
                 <MenuItem value={60}>60 €</MenuItem>
               </Select>
+              {reserva.price <= 0 && (
+                <Typography color="error" variant="caption" sx={{ marginLeft: 2 }}>
+                  El precio debe ser mayor que 0
+                </Typography>
+              )}
             </FormControl>
+            
             <TextField
               label="Participantes"
               name="participants"
@@ -538,7 +579,13 @@ export default function RegisterBooking() {
               value={reserva.participants}
               onChange={handleTextFieldChange}
               required
+              inputProps={{
+                min: 1
+              }}
+              error={errors.participants || reserva.participants <= 0}
+              helperText={errors.participants || reserva.participants <= 0 ? "El número de participantes debe ser mayor que 0" : ""}
             />
+            
             <TextField
               label="Fecha de la Experiencia"
               name="experience_date"
@@ -561,19 +608,30 @@ export default function RegisterBooking() {
                 });
               }}
             />
+            
+            <TextField
+              label="Notas Adicionales"
+              name="notas_adicionales"
+              multiline
+              rows={4}
+              fullWidth
+              placeholder="Añade cualquier información adicional que consideres relevante para tu experiencia (alergias, masacotas, ...)"
+              value={reserva.notas_adicionales}
+              onChange={handleTextFieldChange}
+            />
+            
             <Button
               variant="contained"
               type="submit"
               fullWidth
               disabled={
-                reserva.category == "" ||
-                reserva.location == "" ||
-                reserva.duration == null ||
-                reserva.price == 0 ||
-                reserva.participants == 0
+                reserva.location === "" ||
+                reserva.duration === 0 ||
+                reserva.price <= 0 ||
+                reserva.participants <= 0
               }
             >
-              Register Booking
+              Realizar Reserva
             </Button>
           </Stack>
         </form>

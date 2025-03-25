@@ -21,7 +21,7 @@ class CrearReservaSerializer(serializers.ModelSerializer):
         required=False
     )
 
-    notas_adicionales = serializers.CharField(required=False)
+    notas_adicionales = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Booking
@@ -40,6 +40,16 @@ class CrearReservaSerializer(serializers.ModelSerializer):
         except Usuario.DoesNotExist:
             raise serializers.ValidationError("No se encontró ningún usuario con este ID")
         
+    def validate_price(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El precio debe ser positivo")
+        return value
+    
+    def validate_participants(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El número de participantes debe ser positivo")
+        return value
+    
     def validate_categories(self, value):
         if len(value) > 3:
             raise serializers.ValidationError("No puedes seleccionar más de 3 categorías.")
