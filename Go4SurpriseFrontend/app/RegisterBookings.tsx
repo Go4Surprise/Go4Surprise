@@ -3,13 +3,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField, Button, MenuItem, FormControl, InputLabel,
   Select, Box, Stack, SelectChangeEvent, Typography,
-  Alert
+  Alert, Slider
 } from "@mui/material";
 import axios from "axios";
 import { ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
+
+type ScrollState = {
+  isDragging: boolean;
+  startX: number;
+  scrollLeft: number;
+  activeScrollView: 'city' | 'category' | null;
+};
 import { cities, categories } from "../data/bookingData";
 
 // Card Components
@@ -134,7 +141,7 @@ const useScrollHandlers = (scrollViewRef: React.RefObject<ScrollView>, scrollSta
   };
 
   const resetScroll = () => {
-    setScrollState(prev => ({ ...prev, isDragging: false, activeScrollView: null }));
+    setScrollState((prev: ScrollState) => ({ ...prev, isDragging: false, activeScrollView: null }));
   };
 
   return {
@@ -165,39 +172,36 @@ const BookingFormFields = ({
 }) => (
   <>
     <FormControl fullWidth>
-      <InputLabel>Duración</InputLabel>
+      <InputLabel>Preferencia de Horario</InputLabel>
       <Select
-        label="Duration"
-        name="duration"
-        value={reserva.duration}
+        label="Preferencia de Horario"
+        name="horario_preferencia"
+        value={reserva.horario_preferencia}
         onChange={handleSelectChange}
         required
       >
-        {[1, 2, 3, 4].map(h => (
-          <MenuItem key={h} value={h}>{h} hora{h > 1 ? 's' : ''}</MenuItem>
-        ))}
+        <MenuItem value="MORNING">Mañana</MenuItem>
+        <MenuItem value="AFTERNOON">Tarde</MenuItem>
+        <MenuItem value="NIGHT">Noche</MenuItem>
       </Select>
     </FormControl>
     
     <FormControl fullWidth>
-      <InputLabel>Precio</InputLabel>
-      <Select
-        label="precio"
+      <Typography>Precio</Typography>
+      <Slider
         name="price"
         value={reserva.price}
-        onChange={handleSelectChange}
-        required
-        error={reserva.price <= 0}
-      >
-        {[20, 40, 60].map(price => (
-          <MenuItem key={price} value={price}>{price} €</MenuItem>
-        ))}
-      </Select>
-      {reserva.price <= 0 && (
-        <Typography color="error" variant="caption" sx={{ marginLeft: 2 }}>
-          El precio debe ser mayor que 0
-        </Typography>
-      )}
+        onChange={(e, value) => handleTextFieldChange({ target: { name: "price", value } })}
+        step={20}
+        marks={[
+          { value: 20, label: '20 €' },
+          { value: 40, label: '40 €' },
+          { value: 60, label: '60 €' }
+        ]}
+        min={20}
+        max={60}
+        valueLabelDisplay="auto"
+      />
     </FormControl>
     
     <TextField
@@ -260,6 +264,7 @@ export default function RegisterBooking() {
     participants: 1,
     categories: [],
     notas_adicionales: "",
+    horario_preferencia: "MORNING",
   });
   const [token, setToken] = useState<string | null>(null);
   
@@ -342,10 +347,14 @@ export default function RegisterBooking() {
         user: reserva.user,
         experience_date: date,
         location: reserva.location,
-        duration: reserva.duration,
+        time_preference: reserva.horario_preferencia, // Ensure this matches the backend field
         categories: reserva.categories,
-        notas_adicionales: reserva.notas_adicionales
+        notas_adicionales: reserva.notas_adicionales,
       };
+
+      if (!token) {
+        throw new Error("No se encontró un token de autenticación.");
+      }
       
       await axios.post(
         `${BASE_URL}/bookings/crear-reserva/`, 
@@ -355,9 +364,21 @@ export default function RegisterBooking() {
       
       router.push("/HomeScreen");
     } catch (error: any) {
-            console.error(
-        "Error:", error.response ? error.response.data : error.message
-      );
+      console.error("Error:", error.response ? error.response.data : error.message);
+
+      // Handle backend error response
+      if (error.response?.data) {
+        const errorDetails = error.response.data;
+        if (typeof errorDetails === "object" && errorDetails.detail) {
+          setBackendErrors(errorDetails.detail); // Extract the "detail" field
+        } else if (typeof errorDetails === "string") {
+          setBackendErrors(errorDetails); // Handle string error messages
+        } else {
+          setBackendErrors("Ocurrió un error desconocido.");
+        }
+      } else {
+        setBackendErrors("Error de conexión con el servidor.");
+      }
     }
   };
 
@@ -369,9 +390,10 @@ export default function RegisterBooking() {
   const isFormValid = () => {
     return (
       reserva.location !== "" &&
-      reserva.duration !== 0 &&
+      reserva.horario_preferencia !== "" &&
       reserva.price > 0 &&
-      reserva.participants > 0
+      reserva.participants > 0 &&
+      reserva.experience_date !== null
     );
   };
 
@@ -527,7 +549,7 @@ export default function RegisterBooking() {
                   color="error"
                   style={{ whiteSpace: 'pre-line' }}
                 >
-                  <strong>Error:</strong> {backendErrors}
+                  <strong>Error:</strong> {typeof backendErrors === "string" ? backendErrors : JSON.stringify(backendErrors, null, 2)}
                 </Typography>
               </Box>
             )}

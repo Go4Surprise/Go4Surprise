@@ -8,7 +8,6 @@ class ExperienceSerializer(serializers.ModelSerializer):
     link = serializers.URLField(required=False)
     price = serializers.DecimalField(max_digits=6, decimal_places=2, required=True)
     location = serializers.CharField(required=True)
-    duration = serializers.IntegerField(required=True)
     notas_adicionales = serializers.CharField(required=False)
     categories = serializers.ListField(
         child=serializers.ChoiceField(choices=ExperienceCategory.choices),
@@ -19,11 +18,6 @@ class ExperienceSerializer(serializers.ModelSerializer):
         print(f"✅ Validando price: {value}")
         if value < 0:
             raise serializers.ValidationError("El precio no puede ser negativo.")
-        return value
-
-    def validate_duration(self, value):
-        if not isinstance(value, int) or value <= 0:
-            raise serializers.ValidationError("La duración debe ser un número entero mayor que 0.")
         return value
     
     def validate_categories(self, value):
