@@ -11,6 +11,7 @@ export interface Reservation {
   participants: number;
   categories: string[];
   notas_adicionales: string;
+  horario_preferencia: "mañana" | "tarde" | "noche";
 }
 
 // Card props interfaces
