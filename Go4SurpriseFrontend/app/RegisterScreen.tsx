@@ -72,7 +72,6 @@ export default function RegisterScreen() {
         if (phone && !phoneRegex.test(phone)) {
             newErrors.phone = "El teléfono solo puede contener números.";
         }
-        if (phone && !/^\d{9}$/.test(phone)) {
 
 
         if (confirmPassword && confirmPassword !== password) {
@@ -239,8 +238,7 @@ export default function RegisterScreen() {
                 </Text>
             </View>
         </View>
-    );
-}
+    );}
 
 const styles = StyleSheet.create({
     container: {
@@ -337,4 +335,3 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
-}
