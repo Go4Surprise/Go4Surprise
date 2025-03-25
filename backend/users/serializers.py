@@ -21,41 +21,27 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         username = validated_data.pop('username')
         password = validated_data.pop('password')
-        email = validated_data.get('email')
-
+        
         existing_user = User.objects.filter(username=username).first()
-
         if existing_user:
-            try:
-                # Si ya tiene perfil, error
-                Usuario.objects.get(user=existing_user)
-                raise serializers.ValidationError({
-                    "username": "Ya existe un perfil para este usuario. Usa otro nombre."
-                })
-            except Usuario.DoesNotExist:
-                # Eliminar user huérfano
-                existing_user.delete()
-
-        user = User.objects.create_user(username=username, password=password, email=email)
-
+            raise serializers.ValidationError({"username": "Ya existe un usuario con este nombre."})
+        
+        user = User.objects.create_user(
+            username=username, 
+            password=password, 
+            email=validated_data.get('email', '')
+        )
+        
         try:
-            usuario, created = Usuario.objects.get_or_create(user=user, defaults=validated_data)
-            if created:
-                print(f"[Registro] Usuario ya existía tras creación de User. Eliminando todo.")
-                user.delete()
-                raise serializers.ValidationError({
-                    "username": "No se pudo crear tu perfil. Intenta con otro nombre."
-                })
-            return usuario
-
-        except Exception as e:
-            print(f"[Registro] ERROR GRAVE: {e}")
-            if user.id:
-                user.delete()
-            raise serializers.ValidationError({
-                "non_field_errors": ["Error inesperado al registrar. Intenta más tarde."]
-            })
-
+            usuario = Usuario.objects.get(user=user)
+            
+            for key, value in validated_data.items():
+                setattr(usuario, key, value)
+            usuario.save()
+        except Usuario.DoesNotExist:
+            usuario = Usuario.objects.create(user=user, **validated_data)
+        
+        return usuario
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
