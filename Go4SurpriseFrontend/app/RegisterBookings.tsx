@@ -1,18 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField, Button, MenuItem, FormControl, InputLabel,
-  Select, Box, Stack, SelectChangeEvent, Typography
+  Select, Box, Stack, SelectChangeEvent, Typography,
+  Alert
 } from "@mui/material";
 import axios from "axios";
 import { ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
-
-// Types
 import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
-
-// Data
 import { cities, categories } from "../data/bookingData";
 
 // Card Components
@@ -34,14 +31,28 @@ const CityCard = ({ city, isSelected, onSelect }: CardProps) => (
 
 const CategoryCard = ({ category, isSelected, onSelect }: CardProps) => (
   <Button
-    style={{ width: 200, height: 300, margin: 5 }}
+  style={{
+    width: 200,
+    height: 300,
+    margin: 5,
+    opacity: isSelected ? 0.5 : 1,
+    backgroundColor: isSelected ? "#e0e0e0" : "transparent", 
+    transition: "opacity 0.3s, background-color 0.3s", 
+  }}
     onClick={onSelect}
     variant={isSelected ? "outlined" : "text"}
   >
     <div style={{ width: "100%", height: "80%", position: "relative" }}>
       <img
         src={category.image}
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+        alt={category.name}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: 8,
+          filter: isSelected ? "grayscale(100%)" : "none", 
+        }}
       />
       <Text>{category.name}</Text>
     </div>
@@ -144,11 +155,13 @@ const useScrollHandlers = (scrollViewRef: React.RefObject<ScrollView>, scrollSta
 const BookingFormFields = ({ 
   reserva, 
   handleTextFieldChange, 
-  handleSelectChange 
+  handleSelectChange,
+  errors
 }: { 
   reserva: Reservation, 
   handleTextFieldChange: any, 
-  handleSelectChange: any 
+  handleSelectChange: any,
+  errors: any
 }) => (
   <>
     <FormControl fullWidth>
@@ -174,11 +187,17 @@ const BookingFormFields = ({
         value={reserva.price}
         onChange={handleSelectChange}
         required
+        error={reserva.price <= 0}
       >
         {[20, 40, 60].map(price => (
           <MenuItem key={price} value={price}>{price} €</MenuItem>
         ))}
       </Select>
+      {reserva.price <= 0 && (
+        <Typography color="error" variant="caption" sx={{ marginLeft: 2 }}>
+          El precio debe ser mayor que 0
+        </Typography>
+      )}
     </FormControl>
     
     <TextField
@@ -189,6 +208,11 @@ const BookingFormFields = ({
       value={reserva.participants}
       onChange={handleTextFieldChange}
       required
+      inputProps={{
+        min: 1
+      }}
+      error={errors.participants || reserva.participants <= 0}
+      helperText={errors.participants || reserva.participants <= 0 ? "El número de participantes debe ser mayor que 0" : ""}
     />
     
     <TextField
@@ -210,6 +234,17 @@ const BookingFormFields = ({
         });
       }}
     />
+
+    <TextField
+      label="Notas Adicionales"
+      name="notas_adicionales"
+      multiline
+      rows={4}
+      fullWidth
+      placeholder="Añade cualquier información adicional que consideres relevante para tu experiencia (alergias, mascotas, ...)"
+      value={reserva.notas_adicionales}
+      onChange={handleTextFieldChange}
+    />
   </>
 );
 
@@ -221,11 +256,17 @@ export default function RegisterBooking() {
     location: "",
     duration: 0,
     experience_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    price: 0,
-    participants: 0,
-    category: "",
+    price: 20,
+    participants: 1,
+    categories: [],
+    notas_adicionales: "",
   });
   const [token, setToken] = useState<string | null>(null);
+  
+  const [errors, setErrors] = useState({
+    participants: false
+  });
+  const [backendErrors, setBackendErrors] = useState<string | null>(null);
   
   // Refs & Scroll state
   const cityScrollViewRef = useRef<ScrollView>(null);
@@ -268,6 +309,16 @@ export default function RegisterBooking() {
     e: { target: { name: string; value: unknown } }
   ) => {
     const { name, value } = e.target;
+    
+    // Add validation for participants
+    if (name === "participants") {
+      const numValue = parseInt(value as string);
+      setErrors({
+        ...errors,
+        participants: numValue <= 0
+      });
+    }
+    
     setReserva(prev => ({ ...prev, [name]: value }));
   };
 
@@ -279,6 +330,10 @@ export default function RegisterBooking() {
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear any previous errors
+    setBackendErrors(null);
+    
     try {
       const date = formatDateForAPI(reserva.experience_date);
       const data = {
@@ -288,7 +343,8 @@ export default function RegisterBooking() {
         experience_date: date,
         location: reserva.location,
         duration: reserva.duration,
-        category: reserva.category,
+        categories: reserva.categories,
+        notas_adicionales: reserva.notas_adicionales
       };
       
       await axios.post(
@@ -299,7 +355,7 @@ export default function RegisterBooking() {
       
       router.push("/HomeScreen");
     } catch (error: any) {
-      console.error(
+            console.error(
         "Error:", error.response ? error.response.data : error.message
       );
     }
@@ -312,13 +368,42 @@ export default function RegisterBooking() {
 
   const isFormValid = () => {
     return (
-      reserva.category !== "" &&
       reserva.location !== "" &&
       reserva.duration !== 0 &&
-      reserva.price !== 0 &&
-      reserva.participants !== 0
+      reserva.price > 0 &&
+      reserva.participants > 0
     );
   };
+
+  // Modified toggleCategory function to handle multiple selections
+  const toggleCategory = (categoryId: string) => {
+    setReserva(prev => {
+      if (prev.categories.includes(categoryId)) {
+        return {
+          ...prev,
+          categories: prev.categories.filter(c => c !== categoryId)
+        };
+      } 
+      
+      if (prev.categories.length >= 3) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        categories: [...prev.categories, categoryId]
+      };
+    });
+  };
+
+  const totalPrice = useMemo(() => {
+    const basePrice = reserva.price * reserva.participants;
+    
+    // Sumar descartes (primera gratis, después 5€ por descarte)
+    const categoryFees = Math.max(0, reserva.categories.length - 1) * 5;
+    
+    return basePrice + categoryFees;
+  }, [reserva.price, reserva.participants, reserva.categories]);
 
   // Get scroll handlers using custom hook
   const cityScrollProps = useScrollHandlers(cityScrollViewRef, scrollState, setScrollState, 'city');
@@ -334,7 +419,15 @@ export default function RegisterBooking() {
         <form onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <Typography variant="h6">
-              Elige tu ciudad: {reserva.location !== "" ? reserva.location : ""}
+            <Typography 
+            variant="h5" 
+            fontWeight="bold" 
+            gutterBottom 
+            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
+          >
+            Elige Ciudad
+          </Typography>
+              {reserva.location !== "" ? reserva.location : ""}
             </Typography>
             
             <View style={{ height: 320 }}>
@@ -351,7 +444,27 @@ export default function RegisterBooking() {
             </View>
 
             <Typography variant="h6">
-              Elige una Categoria: {reserva.category !== "" ? reserva.category : ""}
+            <Typography 
+            variant="h5" 
+            fontWeight="bold" 
+            gutterBottom 
+            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
+          >
+            No te gusta algo? ¡Descártalo!
+          </Typography>
+              <Typography 
+              variant="body2" 
+              color="textSecondary" 
+              sx={{ marginBottom: 1 }}
+            >
+              (El primero es <strong>GRATIS</strong>, cada descarte extra cuesta <strong>5€</strong>, máximo: <strong>3 descartes permitidos</strong>)
+            </Typography> 
+              {reserva.categories.length > 0 ? 
+                reserva.categories.join(", ") : 
+                ""}
+              {reserva.categories.length >= 3 && 
+                <Typography variant="caption" color="warning.main"> (Máximo alcanzado)</Typography>
+              }
             </Typography>
 
             <HorizontalScrollable scrollViewProps={categoryScrollProps}>
@@ -359,8 +472,8 @@ export default function RegisterBooking() {
                 <CategoryCard 
                   key={category.id}
                   category={category}
-                  isSelected={reserva.category === category.id}
-                  onSelect={() => { setReserva(prev => ({ ...prev, category: category.id })); }}
+                  isSelected={reserva.categories.includes(category.id)}
+                  onSelect={() => toggleCategory(category.id)}
                 />
               ))}
             </HorizontalScrollable>
@@ -369,7 +482,55 @@ export default function RegisterBooking() {
               reserva={reserva}
               handleTextFieldChange={handleTextFieldChange}
               handleSelectChange={handleSelectChange}
+              errors={errors}
             />
+            
+            <Box 
+              sx={{ 
+                padding: 2, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 1,
+                backgroundColor: '#f5f5f5',
+                marginTop: 2,
+                marginBottom: 2 
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Desglose del precio:
+              </Typography>
+              <Typography variant="body2">
+                Precio base: {reserva.price}€ × {reserva.participants} {reserva.participants > 1 ? 'personas' : 'persona'} = {reserva.price * reserva.participants}€
+              </Typography>
+              {reserva.categories.length > 0 && (
+                <Typography variant="body2">
+                  Categorías descartadas: {reserva.categories.length} {reserva.categories.length === 1 ? '(gratis)' : `(primera gratis, +${(reserva.categories.length - 1) * 5}€)`}
+                </Typography>
+              )}
+              <Typography variant="h6" sx={{ marginTop: 1, fontWeight: 'bold', color: '#1976d2' }}>
+                Precio Total: {totalPrice}€
+              </Typography>
+            </Box>
+            
+            {/* Display backend errors */}
+            {backendErrors && (
+              <Box 
+                sx={{ 
+                  padding: 2, 
+                  border: '1px solid #f44336', 
+                  borderRadius: 1,
+                  backgroundColor: '#ffebee',
+                  marginBottom: 2 
+                }}
+              >
+                <Typography 
+                  variant="body2" 
+                  color="error"
+                  style={{ whiteSpace: 'pre-line' }}
+                >
+                  <strong>Error:</strong> {backendErrors}
+                </Typography>
+              </Box>
+            )}
             
             <Button
               variant="contained"
@@ -377,7 +538,7 @@ export default function RegisterBooking() {
               fullWidth
               disabled={!isFormValid()}
             >
-              Registrar Reserva
+              Realizar Reserva
             </Button>
           </Stack>
         </form>

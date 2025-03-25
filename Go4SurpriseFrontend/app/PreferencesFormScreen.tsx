@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Alert, Animated } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -14,21 +14,16 @@ interface Question {
 
 // Define specific keys for the categories to avoid dynamic property access
 interface CategorySelections {
-  [key: string]: string[];
-  "Música"?: string[];
-  "Cultura y Arte"?: string[];
-  "Deporte y Motor"?: string[];
-  "Gastronomía"?: string[];
-  "Ocio Nocturno"?: string[];
-  "Aventura"?: string[];
+  [key: string]: string[]; 
 }
 
+
 const questions: Question[] = [
-  { id: 1, question: 'Si tu vida fuera una película, ¿qué género sería?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎸 Un concierto íntimo', '🎻 Un evento clásico', '🚫 Nada en especial'] },
-  { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro', '🎉 Un evento local', '🚫 Nada en especial'] },
-  { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
-  { id: 4, question: 'Si pudieras comer algo ahora mismo, ¿qué elegirías?', category: 'Gastronomía', options: ['🥞 Un brunch con amigos', '🍷 Una cata de vinos', '👨‍🍳 Cocinar algo creativo', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
-  { id: 5, question: '¿Cómo disfrutarías más tu tiempo libre?', category: 'Ocio Nocturno', options: ['💃 Bailando sin parar', '🕵️‍♂️ Ganando en un escape room', '🕹️ Jugando en un arcade', '🕶️ Viviendo una experiencia de realidad virtual', '🚫 Nada en especial'] },
+  { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
+  { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro o espectáculos en vivo', '🧑‍🎨 Talleres creativos', '🚫 Nada en especial'] },
+  { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo o competición', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
+  { id: 4, question: '¿Qué tipo de experiencias gastronómicas disfrutas más?', category: 'Gastronomía', options: ['🎤 Un brunch con música en vivo', '🍷 Una cata de vinos', '👨‍🍳 Talleres de cocina', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
+  { id: 5, question: '¿Qué actividades elegirías para pasarlo bien con amigos?', category: 'Ocio Nocturno', options: ['🔫Batallas de láser tag o paintball', '🕵️‍♂️ Escape Rooms o juegos en equipo', '🕹️ Arcades o realidad virtual', '🎉 Fiestas temáticas o discotecas', '🚫 Nada en especial'] },
   { id: 6, question: '¿Cómo describirías tu espíritu aventurero?', category: 'Aventura', options: ['⛰️ Adrenalina pura', '🪂 Amo las alturas', '🌲 Explorar la naturaleza', '💪 Reto físico extremo', '🚫 Nada en especial'] },
 ];
 
@@ -104,7 +99,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     currentSelections: string[], 
     option: string
   ): string[] => {
-    if (option === '🚫 Nada en especial' || option === '🚫 Prefiero no responder') {
+    if (option === '🚫 Nada en especial') {
       return [option];
     }
     
@@ -116,7 +111,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     // Si no está seleccionado, añadirlo y quitar opciones neutrales
     return [
       ...currentSelections.filter(item => 
-        item !== '🚫 Nada en especial' && item !== '🚫 Prefiero no responder'
+        item !== '🚫 Nada en especial'
       ), 
       option
     ];
@@ -219,6 +214,13 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
 
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setError('');
+    }
+  };
+  
   const submitPreferences = async () => {
     if (!token) return;
   
@@ -271,22 +273,80 @@ export default function PreferencesFormScreen(): React.ReactElement {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     return currentQuestion.question;
   };
+
+  const getImageForCategory = (category: string) => {
+    switch (category) {
+      case 'Música':
+        return require('../assets/images/musica.png');
+      case 'Cultura y Arte':
+        return require('../assets/images/cultura.png');
+      case 'Deporte y Motor':
+        return require('../assets/images/deporte.png');
+      case 'Gastronomía':
+        return require('../assets/images/gastronomia.png');
+      case 'Ocio Nocturno':
+        return require('../assets/images/ocionocturno.png');
+      case 'Aventura':
+        return require('../assets/images/aventura.png');
+      default:
+        return null;
+    }
+  };
+  
+  const backgroundScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(backgroundScale, {
+          toValue: 1.05,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backgroundScale, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);  
+  
   
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
       {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
         <>
+          <Animated.Image
+            source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
+            style={[
+              styles.backgroundImage,
+              { transform: [{ scale: backgroundScale }] }
+            ]}
+          />
+
+
           <Text style={styles.question}>{getQuestionText()}</Text>
+          <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
           {renderOptions()}
         </>
       ) : null}
 
-      <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
-        <Text style={styles.buttonText}>
-          {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonRow}>
+        {currentQuestionIndex > 0 && (
+          <TouchableOpacity style={styles.backButton} onPress={prevQuestion}>
+            <Text style={styles.buttonText}>Atrás</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
+          <Text style={styles.buttonText}>
+            {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
     </Animated.View>
   );
 }
@@ -297,7 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFF5FC',
   },
   question: {
     fontSize: 22,
@@ -306,16 +366,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   optionButton: {
-    backgroundColor: '#007BFF',
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: '#4098F5',
+    padding: 14,
+    borderRadius: 12,
     marginVertical: 8,
-    width: '80%',
+    width: '85%',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#B3D9FF',
   },
   selectedOption: {
-    backgroundColor: '#004AAD',
-  },
+    backgroundColor: '#E91E63',
+    borderColor: '#FFEAF4',
+  },  
   optionText: {
     color: '#fff',
     fontSize: 16,
@@ -338,4 +401,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  helperText: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 10,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+ },
+ backgroundImage: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+  opacity: 0.09,
+  zIndex: -1,
+ },
+ backButton: {
+  backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 20,
+},
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  gap: 12,
+  marginTop: 20,
+},
+
+
 });
