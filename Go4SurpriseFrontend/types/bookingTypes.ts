@@ -9,7 +9,8 @@ export interface Reservation {
   experience_date: Date;
   price: number;
   participants: number;
-  category: string;
+  categories: string[];
+  notas_adicionales: string;
 }
 
 // Card props interfaces
