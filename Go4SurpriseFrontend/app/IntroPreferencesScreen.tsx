@@ -77,7 +77,9 @@ export default function IntroPreferencesScreen() {
     animateConfetti(confetti1, 0);
     animateConfetti(confetti2, 6666);
 
-    return () => subscription.remove();
+    return () => {
+      subscription.remove();
+    };    
   }, [screenHeight]);
 
   useFocusEffect(
