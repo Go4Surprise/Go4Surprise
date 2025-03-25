@@ -50,7 +50,7 @@ export default function LoginScreen() {
         if (!profile_complete) {
           router.push('/CompleteProfileScreen');
         } else {
-          router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
+          router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
         }
       })      
       .catch(error => {
@@ -75,7 +75,7 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('refreshToken', refresh);
       await AsyncStorage.setItem('id', id);
       Alert.alert('Éxito', 'Inicio de sesión correcto');
-      router.push(preferences_set ? '/HomeScreen' : '/PreferencesFormScreen');
+      router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
     } catch (error) {
       setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
     }
