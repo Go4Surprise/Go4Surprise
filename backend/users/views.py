@@ -57,9 +57,29 @@ class GoogleLogin(SocialLoginView):
 def register_user(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Usuario correctamente creado"}, status=status.HTTP_201_CREATED)
+        usuario = serializer.save()
+
+        # Generar token JWT para el nuevo usuario
+        user = usuario.user
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "message": "Usuario correctamente creado",
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user_id": user.id,
+            "id": usuario.id,
+            "username": user.username,
+            "name": usuario.name,
+            "surname": usuario.surname,
+            "email": usuario.email,
+            "phone": usuario.phone,
+            "birthdate": usuario.birthdate,
+            "pfp": usuario.pfp.url if usuario.pfp else None,
+        }, status=status.HTTP_201_CREATED)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @swagger_auto_schema(
