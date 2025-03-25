@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Profiler } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, 
   StyleSheet, Image, Alert, useWindowDimensions 
@@ -45,7 +45,7 @@ export default function LoginScreen() {
       )
       .then(response => {
         console.log("Response data: ", response.data)
-        const { access, refresh, user_id, id, preferences_set, is_superuser, is_staff } = response.data;
+        const { access, refresh, user_id, id, preferences_set, is_superuser, is_staff, profile_complete } = response.data;
         AsyncStorage.setItem('accessToken', access);
         AsyncStorage.setItem('refreshToken', refresh);
         AsyncStorage.setItem('userId', user_id.toString());
@@ -53,7 +53,7 @@ export default function LoginScreen() {
         AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
         console.log("User admin status set to:", (is_superuser && is_staff).toString());
         Alert.alert('Éxito', 'Inicio de sesión con Google correcto');
-        if (!preferences_set) {
+        if (!profile_complete) {
           router.push('/CompleteProfileScreen');
         } else {
           router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
@@ -82,13 +82,8 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('id', id);
       await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
       Alert.alert('Éxito', 'Inicio de sesión correcto');
-      if (!preferences_set) {
-        router.push('/CompleteProfileScreen');
-      } else {
-        router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
-      }
+      router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
     } catch (error) {
-      console.log(error)
       setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
     }
   };
