@@ -48,22 +48,41 @@ export default function RegisterScreen() {
                 Object.assign(newErrors, { [field]: message });
             }
         });
-    
+
+        const nameRegex = /^[A-Za-z]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^[0-9]+$/;
+
+        if (name && !nameRegex.test(name)) {
+            newErrors.name = "El nombre no puede contener números ni caracteres especiales.";
+        }
+        if (surname && !nameRegex.test(surname)) {
+            newErrors.surname = "El apellido no puede contener números ni caracteres especiales.";
+        }
         if (password && password.length < 6) {
             newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         }
+
+        if (email && !emailRegex.test(email)) {
+            newErrors.email = "El correo electrónico no es válido.";
+        }        
+        if (email && !/\S+@\S+\.\S+/.test(email)) {
+            newErrors.email = "El correo electrónico no es válido";
+        }
+        if (phone && !phoneRegex.test(phone)) {
+            newErrors.phone = "El teléfono solo puede contener números.";
+        }
+        if (phone && !/^\d{9}$/.test(phone)) {
+
 
         if (confirmPassword && confirmPassword !== password) {
             newErrors.confirmPassword = "Las contraseñas no coinciden";
         }
 
-        if (email && !/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = "El correo electrónico no es válido";
-        }
-
         if (phone && phone.length > 0 && !/^\d{9}$/.test(phone)) {
+
             newErrors.phone = "El teléfono debe tener 9 dígitos";
-        }
+        } 
     
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
