@@ -1,0 +1,18 @@
+{
+    "appId": "com.go4surprise.go4app",
+    "appName": "Go4Surprise",
+    "webDir": "dist",
+    "bundledWebRuntime": false,
+    "server": {
+      "androidScheme": "https",
+      "allowNavigation": ["https://go4-backend-dot-ispp-2425-g10.ew.r.appspot.com"]
+    },
+    "plugins": {
+      "SplashScreen": {
+        "launchShowDuration": 2000,
+        "backgroundColor": "#F0F2F5",
+        "androidSplashResourceName": "splash",
+        "androidScaleType": "CENTER_CROP"
+      }
+    }
+  }
