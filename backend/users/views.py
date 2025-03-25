@@ -261,7 +261,11 @@ def password_reset(request):
     if not email:
         return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-    usuario = get_object_or_404(Usuario, email=email)
+    usuario = Usuario.objects.filter(email=email).first()
+
+    if not usuario:
+        return Response({'error': 'No user found with that email'}, status=status.HTTP_404_NOT_FOUND)
+    
     user = usuario.user
     
     # Generar enlace con el UUID de Usuario y token
