@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Profiler } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, 
   StyleSheet, Image, Alert, useWindowDimensions 
@@ -33,7 +33,11 @@ export default function LoginScreen() {
   useEffect(() => {
     if (response?.type === 'success') {
       const { authentication } = response;
-      const token = authentication.accessToken;
+      const token = authentication?.accessToken;
+      if (!token) {
+        console.error("Authentication token is null or undefined.");
+        return;
+      }
       axios.post(
         `${BASE_URL}/users/social/google/`,
         { access_token: token },
@@ -41,11 +45,13 @@ export default function LoginScreen() {
       )
       .then(response => {
         console.log("Response data: ", response.data)
-        const { access, refresh, user_id, id, preferences_set, profile_complete } = response.data;
+        const { access, refresh, user_id, id, preferences_set, is_superuser, is_staff, profile_complete } = response.data;
         AsyncStorage.setItem('accessToken', access);
         AsyncStorage.setItem('refreshToken', refresh);
         AsyncStorage.setItem('userId', user_id.toString());
         AsyncStorage.setItem('id', id);
+        AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
+        console.log("User admin status set to:", (is_superuser && is_staff).toString());
         Alert.alert('Éxito', 'Inicio de sesión con Google correcto');
         if (!profile_complete) {
           router.push('/CompleteProfileScreen');
@@ -69,11 +75,12 @@ export default function LoginScreen() {
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
-      const { access, user_id, refresh, id, preferences_set } = response.data;
+      const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff } = response.data;
       await AsyncStorage.setItem('accessToken', access);
       await AsyncStorage.setItem('userId', user_id.toString());
       await AsyncStorage.setItem('refreshToken', refresh);
       await AsyncStorage.setItem('id', id);
+      await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
       Alert.alert('Éxito', 'Inicio de sesión correcto');
       router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
     } catch (error) {
