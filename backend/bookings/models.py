@@ -6,6 +6,7 @@ from users.models import Usuario
 from experiences.models import Experience
 from django.core.validators import MinValueValidator
 
+
 # Create your models here.
 class Booking(models.Model):
     
@@ -38,7 +39,4 @@ class Booking(models.Model):
 
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario')
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='reservas')
-
-    
-    
 
