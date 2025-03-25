@@ -51,36 +51,33 @@ export default function UserProfileScreen() {
   // Fetch user data from API
   const fetchUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        router.replace('/LoginScreen');
-        return;
-      }
-
+      const accessToken = await AsyncStorage.getItem('accessToken');
       const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
-
-      setUser(prevState => ({
-        ...prevState,
-        id: response.data.id || '',
-        name: response.data.name,
-        email: response.data.email,
-        username: response.data.username,
-        surname: response.data.surname,
-        phone: response.data.phone
-      }));
+  
+      const data = response.data;
+  
+      setUser({
+        id: data.id || '',
+        name: data.name || '',
+        surname: data.surname || '',
+        username: data.username || '',
+        email: data.email || '',
+        phone: data.phone || '',
+      });
     } catch (error) {
-      console.error('Error obtaining user data', error);
-      Alert.alert('Error', 'Could not get user information.');
-    } finally {
-      setLoading(false);
+      console.error("Error al cargar perfil:", error);
     }
   };
+  
 
   useEffect(() => {
-    void fetchUserData();
+    fetchUserData();
   }, []);
+  
 
   // Open edit profile modal with current user data
   const handleEditProfile = () => {
@@ -256,40 +253,27 @@ export default function UserProfileScreen() {
   
   // Handle account deletion
   const handleDeleteAccount = async () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const token = await AsyncStorage.getItem('accessToken');
-              if (!token) {
-                Alert.alert("Error", "No active session found.");
-                return;
-              }
-      
-              const response = await axios.delete(`${BASE_URL}/users/delete/`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-      
-              if (response.status === 204 || response.status === 200) {
-                await AsyncStorage.clear();
-                router.replace('/LoginScreen');
-                Alert.alert("Success", "Your account has been deleted.");
-              }
-            } catch (error) {
-              console.error("Error deleting account:", error);
-              Alert.alert("Error", "Could not delete account. Please try again later.");
-            }
-          }
-        }
-      ]
-    );
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+  
+      const response = await axios.delete(`${BASE_URL}/users/delete/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+  
+      if (response.status === 204) {
+        await AsyncStorage.clear();
+        router.replace('/LoginScreen');
+      } else {
+        Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
+      }
+    } catch (error) {
+      console.error("Error al eliminar cuenta:", error);
+      Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
+    }
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -330,10 +314,7 @@ export default function UserProfileScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={[styles.optionButton, styles.deleteButton]} 
-          onPress={() => void handleDeleteAccount()}
-        >
+        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => void handleDeleteAccount()}>
           <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.deleteText}>Delete Account</Text>
         </TouchableOpacity>
