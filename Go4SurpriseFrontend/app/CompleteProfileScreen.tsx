@@ -11,7 +11,7 @@ export default function CompleteProfileScreen() {
   const router = useRouter();
   const [birthdate, setBirthdate] = useState('');
   const [phone, setPhone] = useState('');
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [birthdateError, setBirthdateError] = useState(''); // Error state for birthdate
   const [phoneError, setPhoneError] = useState(''); // Error state for phone
@@ -121,7 +121,7 @@ export default function CompleteProfileScreen() {
                 mode="date"
                 display="default"
                 onChange={onDateChange}
-                maximumDate={new Date()}
+                maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
                 minimumDate={new Date(1900, 0, 1)}
               />
             )}
@@ -143,7 +143,7 @@ export default function CompleteProfileScreen() {
         />
         {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => void handleCompleteProfile}>
+      <TouchableOpacity style={styles.button} onPress={() => void handleCompleteProfile()}>
         <Text style={styles.buttonText}>Guardar</Text>
       </TouchableOpacity>
     </View>
