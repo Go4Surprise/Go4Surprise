@@ -5,11 +5,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { differenceInDays, parseISO } from "date-fns";
 import { BASE_URL } from '../constants/apiUrl';
 
+interface BookingResponse {
+    experience_date: string;
+    // Add other booking properties here
+    id: number;
+    // Add any other fields your booking object has
+  }
+  
+  // Define a type for the processed booking with Date object
+  interface Booking extends Omit<BookingResponse, 'experience_date'> {
+    experience_date: Date;
+  }
+
 export default function CountDown() {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchNextBooking();
+        void fetchNextBooking();
     }, []);
 
     const fetchNextBooking = async () => {
@@ -32,21 +44,21 @@ export default function CountDown() {
 
             if (Array.isArray(response.data)) {
                 const upcomingBookings = response.data
-                    .map((booking: any) => ({
-                        ...booking,
-                        experience_date: parseISO(booking.experience_date),
-                    }))
-                    .filter((booking: any) => booking.experience_date > new Date())
-                    .sort((a: any, b: any) => a.experience_date - b.experience_date);
-
+                  .map((booking: BookingResponse) => ({
+                    ...booking,
+                    experience_date: parseISO(booking.experience_date),
+                  }))
+                  .filter((booking: Booking) => booking.experience_date > new Date())
+                  .sort((a: Booking, b: Booking) => a.experience_date.getTime() - b.experience_date.getTime());
+                
                 if (upcomingBookings.length > 0) {
-                    const nextBooking = upcomingBookings[0];
-                    const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
-                    setDaysLeft(daysRemaining);
+                  const nextBooking = upcomingBookings[0];
+                  const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
+                  setDaysLeft(daysRemaining);
                 } else {
-                    setDaysLeft(null);
+                  setDaysLeft(null);
                 }
-            }
+              }
         } catch (error) {
             console.error("Error al obtener la próxima reserva:", error);
         }
