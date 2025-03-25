@@ -179,6 +179,13 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }).start();
   };
 
+  const isCategorySelected = (): boolean => {
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    const category = currentQuestion.category;
+    const selections = getCategorySelections(category, selectedOptions);
+    return selections.length > 0;
+  };
+
   const handleOptionSelect = (option: string) => {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     const category = currentQuestion.category;
@@ -340,7 +347,11 @@ export default function PreferencesFormScreen(): React.ReactElement {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
+        <TouchableOpacity 
+          style={[styles.nextButton, !isCategorySelected() && styles.disabledButton]} 
+          onPress={nextQuestion}
+          disabled={!isCategorySelected()}
+        >
           <Text style={styles.buttonText}>
             {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
           </Text>
@@ -431,6 +442,9 @@ buttonRow: {
   gap: 12,
   marginTop: 20,
 },
-
+disabledButton: {
+  backgroundColor: '#999',
+  opacity: 0.7,
+},
 
 });
