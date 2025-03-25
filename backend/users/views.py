@@ -155,7 +155,11 @@ def update_user_profile(request):
     except Usuario.DoesNotExist:
         return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
     
-    serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+    data = request.data.copy()
+    if 'pfp' in request.FILES:
+        data['pfp'] = request.FILES['pfp']
+
+    serializer = UserUpdateSerializer(user, data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -121,7 +121,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario  # Asegúrate de que es el modelo correcto
-        fields = ['username', 'email', 'name', 'surname', 'phone']
+        fields = ['username', 'email', 'name', 'surname', 'phone', 'pfp']
 
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)  # Extraer datos de User si existen
