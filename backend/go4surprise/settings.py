@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from urllib.parse import urlparse
+from decouple import config
 
 load_dotenv()
 
@@ -36,15 +37,26 @@ if SECRET_KEY is None:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "localhost:8081"]
 
 APPENGINE_URL = os.getenv('APPENGINE_URL')
 if APPENGINE_URL:
     if not urlparse(APPENGINE_URL).scheme:
         APPENGINE_URL = f'https://{APPENGINE_URL}'
     ALLOWED_HOSTS.append(urlparse(APPENGINE_URL).netloc)
-    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL]
+    CSRF_TRUSTED_ORIGINS = [APPENGINE_URL, 
+                            "http://localhost:8081",
+                            "http://127.0.0.1:8081",]
     SECURE_SSL_REDIRECT = True
+
+CSRF_TRUSTED_ORIGINS = [ "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "http://localhost:3000",]
+
+CSRF_COOKIE_DOMAIN = "localhost"
+CSRF_COOKIE_SECURE = False
+
 
 # Application definition
 
@@ -60,19 +72,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'rest_framework.authtoken',
     'rest_framework_swagger',
     'rest_framework',
     'corsheaders',
     'drf_yasg',
     'rest_framework_simplejwt',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'dj_rest_auth',
     'dj_rest_auth.registration',
-    'rest_framework.authtoken',
 ]
 
 REST_FRAMEWORK = {
@@ -106,6 +118,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_ADAPTER = 'go4surprise.adapters.CustomSocialAccountAdapter'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'allauth.account.middleware.AccountMiddleware',
@@ -115,14 +128,25 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
+# Cross-Origin Resource Sharing
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Agrega la URL de tu frontend
     "http://localhost:8081",  # Agrega la URL de tu Expo Go
     "http://localhost:8082",
-    "capacitator://com.go4surprise.go4app"
+    "capacitator://com.go4surprise.go4app",
+    "http://127.0.0.1:8081",
 ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True # Not recommended for production
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+    'base_url',  # Add this line to allow the custom header
+]
+
 
 if APPENGINE_URL:
     CORS_ALLOWED_ORIGINS.append(APPENGINE_URL)
@@ -233,3 +257,18 @@ SIMPLE_JWT = {
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False
 }
+
+AUTHENTICATION_BACKENDS = (
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SITE_ID = 1
+
+# Email server configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # Eliminate in production
+EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Use environment variables in production!
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Use environment variables in production!
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
