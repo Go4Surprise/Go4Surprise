@@ -24,7 +24,16 @@ class Experience(models.Model):
         validators=[MinValueValidator(Decimal('0.01'))]
     )                            
     location = models.CharField(max_length=50)
-    duration = models.PositiveIntegerField()
+    time_preference = models.CharField(
+            max_length=10,
+            choices=(
+                ('MORNING', 'Mañana'),
+                ('AFTERNOON', 'Tarde'),
+                ('NIGHT', 'Noche'),
+            ),
+            default='MORNING',
+            help_text="Preferencia de horario para la reserva."
+    )
     hint = models.CharField(max_length=255, blank=True)
     link = models.URLField(blank=True)
     categories = models.JSONField(default=list, help_text="Lista de categorías (máximo 3)")

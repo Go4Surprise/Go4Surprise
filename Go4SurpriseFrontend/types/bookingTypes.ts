@@ -5,7 +5,6 @@ import { ScrollView } from "react-native";
 export interface Reservation {
   user: string | null;
   location: string;
-  duration: number;
   experience_date: Date;
   price: number;
   participants: number;

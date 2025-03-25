@@ -99,7 +99,8 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     location=validated_data['location'],
                     categories=validated_data['categories'],
                     price=validated_data['price'],
-                    notas_adicionales=validated_data.get('notas_adicionales', '')
+                    notas_adicionales=validated_data.get('notas_adicionales', ''),
+                    time_preference=validated_data['time_preference']
                 )
                 
                 return Booking.objects.create(
@@ -111,11 +112,13 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     experience_date=validated_data['experience_date'],
                     total_price=total_price,
                     price=validated_data['price'],
-                    participants=validated_data['participants'],
-                    time_preference=validated_data['time_preference']
+                    participants=validated_data['participants']
                 )
             except Usuario.DoesNotExist:
                 raise serializers.ValidationError("User not found")
+            except Exception as e:
+                print(e)
+                raise serializers.ValidationError(str(e))
         else:
             return Booking.objects.create(**validated_data)
 

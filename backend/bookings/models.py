@@ -35,16 +35,6 @@ class Booking(models.Model):
         default='PENDING',
         help_text="Estado de la reserva. Comienza en 'PENDING' y se actualiza según se asigne la experiencia."
     )
-    time_preference = models.CharField(
-        max_length=10,
-        choices=(
-            ('MORNING', 'Mañana'),
-            ('AFTERNOON', 'Tarde'),
-            ('NIGHT', 'Noche'),
-        ),
-        default='MORNING',
-        help_text="Preferencia de horario para la reserva."
-    )
 
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario')
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='reservas')
