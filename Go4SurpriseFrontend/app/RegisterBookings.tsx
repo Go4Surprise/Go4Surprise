@@ -31,14 +31,28 @@ const CityCard = ({ city, isSelected, onSelect }: CardProps) => (
 
 const CategoryCard = ({ category, isSelected, onSelect }: CardProps) => (
   <Button
-    style={{ width: 200, height: 300, margin: 5 }}
+  style={{
+    width: 200,
+    height: 300,
+    margin: 5,
+    opacity: isSelected ? 0.5 : 1,
+    backgroundColor: isSelected ? "#e0e0e0" : "transparent", 
+    transition: "opacity 0.3s, background-color 0.3s", 
+  }}
     onClick={onSelect}
     variant={isSelected ? "outlined" : "text"}
   >
     <div style={{ width: "100%", height: "80%", position: "relative" }}>
       <img
         src={category.image}
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+        alt={category.name}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: 8,
+          filter: isSelected ? "grayscale(100%)" : "none", 
+        }}
       />
       <Text>{category.name}</Text>
     </div>
@@ -405,7 +419,15 @@ export default function RegisterBooking() {
         <form onSubmit={handleSubmit}>
           <Stack spacing={2}>
             <Typography variant="h6">
-              Elige tu ciudad: {reserva.location !== "" ? reserva.location : ""}
+            <Typography 
+            variant="h5" 
+            fontWeight="bold" 
+            gutterBottom 
+            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
+          >
+            Elige Ciudad
+          </Typography>
+              {reserva.location !== "" ? reserva.location : ""}
             </Typography>
             
             <View style={{ height: 320 }}>
@@ -422,7 +444,21 @@ export default function RegisterBooking() {
             </View>
 
             <Typography variant="h6">
-              Descarta categorías (Máximo 3, primer descarte gratuito, después 5€ por descarte): 
+            <Typography 
+            variant="h5" 
+            fontWeight="bold" 
+            gutterBottom 
+            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
+          >
+            No te gusta algo? ¡Descártalo!
+          </Typography>
+              <Typography 
+              variant="body2" 
+              color="textSecondary" 
+              sx={{ marginBottom: 1 }}
+            >
+              (El primero es <strong>GRATIS</strong>, cada descarte extra cuesta <strong>5€</strong>, máximo: <strong>3 descartes permitidos</strong>)
+            </Typography> 
               {reserva.categories.length > 0 ? 
                 reserva.categories.join(", ") : 
                 ""}
