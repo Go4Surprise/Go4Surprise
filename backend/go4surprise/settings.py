@@ -36,7 +36,7 @@ if SECRET_KEY is None:
     print("WARNING: Using a randomly generated SECRET_KEY. Set DJANGO_SECRET_KEY environment variable for production.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "localhost:8081"]
 

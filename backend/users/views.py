@@ -22,6 +22,7 @@ from decouple import config
 from django.views.decorators.csrf import csrf_exempt
 import json
 import uuid
+from django.conf import settings
 
 @swagger_auto_schema(
     method="post",
@@ -266,7 +267,8 @@ def password_reset(request):
     # Generar enlace con el UUID de Usuario y token
     uidb64 = urlsafe_base64_encode(force_bytes(str(usuario.id)))  
     token = custom_token_generator.make_token(user)
-    reset_link = f"http://localhost:8081/PasswordResetConfirm?uidb64={uidb64}&token={token}"
+    base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+    reset_link = f"{base_url}/PasswordResetConfirm?uidb64={uidb64}&token={token}"
 
     # Enviar email
     send_mail(
