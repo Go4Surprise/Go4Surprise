@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField,
@@ -240,6 +240,15 @@ export default function RegisterBooking() {
       };
     });
   };
+
+  const totalPrice = useMemo(() => {
+    const basePrice = reserva.price * reserva.participants;
+    
+    // Sumar descartes (primera gratis, después 5€ por descarte)
+    const categoryFees = Math.max(0, reserva.categories.length - 1) * 5;
+    
+    return basePrice + categoryFees;
+  }, [reserva.price, reserva.participants, reserva.categories]);
 
   return (
     <ScrollView contentContainerStyle={{ 
@@ -619,6 +628,33 @@ export default function RegisterBooking() {
               value={reserva.notas_adicionales}
               onChange={handleTextFieldChange}
             />
+            
+            {/* Total price display */}
+            <Box 
+              sx={{ 
+                padding: 2, 
+                border: '1px solid #e0e0e0', 
+                borderRadius: 1,
+                backgroundColor: '#f5f5f5',
+                marginTop: 2,
+                marginBottom: 2 
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                Desglose del precio:
+              </Typography>
+              <Typography variant="body2">
+                Precio base: {reserva.price}€ × {reserva.participants} {reserva.participants > 1 ? 'personas' : 'persona'} = {reserva.price * reserva.participants}€
+              </Typography>
+              {reserva.categories.length > 0 && (
+                <Typography variant="body2">
+                  Categorías descartadas: {reserva.categories.length} {reserva.categories.length === 1 ? '(gratis)' : `(primera gratis, +${(reserva.categories.length - 1) * 5}€)`}
+                </Typography>
+              )}
+              <Typography variant="h6" sx={{ marginTop: 1, fontWeight: 'bold', color: '#1976d2' }}>
+                Precio Total: {totalPrice}€
+              </Typography>
+            </Box>
             
             <Button
               variant="contained"

@@ -61,7 +61,13 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             try:
                 usuario = Usuario.objects.get(id=usuario_id)
                 booking_date = timezone.now().date()
-                total_price = validated_data['price'] * validated_data['participants']
+                
+                # Cálculo del precio total
+                base_price = validated_data['price'] * validated_data['participants']  
+                # Primer descarte gratis, después 5€ por categoría
+                categories = validated_data.get('categories', [])
+                category_fees = max(0, len(categories) - 1) * 5
+                total_price = base_price + category_fees
                 
                 # Crea la experiencia asociada a la reserva
                 experience = Experience.objects.create(
