@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import { 
-    View, Text, TextInput, TouchableOpacity, 
-    StyleSheet, Alert
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import { BASE_URL } from "../constants/apiUrl";
@@ -42,7 +39,6 @@ const PasswordResetConfirm = () => {
         <View style={styles.container}>
             <Text style={styles.title}>Restablecer Contraseña</Text>
             <Text style={styles.textInfo}>Introduce tu nueva contraseña para continuar.</Text>
-
             <TextInput 
                 style={styles.input} 
                 placeholder="Nueva contraseña" 
@@ -50,9 +46,7 @@ const PasswordResetConfirm = () => {
                 value={password} 
                 onChangeText={setPassword} 
             />
-
             <Text style={styles.textInfo}>Confirme su nueva contraseña.</Text>
-
             <TextInput 
                 style={styles.input} 
                 placeholder="Confirmar contraseña" 
@@ -60,7 +54,6 @@ const PasswordResetConfirm = () => {
                 value={confirmPassword} 
                 onChangeText={setConfirmPassword} 
             />
-
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
