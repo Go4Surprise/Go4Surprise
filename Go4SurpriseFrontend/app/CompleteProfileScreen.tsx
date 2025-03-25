@@ -18,14 +18,18 @@ export default function CompleteProfileScreen() {
 
   useEffect(() => {
     const checkToken = async () => {
-      const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        setBirthdateError(''); // Clear any existing errors
-        setPhoneError('');
-        router.push('/LoginScreen');
+      try {
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+          setBirthdateError(''); // Clear any existing errors
+          setPhoneError('');
+          router.push('/LoginScreen');
+        }
+      } catch (error) {
+        console.error('Error checking token:', error);
       }
     };
-    checkToken();
+    void checkToken();
   }, []);
 
   const onDateChange = (event, selectedDate) => {
@@ -106,7 +110,7 @@ export default function CompleteProfileScreen() {
         ) : (
           <>
             <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => void setShowDatePicker(true)}
               style={styles.dateButton}
             >
               <Text style={styles.dateText}>{birthdate || 'Selecciona una fecha (YYYY-MM-DD)'}</Text>
@@ -139,7 +143,7 @@ export default function CompleteProfileScreen() {
         />
         {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleCompleteProfile}>
+      <TouchableOpacity style={styles.button} onPress={() => void handleCompleteProfile}>
         <Text style={styles.buttonText}>Guardar</Text>
       </TouchableOpacity>
     </View>

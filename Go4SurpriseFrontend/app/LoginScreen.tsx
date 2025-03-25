@@ -4,11 +4,9 @@ import {
   StyleSheet, Image, Alert, useWindowDimensions 
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LoginForm } from '../components/LoginForm';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import axios from 'axios';
-import { LeftSection } from '../components/LeftSection';
 import { BASE_URL } from '../constants/apiUrl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -25,7 +23,7 @@ export default function LoginScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Set up the Google authentication request
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [, response, promptAsync] = Google.useAuthRequest({
     //expoClientId: 'YOUR_EXPO_CLIENT_ID',
     //iosClientId: 'YOUR_IOS_CLIENT_ID',
     //androidClientId: 'YOUR_ANDROID_CLIENT_ID',
@@ -113,7 +111,7 @@ export default function LoginScreen() {
 
             {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <TouchableOpacity style={styles.button} onPress={() => void handleLogin}>
               <Text style={styles.buttonText}>Iniciar sesión</Text>
             </TouchableOpacity>
 
