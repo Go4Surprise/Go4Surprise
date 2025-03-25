@@ -4,23 +4,57 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from .models import Usuario, Preferences
+from django.contrib.auth.models import User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True, min_length=6)
+    birthdate = serializers.DateField(required=True)
+
     
     class Meta:
         model = Usuario
         # Optionally, you might remove birthdate here so social registrations are not forced to supply it immediately.
-        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp']
+        fields = ['id', 'username', 'password', 'name', 'surname', 'email', 'phone', 'pfp', 'birthdate']
     
     def create(self, validated_data):
         username = validated_data.pop('username')
         password = validated_data.pop('password')
-        user = User.objects.create_user(username=username, password=password, email=validated_data['email'])
-        usuario = Usuario.objects.create(user=user, **validated_data)
-        return usuario
+        email = validated_data.get('email')
+
+        existing_user = User.objects.filter(username=username).first()
+
+        if existing_user:
+            try:
+                # Si ya tiene perfil, error
+                Usuario.objects.get(user=existing_user)
+                raise serializers.ValidationError({
+                    "username": "Ya existe un perfil para este usuario. Usa otro nombre."
+                })
+            except Usuario.DoesNotExist:
+                # Eliminar user huérfano
+                existing_user.delete()
+
+        user = User.objects.create_user(username=username, password=password, email=email)
+
+        try:
+            usuario, created = Usuario.objects.get_or_create(user=user, defaults=validated_data)
+            if created:
+                print(f"[Registro] Usuario ya existía tras creación de User. Eliminando todo.")
+                user.delete()
+                raise serializers.ValidationError({
+                    "username": "No se pudo crear tu perfil. Intenta con otro nombre."
+                })
+            return usuario
+
+        except Exception as e:
+            print(f"[Registro] ERROR GRAVE: {e}")
+            if user.id:
+                user.delete()
+            raise serializers.ValidationError({
+                "non_field_errors": ["Error inesperado al registrar. Intenta más tarde."]
+            })
 
 
 class LoginSerializer(serializers.Serializer):
