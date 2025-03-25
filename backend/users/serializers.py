@@ -102,6 +102,9 @@ class LoginSerializer(serializers.Serializer):
             "access": str(tokens.access_token),
             "refresh": str(tokens),
             "preferences_set": preferences_set,
+            "profile_complete": profile_complete,
+            "is_staff": user.is_staff,
+            "is_superuser": user.is_superuser
         }
 
 
@@ -207,6 +210,8 @@ class SocialLoginResponseSerializer(serializers.Serializer):
             "refresh": str(tokens),
             "preferences_set": preferences_set,
             "profile_complete": instance.is_profile_complete,
+            "is_staff": instance.user.is_staff,
+            "is_superuser": instance.user.is_superuser
         }
         return data
 

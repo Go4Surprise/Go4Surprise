@@ -22,6 +22,7 @@ export default function HomeScreen() {
 
   const checkAdminStatus = async () => {
     const adminStatus = await AsyncStorage.getItem('isAdmin');
+    console.log(adminStatus);
     setIsAdmin(adminStatus === 'true');
   };
 
