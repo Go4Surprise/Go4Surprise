@@ -8,7 +8,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 
-type User = {
+interface User {
     id: number;
     username: string;
     email: string;
