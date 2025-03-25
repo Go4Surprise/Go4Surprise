@@ -37,7 +37,7 @@ export function IconSymbol({
   weight?: SymbolWeight;
 }) {
   // Use Map.get() instead of bracket notation for safer property access
-  const iconName = ICON_MAP.get(name) || 'help-outline'; // Fallback icon
+  const iconName = ICON_MAP.get(name) ?? 'help-outline'; // Fallback icon
   
   return <MaterialIcons color={color} size={size} name={iconName} style={style} />;
 }
