@@ -171,6 +171,7 @@
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs: requirements update
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
