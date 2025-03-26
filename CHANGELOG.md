@@ -2,6 +2,8 @@
 
 ### 🚀 Nuevas funcionalidades
 - feat: verificacion por mail
+- feat: Accept privacy policy and terms of use during registration.
+- feat: Add privacy policy and terms of use to the home page.
 - Merge pull request #57 from Go4Surprise/password-recovery
 - feat: password confirmation added
 - feat: error maangement

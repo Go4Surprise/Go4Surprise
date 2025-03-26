@@ -20,6 +20,8 @@ export default function RegisterScreen() {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [birthdate, setBirthdate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
 
     const [errors, setErrors] = useState<{ 
         username?: string; 
@@ -100,6 +102,10 @@ export default function RegisterScreen() {
     };
 
     const handleRegister = async () => {
+        if (!acceptedTerms) {
+            Alert.alert("Atención", "Debes aceptar la política de privacidad y condiciones de uso para continuar.");
+            return;
+          }          
         const fieldsValid = validateFields();
         if (!fieldsValid) return;
     
@@ -259,6 +265,22 @@ export default function RegisterScreen() {
                                 />
 
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+                    <TouchableOpacity onPress={() => setAcceptedTerms(!acceptedTerms)} style={styles.checkbox}>
+                        <Ionicons 
+                        name={acceptedTerms ? 'checkbox-outline' : 'square-outline'} 
+                        size={24} 
+                        color="#1877F2" 
+                        />
+                    </TouchableOpacity>
+                    <Text style={styles.termsText}>
+                        He leído y acepto la{' '}
+                        <Text style={styles.link} onPress={() => router.push('/PoliticaPrivacidad')}>Política de Privacidad</Text>
+                        {' '}y las{' '}
+                        <Text style={styles.link} onPress={() => router.push('/CondicionesUso')}>Condiciones de Uso</Text>.
+                    </Text>
+                </View>
+
 
                 <TouchableOpacity style={styles.button} onPress={() => void handleRegister()}>
                     <Text style={styles.buttonText}>Registrarse</Text>
@@ -365,4 +387,17 @@ const styles = StyleSheet.create({
         color: '#1877F2',
         fontWeight: 'bold',
     },
+    checkbox: {
+        marginRight: 8,
+      },
+      termsText: {
+        flex: 1,
+        fontSize: 13,
+        color: '#374151',
+      },
+      link: {
+        color: '#1877F2',
+        textDecorationLine: 'underline',
+      },
+      
 });
