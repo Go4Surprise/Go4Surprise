@@ -31,14 +31,14 @@ export default function IndexScreen() {
           <Image source={require('../../assets/images/logo.png')} style={styles.headerLogo} />
           <View style={styles.navLinks}>
             <TouchableOpacity onPress={() => scrollToSection(homeRef)}>
-              <Text style={styles.navItem}>Home</Text>
+              <Text style={styles.navItem}>Inicio</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => scrollToSection(aboutRef)}>
-              <Text style={styles.navItem}>About us</Text>
+              <Text style={styles.navItem}>Sobre nosotros</Text>
             </TouchableOpacity>
           </View>
           <TouchableOpacity style={styles.getStartedBtn} onPress={() => router.push('/LoginScreen')}>
-            <Text style={styles.getStartedText}>Get Started</Text>
+            <Text style={styles.getStartedText}>Comenzar</Text>
           </TouchableOpacity>
         </View>
 
@@ -47,11 +47,11 @@ export default function IndexScreen() {
           <View style={styles.homeTextContainer}>
             <Text style={styles.homeTitle}>GO4SURPRISE</Text>
             <Text style={styles.homeDescription}>
-              En Go4Surprise, eligiendo una fecha, ciudad y tipo de evento, serás capaz de asistir a un evento totalmente sorpresa.{"\n\n"}
+              En Go4Surprise, eligiendo una fecha y ciudad, serás capaz de asistir a un evento totalmente sorpresa.{"\n\n"}
               Estas entradas además gozarán de un precio reducido en comparación con las vendidas por la competencia para el mismo evento.
             </Text>
             <TouchableOpacity style={styles.homeButton} onPress={() => scrollToSection(contactRef)}>
-              <Text style={styles.homeButtonText}>Contact Us</Text>
+              <Text style={styles.homeButtonText}>Contáctanos</Text>
             </TouchableOpacity>
 
           </View>
