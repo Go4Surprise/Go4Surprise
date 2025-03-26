@@ -186,6 +186,35 @@ def obtener_reservas_pasadas_usuario(request, user_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def actualizar_estado_reserva(request, id):
+    """
+    Actualiza el estado de una reserva específica
+    """
+    try:
+        reserva = get_object_or_404(Booking, id=id)
+        nuevo_estado = request.data.get('status')
+
+        if nuevo_estado not in ['PENDING', 'CONFIRMED', 'CANCELLED']:
+            return Response(
+                {"error": "Estado inválido. Debe ser 'PENDING', 'CONFIRMED' o 'CANCELLED'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reserva.status = nuevo_estado
+        reserva.save()
+        return Response({"message": "Estado actualizado correctamente."}, status=status.HTTP_200_OK)
+    except Http404:
+        return Response(
+            {"error": "Reserva no encontrada"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
@@ -220,6 +249,45 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def iniciar_pago(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id)
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f"Reserva {booking.experience.location}",
+                    },
+                    'unit_amount': int(booking.total_price * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url="http://localhost:8081/HomeScreen",
+            cancel_url="http://localhost:8081/BookingDetails",
+            metadata={
+                'booking_id': str(booking.id),
+            },
+        )
+
+        return Response({'checkout_url': session.url}, status=status.HTTP_200_OK)
+
+    except Booking.DoesNotExist:
+        return Response({'error': 'Reserva no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             booking_id = session.get('metadata', {}).get('booking_id')
