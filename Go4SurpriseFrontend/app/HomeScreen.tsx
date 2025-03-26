@@ -1,24 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ImageBackground, Alert } from 'react-native';
 import { useWindowDimensions } from "react-native";
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import CountDown from './CountDown';
 import Reviews from './Reviews';
 import Experiences from './Experiences';
+import axios from "axios";
+import { BASE_URL } from '@/constants/apiUrl';
+
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 600;
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasBookings, setHasBookings] = useState(false);
+
 
   useEffect(() => {
-    // Check if user is admin when component mounts
-    checkAdminStatus();
+    const fetchBookings = async () => {
+      try {
+        const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+          router.push("/LoginScreen");
+          return;
+}
+
+        console.log("Token que estoy usando:", token);
+        const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+
+  
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setHasBookings(true);
+        } else {
+          setHasBookings(false);
+        }
+      } catch (error) {
+        console.error("Error al comprobar reservas:", error);
+        setHasBookings(false);
+      }
+    };
+  
+    fetchBookings();
+    checkAdminStatus(); // ✅ Llama a la función para verificar si el usuario es administrador
   }, []);
+  
 
   const checkAdminStatus = async () => {
     const adminStatus = await AsyncStorage.getItem('isAdmin');
@@ -64,13 +100,26 @@ export default function HomeScreen() {
             <Text style={[styles.subsubtitle, { fontSize: isSmallScreen ? 18 : 30 }]}>
               ¡Descubre la experiencia 24 horas antes!
             </Text>
-            <TouchableOpacity
-              style={styles.surpriseButton}
-              activeOpacity={0.8}
-              onPress={() => router.push("/RegisterBookings")}
-            >
-              <Text style={styles.surpriseButtonText}>¡Sorpréndeme!</Text>
-            </TouchableOpacity>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity
+                style={styles.surpriseButton}
+                activeOpacity={0.8}
+                onPress={() => router.push("/RegisterBookings")}
+              >
+                <Text style={styles.surpriseButtonText}>¡Sorpréndeme!</Text>
+              </TouchableOpacity>
+
+              {hasBookings && (
+                <TouchableOpacity
+                  style={styles.bookingsButton}
+                  activeOpacity={0.8}
+                  onPress={() => router.push("/MyBookings")}
+                >
+                  <Text style={styles.bookingsButtonText}>Mis reservas</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
           </View>
         </ImageBackground>
       </View>
@@ -170,9 +219,36 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   surpriseButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
+    textAlign: "center",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 20,
+  },
+  
+  bookingsButton: {
+    backgroundColor: "blue",
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+    marginTop: 10,
+    shadowColor: "#FF6F61",
+    shadowOpacity: 0.4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  
+  bookingsButtonText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
   },
   experienceCard: {
     backgroundColor: '#f9f9f9',
@@ -255,5 +331,5 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: '#1877F2',
     fontWeight: 'bold',
-  },
+  },  
 });

@@ -119,4 +119,30 @@ class BookingTestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-   
+    #caso positivo
+    def test_obtener_reservas_pasadas_usuario(self):
+        url = reverse('obtener_reservas_pasadas_usuario', kwargs={'user_id': self.usuario.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+    
+    #caso negativos
+    def test_obtener_reservas_pasadas_sin_reservas(self):
+        nuevo_usuario = baker.make(Usuario)
+        url = reverse('obtener_reservas_pasadas_usuario', kwargs={'user_id': nuevo_usuario.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_obtener_reservas_pasadas_usuario_no_autenticado(self):
+        self.client.force_authenticate(user=None)
+        url = reverse('obtener_reservas_pasadas_usuario', kwargs={'user_id': self.usuario.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_obtener_reserva_con_experiencia(self):
+        url = reverse('obtener_reserva', kwargs={'id': self.booking.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('experience', response.data)  # Verifica que el campo 'experience' está presente
+        self.assertIn('title', response.data['experience'])  # Verifica que los detalles de la experiencia están presentes
