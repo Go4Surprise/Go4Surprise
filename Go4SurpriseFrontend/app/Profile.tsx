@@ -5,6 +5,7 @@ import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
+import * as ImagePicker from 'expo-image-picker';
 
 interface Reservation {
   id: string;
@@ -35,39 +36,45 @@ export default function UserProfileScreen() {
     email: '',
     username: '',
     surname: '',
-    phone: ''
+    phone: '',
+    pfp: ''
   });
   
   const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [reservationsModalVisible, setReservationsModalVisible] = useState(false);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
 
   // Fetch user data from API
   const fetchUserData = async () => {
     try {
-      const accessToken = await AsyncStorage.getItem('accessToken');
-      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-  
-      const data = response.data;
-  
-      setUser({
-        id: data.id || '',
-        name: data.name || '',
-        surname: data.surname || '',
-        username: data.username || '',
-        email: data.email || '',
-        phone: data.phone || '',
-      });
+        const token = await AsyncStorage.getItem('accessToken');
+        if (!token) {
+            router.replace('/LoginScreen'); // Redirige si no hay token
+            return;
+        }
+
+        const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("Datos del usuario:", response.data);
+
+        // Asegura que el ID está incluido antes de actualizar el estado
+        setUser(prevState => ({
+            ...prevState,
+            id: response.data.id || '',  // 🔹 Se asegura de que el id se guarde
+            name: response.data.name,
+            email: response.data.email,
+            username: response.data.username,
+            surname: response.data.surname,
+            phone: response.data.phone,
+            pfp: response.data.pfp
+        }));
     } catch (error) {
       console.error("Error al cargar perfil:", error);
     }
@@ -81,27 +88,55 @@ export default function UserProfileScreen() {
 
   // Open edit profile modal with current user data
   const handleEditProfile = () => {
-    setEditedUser({
-      name: user.name || '',
-      surname: user.surname || '',
-      username: user.username || '',
-      email: user.email || '',
-      phone: user.phone || ''
-    });
-    setModalVisible(true);
+      if (user) {
+          setEditedUser({
+              name: user.name || '',
+              surname: user.surname || '', 
+              username: user.username || '',  
+              email: user.email || '',
+              phone: user.phone || '',
+              pfp: user.pfp || ''
+          });
+          setModalVisible(true);
+      }
   };
 
-  // Save profile changes to API
+  const pickImage = async () => {
+
+    // Seleccionar una imagen de la galería
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images',],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+    });
+    console.log("Imagen detectada:", result);
+    if (!result.canceled) {
+          setEditedUser(prevState => ({ ...prevState, pfp: result.assets[0].uri })); // Actualiza el estado con la URI de la imagen seleccionada   
+    }
+  };
+
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        Alert.alert('Error', 'Session expired. Please login again.');
-        return;
+      const formData = new FormData();
+        formData.append('name', editedUser.name);
+        formData.append('surname', editedUser.surname);
+        formData.append('username', editedUser.username);
+        formData.append('email', editedUser.email);
+        formData.append('phone', editedUser.phone);
+        if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
+          const base64Data = editedUser.pfp.split(',')[1]; // Extraer solo los datos Base64
+          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+
+          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+          formData.append('pfp', pfpFile);
+        }
+      await axios.put(`${BASE_URL}/users/update/`, formData, {
+      headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
       }
-      
-      await axios.put(`${BASE_URL}/users/update/`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       setUser(prevState => ({
@@ -150,7 +185,6 @@ export default function UserProfileScreen() {
       }
     }
   };
-
   // Get user ID from AsyncStorage
   const getUserIdFromToken = async (): Promise<string | null> => {
     try {
@@ -279,18 +313,26 @@ export default function UserProfileScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Header with background image */}
+
+       {/* Botón para ir a HomeScreen */}
+       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
+        <Ionicons name="home" size={30} color="#fff" />
+      </TouchableOpacity>
+      
+      {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image source={user.pfp ? { uri: `${BASE_URL}${user.pfp}` } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
         </View>
       </ImageBackground>
-      
-      {/* Profile card */}
-      <View style={styles.profileCard}>
-        <Text style={styles.username}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-      </View>
+
+      {/* Tarjeta del perfil */}
+      {user && (
+                <View style={styles.profileCard}>
+                  <Text style={styles.username}>{user.name} {user.surname}</Text>
+                  <Text style={styles.email}>{user.email}</Text>
+                </View>
+        )}
 
       {/* Profile options */}
       <View style={styles.optionsContainer}>
@@ -303,10 +345,10 @@ export default function UserProfileScreen() {
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.optionButton} onPress={() => void fetchPastReservations()}>
+
+        <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/MyBookings')}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Historial de reservas</Text>
+          <Text style={styles.optionText}>Reservas</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={() => void handleLogout()}>
@@ -319,13 +361,8 @@ export default function UserProfileScreen() {
           <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Home button */}
-      <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
-        <Ionicons name="home" size={30} color="#fff" />
-      </TouchableOpacity>
       
-      {/* Footer */}
+      {/* Footer con logo pequeño y nombre de la app en línea */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Go4Surprise</Text>
       </View>
@@ -335,38 +372,23 @@ export default function UserProfileScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.name} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} 
-              placeholder="Name" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.surname} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} 
-              placeholder="Surname" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.username} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} 
-              placeholder="Username" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.email} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, email: text }); }} 
-              placeholder="Email" 
-              keyboardType="email-address" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.phone} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} 
-              placeholder="Phone" 
-              keyboardType="phone-pad" 
-            />
+            <Text style={styles.label}>Nombre</Text>
+            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+            <Text style={styles.label}>Apellidos</Text>
+            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+            <Text style={styles.label}>Usuario</Text>
+            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+            <Text style={styles.label}>Email</Text>
+            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+            <Text style={styles.label}>Teléfono</Text>
+            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <Text style={styles.label}>Foto de Perfil</Text>
+            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
+            </TouchableOpacity>
+            {editedUser.pfp ? (
+                <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
+            ) : null}            
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
@@ -449,6 +471,23 @@ export default function UserProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 4,
+    color: '#333',
+  },  
+  deleteButton: {
+    backgroundColor: '#d9534f',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  }, 
   container: {
     flexGrow: 1,
     alignItems: 'center',
@@ -547,19 +586,17 @@ const styles = StyleSheet.create({
   },
   homeButton: {
     position: 'absolute',
-    bottom: 20,
+    top: 40,           // Ajusta según altura de status bar
     left: 20,
     backgroundColor: '#004AAD',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
+    borderRadius: 20,
+    zIndex: 10,
+    elevation: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },  
   footer: {
     alignItems: 'center',
     marginTop: 100,
@@ -571,49 +608,73 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 5,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    paddingVertical: 5,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  modalButton: {
-    backgroundColor: '#004AAD',
-    padding: 10,
-    borderRadius: 5,
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#d9534f',
-  },
-  modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  backgroundLogo: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+},modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},
+modalContent: {
+  width: '80%',
+  backgroundColor: 'white',
+  padding: 20,
+  borderRadius: 10,
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 10,
+},
+input: {
+  borderBottomWidth: 1,
+  borderColor: '#ccc',
+  marginBottom: 10,
+  paddingVertical: 5,
+},
+modalButtons: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 10,
+},
+modalButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  flex: 1,
+  alignItems: 'center',
+  marginHorizontal: 5,
+},
+cancelButton: {
+  backgroundColor: '#d9534f',
+},
+modalButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
+imagePickerButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  marginVertical: 10,
+},
+imagePickerButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
+profileImagePreview: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  marginVertical: 10,
+},
   errorText: {
     color: 'red',
     fontSize: 14,

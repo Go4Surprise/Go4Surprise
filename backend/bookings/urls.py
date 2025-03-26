@@ -3,6 +3,7 @@ from django.urls import path
 from bookings.views import crear_reserva, obtener_reserva, obtener_reservas_usuario, obtener_reservas_pasadas_usuario, iniciar_pago, stripe_webhook, actualizar_estado_reserva
 from bookings.admin import admin_booking_list, admin_booking_update, admin_booking_detail, admin_booking_delete
 
+
 urlpatterns = [
     path('crear-reserva/', crear_reserva, name='crear_reserva'),
     path('obtener-reserva/<uuid:id>/', obtener_reserva, name='obtener_reserva'),

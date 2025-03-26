@@ -136,7 +136,6 @@ def obtener_reservas_usuario(request, user_id):
             {"error": f"Error del servidor: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
 from datetime import date
 
 @swagger_auto_schema(

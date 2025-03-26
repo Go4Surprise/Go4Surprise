@@ -144,9 +144,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     birthdate = serializers.DateField()  # allow updating birthdate
     
     class Meta:
-        model = Usuario
-        fields = ['username', 'email', 'name', 'surname', 'phone', 'birthdate']
-    
+        model = Usuario  # Asegúrate de que es el modelo correcto
+        fields = ['username', 'email', 'name', 'surname', 'phone', 'pfp', 'birthdate']
+        
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
         for attr, value in validated_data.items():

@@ -141,7 +141,7 @@ const MyBookings = () => {
 
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/HomeScreen")}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/Profile")}>
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
