@@ -7,6 +7,7 @@ import axios, { AxiosError } from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
 
+
 export default function UserProfileScreen() {
   
   const [user, setUser] = useState({
