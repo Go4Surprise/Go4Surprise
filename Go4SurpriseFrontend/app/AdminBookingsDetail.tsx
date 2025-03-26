@@ -17,9 +17,10 @@ type BookingDetail = {
     experience: {
         name: string;
         location: string;
-        duration: number;
-        category: string;
+        time_preference: string;
+        categories: string[];
         hint: string | null;
+        price: number;
     };
 };
 
@@ -32,8 +33,9 @@ const AdminBookingsDetail = () => {
     const [participants, setParticipants] = useState<number | null>(null);
     const [totalPrice, setTotalPrice] = useState<number | null>(null);
     const [experienceLocation, setExperienceLocation] = useState<string | null>(null);
-    const [experienceDuration, setExperienceDuration] = useState<number | null>(null);
-    const [experienceCategory, setExperienceCategory] = useState<string | null>(null);
+    const [experienceHorario, setExperienceHorario] = useState<string | null>(null);
+    const [experienceCategories, setExperienceCategories] = useState<string[]>([]);
+    const [experiencePrice, setExperiencePrice] = useState<number | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     type Experience = {
         id: string;
@@ -71,9 +73,10 @@ const AdminBookingsDetail = () => {
             setParticipants(response.data.participants);
             setTotalPrice(response.data.total_price);
             setExperienceLocation(response.data.experience?.location || '');
-            setExperienceDuration(response.data.experience?.duration || 0);
-            setExperienceCategory(response.data.experience?.category || '');
+            setExperienceHorario(response.data.experience?.time_preference || null);
+            setExperienceCategories(response.data.experience?.categories || []);
             setHint(response.data.experience?.hint || '');
+            setExperiencePrice(response.data.experience?.price || null);
             setSelectedExperienceId(response.data.experience?.id || null); // Ensure experience ID is set
         } catch (error: any) {
             if (error.response?.status === 401) {
@@ -124,9 +127,10 @@ const AdminBookingsDetail = () => {
                     experience: {
                         id: selectedExperienceId,
                         location: experienceLocation,
-                        duration: experienceDuration,
-                        category: experienceCategory,
+                        time_preference: experienceHorario,
+                        categories: experienceCategories,
                         hint: hint || "",
+                        price: experiencePrice
                     },
                     experience_date: experienceDate,
                     participants: participants,
@@ -212,12 +216,15 @@ const AdminBookingsDetail = () => {
                                 <Picker.Item key={exp.id} label={exp.title} value={exp.id} />
                             ))}
                         </Picker>
+                        
                     </View>
 
-                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
-                    <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Duración: {experienceDuration} minutos</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categoría: {experienceCategory}</Text>
                     
+
+                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
+                    <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Horario Preferencia: {experienceHorario} </Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categorías descartadas: {experienceCategories.join(', ')}</Text>
                     <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
                     <TextInput
                         style={styles.input}
