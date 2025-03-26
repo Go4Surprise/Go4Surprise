@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, Alert, useWindowDimensions
+    ActivityIndicator, Alert, useWindowDimensions, Modal, Button
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
@@ -14,6 +14,7 @@ type Booking = {
     experience_date: string;
     participants: number;
     total_price: number;
+    status: string;
 };
 
 const AdminBookings = () => {
@@ -21,6 +22,8 @@ const AdminBookings = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null); // New state for success message
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
     const router = useRouter();
     const { width } = useWindowDimensions();
     const searchParams = useLocalSearchParams();
@@ -54,7 +57,10 @@ const AdminBookings = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            setBookings(response.data);
+            const sortedBookings = response.data.sort((a: Booking, b: Booking) => 
+                new Date(b.experience_date).getTime() - new Date(a.experience_date).getTime()
+            );
+            setBookings(sortedBookings);
         } catch (error) {
             setError('Error al cargar las reservas. Por favor, inténtalo de nuevo.');
             console.error('Error fetching bookings:', error);
@@ -64,19 +70,21 @@ const AdminBookings = () => {
     };
 
     const handleDeleteBooking = (bookingId: string) => {
-        Alert.alert('Eliminar Reserva', '¿Estás seguro de que quieres eliminar esta reserva?', [
-            { text: 'Cancelar', style: 'cancel' },
-            { 
-                text: 'Eliminar', 
-                onPress: async () => {
-                    const success = await deleteBooking(bookingId);
-                    if (success) {
-                        setSuccessMessage('La reserva se ha eliminado correctamente.');
-                        setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
-                    }
-                } 
-            },
-        ]);
+        setSelectedBookingId(bookingId);
+        setModalVisible(true); // Show confirmation modal
+    };
+
+    const confirmDeleteBooking = async () => {
+        if (selectedBookingId) {
+            const success = await deleteBooking(selectedBookingId);
+            if (success) {
+                setBookings((prevBookings) => prevBookings.filter((booking) => booking.id !== selectedBookingId)); // Update state
+                setSuccessMessage('La reserva se ha eliminado correctamente.');
+                setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+            }
+        }
+        setModalVisible(false); // Hide modal
+        setSelectedBookingId(null);
     };
 
     const deleteBooking = async (bookingId: string) => {
@@ -85,10 +93,10 @@ const AdminBookings = () => {
             await axios.delete(`${BASE_URL}/bookings/admin/delete/${bookingId}/`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            fetchBookings();
             return true;
         } catch (error) {
             Alert.alert('Error', 'No se pudo eliminar la reserva.');
+            console.error('Error deleting booking:', error); // Log the error for debugging
             return false;
         }
     };
@@ -97,36 +105,63 @@ const AdminBookings = () => {
         router.push(`/AdminBookingsDetail?id=${bookingId}`);
     };
 
-    const renderItem = ({ item }: { item: Booking }) => (
-        <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
-            <View style={styles.card}>
-                <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
-                <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
-                <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
-                <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
-                    <Ionicons name="trash" size={16} color="white" />
-                    <Text style={styles.deleteButtonText}>Eliminar</Text>
-                </TouchableOpacity>
-            </View>
-        </TouchableOpacity>
-    );
+    const renderItem = ({ item }: { item: Booking }) => {
+        const isPastDate = new Date(item.experience_date) < new Date();
+        const cardStyle = [
+            styles.card,
+            isPastDate ? styles.cardPastDate : null,
+            item.status === 'CANCELLED' ? styles.cardCancelled : null,
+        ];
+
+        return (
+            <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
+                <View style={cardStyle}>
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
+                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
+                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
+                        <Ionicons name="trash" size={16} color="white" />
+                        <Text style={styles.deleteButtonText}>Eliminar</Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     if (loading) return <ActivityIndicator style={styles.loader} size="large" color="#1877F2" />;
     if (error) return <Text style={styles.errorText}>{error}</Text>;
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.push('/AdminPanel')}>
-                <Ionicons name="arrow-back" size={24} color="#333" />
-            </TouchableOpacity>
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push('/AdminPanel')}>
+                    <Ionicons name="grid-outline" size={24} color="#1877F2" />
+                </TouchableOpacity>
+            </View>
             <Text style={styles.title}>Gestión de Reservas</Text>
-            {successMessage && <Text style={styles.successText}>{successMessage}</Text>} {/* Display success message */}
+            {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
             <FlatList
                 data={bookings}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
                 ListEmptyComponent={<Text style={styles.noBookingsText}>No hay reservas registradas.</Text>}
             />
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalText}>¿Estás seguro de que quieres eliminar esta reserva?</Text>
+                        <View style={styles.modalButtons}>
+                            <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#6c757d" />
+                            <Button title="Eliminar" onPress={confirmDeleteBooking} color="#dc3545" />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -172,6 +207,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#ddd',
     },
+    cardPastDate: {
+        backgroundColor: '#E0E0E0', // Light gray for past dates
+        borderColor: '#B0B0B0', // Gray border for past dates
+    },
+    cardCancelled: {
+        backgroundColor: '#FFE4E1', // Light red for canceled bookings
+        borderColor: '#FF6B6B', // Red border for canceled bookings
+    },
     label: {
         fontSize: 16,
         marginBottom: 6,
@@ -190,16 +233,48 @@ const styles = StyleSheet.create({
         color: 'white',
         marginLeft: 5,
     },
-    backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
-    },
     noBookingsText: {
         fontSize: 16,
         textAlign: 'center',
         marginTop: 20,
         color: '#777',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    dashboardButton: {
+        padding: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#1877F2',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 

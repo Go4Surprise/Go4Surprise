@@ -107,9 +107,6 @@ const AdminBookingsDetail = () => {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={24} color="#333" />
-            </TouchableOpacity>
             <Text style={styles.title}>Detalle de la Reserva</Text>
             {booking && (
                 <View style={styles.card}>
@@ -214,11 +211,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 6,
         color: '#333',
-    },
-    backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
     },
     picker: {
         marginTop: 10,

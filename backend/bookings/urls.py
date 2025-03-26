@@ -11,7 +11,7 @@ urlpatterns = [
     path('admin/list/', admin_booking_list, name='admin_booking_list'),
     path('admin/detail/<uuid:pk>/', admin_booking_detail, name='admin_booking_detail'),
     path('admin/update/<uuid:pk>/', admin_booking_update, name='admin_booking_update'),
-    path('admin/delete/<int:pk>/', admin_booking_delete, name='admin_booking_delete'),
+    path('admin/delete/<uuid:pk>/', admin_booking_delete, name='admin_booking_delete'),
     path('admin/update-status/<uuid:id>/', actualizar_estado_reserva, name='actualizar_estado_reserva'),
 
 ]
