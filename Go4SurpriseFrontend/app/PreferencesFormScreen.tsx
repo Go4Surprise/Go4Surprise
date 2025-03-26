@@ -1,42 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Animated, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 
-const questions = [
-  { id: 1, question: 'Si tu vida fuera una película, ¿qué género sería?', category: 'Música', options: ['🎤 Un festival épico', '🎭 Un musical emocionante', '🎸 Un concierto íntimo', '🎻 Un evento clásico', '🚫 Nada en especial'] },
-  { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro', '🎉 Un evento local', '🚫 Nada en especial'] },
-  { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
-  { id: 4, question: 'Si pudieras comer algo ahora mismo, ¿qué elegirías?', category: 'Gastronomía', options: ['🥞 Un brunch con amigos', '🍷 Una cata de vinos', '👨‍🍳 Cocinar algo creativo', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
-  { id: 5, question: '¿Cómo disfrutarías más tu tiempo libre?', category: 'Ocio Nocturno', options: ['💃 Bailando sin parar', '🕵️‍♂️ Ganando en un escape room', '🕹️ Jugando en un arcade', '🕶️ Viviendo una experiencia de realidad virtual', '🚫 Nada en especial'] },
+interface Question {
+  id: number;
+  question: string;
+  category: string;
+  options: string[];
+}
+
+// Define specific keys for the categories to avoid dynamic property access
+interface CategorySelections {
+  [key: string]: string[]; 
+}
+
+
+const questions: Question[] = [
+  { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
+  { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro o espectáculos en vivo', '🧑‍🎨 Talleres creativos', '🚫 Nada en especial'] },
+  { id: 3, question: '¿Cuál de estas emociones te hace sentir más vivo?', category: 'Deporte y Motor', options: ['⚽ Gritar en un estadio', '🏎️ Sentir la velocidad', '🏆 Competir en un torneo o competición', '🔥 Vivir la adrenalina de una carrera', '🚫 Nada en especial'] },
+  { id: 4, question: '¿Qué tipo de experiencias gastronómicas disfrutas más?', category: 'Gastronomía', options: ['🎤 Un brunch con música en vivo', '🍷 Una cata de vinos', '👨‍🍳 Talleres de cocina', '🍽️ Degustar comida gourmet', '🚫 Nada en especial'] },
+  { id: 5, question: '¿Qué actividades elegirías para pasarlo bien con amigos?', category: 'Ocio Nocturno', options: ['🔫Batallas de láser tag o paintball', '🕵️‍♂️ Escape Rooms o juegos en equipo', '🕹️ Arcades o realidad virtual', '🎉 Fiestas temáticas o discotecas', '🚫 Nada en especial'] },
   { id: 6, question: '¿Cómo describirías tu espíritu aventurero?', category: 'Aventura', options: ['⛰️ Adrenalina pura', '🪂 Amo las alturas', '🌲 Explorar la naturaleza', '💪 Reto físico extremo', '🚫 Nada en especial'] },
 ];
 
-export default function PreferencesFormScreen() {
+// Component for rendering a question option
+const QuestionOption = ({
+  option,
+  index,
+  isSelected,
+  onOptionSelect
+}: {
+  option: string;
+  index: number;
+  isSelected: boolean;
+  onOptionSelect: (option: string) => void;
+}) => (
+  <TouchableOpacity
+    key={index}
+    style={[
+      styles.optionButton, 
+      isSelected ? styles.selectedOption : null
+    ]}
+    onPress={() => {onOptionSelect(option)}}
+  >
+    <Text style={styles.optionText}>{option}</Text>
+  </TouchableOpacity>
+);
+
+export default function PreferencesFormScreen(): React.ReactElement {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [preferences, setPreferences] = useState({});
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
-  const [inputValue, setInputValue] = useState('');
-  const [error, setError] = useState('');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [selectedOptions, setSelectedOptions] = useState<CategorySelections>({});
+  const [error, setError] = useState<string>('');
   const fadeAnim = useState(new Animated.Value(0))[0];
+
+  // Helper function to get the current question safely
+  const getCurrentQuestion = (index: number): Question => {
+    // Validate index is an integer
+    const safeIndex = Math.floor(Number(index));
+    
+    // Ensure index is within bounds of the array
+    if (!Number.isNaN(safeIndex) && safeIndex >= 0 && safeIndex < questions.length) {
+      return questions[safeIndex];
+    }
+    
+    // Default to first question if somehow out of bounds
+    return questions[0];
+  };
+
+  // Helper function to get category selections safely
+  const getCategorySelections = (category: string, selections: CategorySelections): string[] => {
+    switch (category) {
+      case 'Música':
+        return selections.Música ?? [];
+      case 'Cultura y Arte':
+        return selections["Cultura y Arte"] ?? [];
+      case 'Deporte y Motor':
+        return selections["Deporte y Motor"] ?? [];
+      case 'Gastronomía':
+        return selections.Gastronomía ?? [];
+      case 'Ocio Nocturno':
+        return selections["Ocio Nocturno"] ?? [];
+      case 'Aventura':
+        return selections.Aventura ?? [];
+      default:
+        return [];
+    }
+  };
+
+  // Helper function to update selections for a specific category
+  const updateCategorySelections = (
+    category: string, 
+    currentSelections: string[], 
+    option: string
+  ): string[] => {
+    if (option === '🚫 Nada en especial') {
+      return [option];
+    }
+    
+    // Si ya está seleccionado, quitarlo
+    if (currentSelections.includes(option)) {
+      return currentSelections.filter(item => item !== option);
+    }
+    
+    // Si no está seleccionado, añadirlo y quitar opciones neutrales
+    return [
+      ...currentSelections.filter(item => 
+        item !== '🚫 Nada en especial'
+      ), 
+      option
+    ];
+  };
+
+  // Helper function to create a new selections object
+  const createNewSelectedOptions = (
+    category: string,
+    updatedSelections: string[],
+    oldSelections: CategorySelections
+  ): CategorySelections => {
+    const newSelectedOptions: CategorySelections = { ...oldSelections };
+    
+    // Update or add the category
+    switch (category) {
+      case 'Música':
+        newSelectedOptions.Música = updatedSelections;
+        break;
+      case 'Cultura y Arte':
+        newSelectedOptions["Cultura y Arte"] = updatedSelections;
+        break;
+      case 'Deporte y Motor':
+        newSelectedOptions["Deporte y Motor"] = updatedSelections;
+        break;
+      case 'Gastronomía':
+        newSelectedOptions.Gastronomía = updatedSelections;
+        break;
+      case 'Ocio Nocturno':
+        newSelectedOptions["Ocio Nocturno"] = updatedSelections;
+        break;
+      case 'Aventura':
+        newSelectedOptions.Aventura = updatedSelections;
+        break;
+    }
+    
+    return newSelectedOptions;
+  };
 
   useEffect(() => {
     const fetchToken = async () => {
-      const storedToken = await AsyncStorage.getItem('accessToken');
-      if (!storedToken) {
-        Alert.alert('Error', 'No token found. Please log in again.');
+      try {
+        const storedToken = await AsyncStorage.getItem('accessToken');
+        if (!storedToken) {
+          Alert.alert('Error', 'No token found. Please log in again.');
+          router.push('/LoginScreen');
+        } else {
+          setToken(storedToken);
+        }
+      } catch (error) {
+        console.error('Error fetching token:', error);
+        Alert.alert('Error', 'Hubo un problema al recuperar tu sesión');
         router.push('/LoginScreen');
-      } else {
-        setToken(storedToken);
       }
     };
-    fetchToken();
+    
+    void fetchToken();
     fadeIn();
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, router]);
 
   const fadeIn = () => {
     Animated.timing(fadeAnim, {
@@ -46,49 +179,67 @@ export default function PreferencesFormScreen() {
     }).start();
   };
 
+  const isCategorySelected = (): boolean => {
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    const category = currentQuestion.category;
+    const selections = getCategorySelections(category, selectedOptions);
+    return selections.length > 0;
+  };
+
   const handleOptionSelect = (option: string) => {
-    const category = questions[currentQuestionIndex]?.category || '';
-    let updatedSelections = selectedOptions[category] || [];
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    const category = currentQuestion.category;
     
-    if (option === '🚫 Nada en especial' || option === '🚫 Prefiero no responder') {
-      updatedSelections = [option];
-    } else {
-      updatedSelections = updatedSelections.includes(option)
-        ? updatedSelections.filter(item => item !== option)
-        : [...updatedSelections.filter(item => item !== '🚫 Nada en especial' && item !== '🚫 Prefiero no responder'), option];
-    }
+    // Get current selections for this category
+    const currentSelections = getCategorySelections(category, selectedOptions);
     
-    setSelectedOptions((prev) => ({ ...prev, [category]: updatedSelections }));
+    // Update selections for this category
+    const updatedSelections = updateCategorySelections(category, currentSelections, option);
+    
+    // Create new selected options object
+    const newSelectedOptions = createNewSelectedOptions(category, updatedSelections, selectedOptions);
+    
+    setSelectedOptions(newSelectedOptions);
     setError('');
   };
 
   const nextQuestion = () => {
-    const category = questions[currentQuestionIndex].category;
-    if (!selectedOptions[category]?.length) {
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    const category = currentQuestion.category;
+
+    if (!selectedOptions[category].length) {
       setError('Debes seleccionar al menos una opción.');
       return;
     }
-    setPreferences((prev) => ({ ...prev, [category]: selectedOptions[category] || [] }));
-    setInputValue('');
+    
     setError('');
+    
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      submitPreferences();
+      void submitPreferences();
     }
   };
 
+  const prevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setError('');
+    }
+  };
+  
   const submitPreferences = async () => {
     if (!token) return;
   
     try {
+      // Using an explicit mapping approach to avoid bracket notation
       const payload = {
-        music: selectedOptions["Música"] || ["🚫 Nada en especial"],
-        culture: selectedOptions["Cultura y Arte"] || ["🚫 Nada en especial"],
-        sports: selectedOptions["Deporte y Motor"] || ["🚫 Nada en especial"],
-        gastronomy: selectedOptions["Gastronomía"] || ["🚫 Nada en especial"],
-        nightlife: selectedOptions["Ocio Nocturno"] || ["🚫 Nada en especial"],
-        adventure: selectedOptions["Aventura"] || ["🚫 Nada en especial"]
+        music: selectedOptions.Música ?? ["🚫 Nada en especial"],
+        culture: selectedOptions["Cultura y Arte"] ?? ["🚫 Nada en especial"],
+        sports: selectedOptions["Deporte y Motor"] ?? ["🚫 Nada en especial"],
+        gastronomy: selectedOptions.Gastronomía ?? ["🚫 Nada en especial"],
+        nightlife: selectedOptions["Ocio Nocturno"] ?? ["🚫 Nada en especial"],
+        adventure: selectedOptions.Aventura ?? ["🚫 Nada en especial"]
       };
   
       console.log("Datos enviados:", payload);
@@ -102,31 +253,111 @@ export default function PreferencesFormScreen() {
       Alert.alert("¡Listo!", "Tus preferencias han sido guardadas.");
       router.push("/HomeScreen");
     } catch (error) {
+      console.error("Error guardando preferencias:", error);
       Alert.alert("Error", "No se pudieron guardar las preferencias");
     }
   };
   
+  // Render question options - simplified
+  const renderOptions = () => {
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    const category = currentQuestion.category;
+    const categorySelections = getCategorySelections(category, selectedOptions);
+    
+    return currentQuestion.options.map((option, index) => (
+      <QuestionOption
+        key={index}
+        option={option}
+        index={index}
+        isSelected={categorySelections.includes(option)}
+        onOptionSelect={handleOptionSelect}
+      />
+    ));
+  };
+  
+  // Get the question text
+  const getQuestionText = () => {
+    const currentQuestion = getCurrentQuestion(currentQuestionIndex);
+    return currentQuestion.question;
+  };
+
+  const getImageForCategory = (category: string) => {
+    switch (category) {
+      case 'Música':
+        return require('../assets/images/musica.png');
+      case 'Cultura y Arte':
+        return require('../assets/images/cultura.png');
+      case 'Deporte y Motor':
+        return require('../assets/images/deporte.png');
+      case 'Gastronomía':
+        return require('../assets/images/gastronomia.png');
+      case 'Ocio Nocturno':
+        return require('../assets/images/ocionocturno.png');
+      case 'Aventura':
+        return require('../assets/images/aventura.png');
+      default:
+        return null;
+    }
+  };
+  
+  const backgroundScale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(backgroundScale, {
+          toValue: 1.05,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(backgroundScale, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);  
+  
+  
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
-      <Text style={styles.question}>{questions[currentQuestionIndex]?.question || ''}</Text>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-  
-      {questions[currentQuestionIndex]?.options?.map((option, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.optionButton, 
-            selectedOptions[questions[currentQuestionIndex]?.category || '']?.includes(option) && styles.selectedOption
-          ]}
-          onPress={() => handleOptionSelect(option)}
+      {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
+        <>
+          <Animated.Image
+            source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
+            style={[
+              styles.backgroundImage,
+              { transform: [{ scale: backgroundScale }] }
+            ]}
+          />
+
+
+          <Text style={styles.question}>{getQuestionText()}</Text>
+          <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {renderOptions()}
+        </>
+      ) : null}
+
+      <View style={styles.buttonRow}>
+        {currentQuestionIndex > 0 && (
+          <TouchableOpacity style={styles.backButton} onPress={prevQuestion}>
+            <Text style={styles.buttonText}>Atrás</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity 
+          style={[styles.nextButton, !isCategorySelected() && styles.disabledButton]} 
+          onPress={nextQuestion}
+          disabled={!isCategorySelected()}
         >
-          <Text style={styles.optionText}>{option}</Text>
+          <Text style={styles.buttonText}>
+            {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
+          </Text>
         </TouchableOpacity>
-      ))}
-  
-      <TouchableOpacity style={styles.nextButton} onPress={nextQuestion}>
-        <Text style={styles.buttonText}>Siguiente</Text>
-      </TouchableOpacity>
+      </View>
+
     </Animated.View>
   );
 }
@@ -137,7 +368,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#FFF5FC',
   },
   question: {
     fontSize: 22,
@@ -145,25 +376,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  input: {
-    width: '80%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginVertical: 10,
-  },
   optionButton: {
-    backgroundColor: '#007BFF',
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: '#4098F5',
+    padding: 14,
+    borderRadius: 12,
     marginVertical: 8,
-    width: '80%',
+    width: '85%',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#B3D9FF',
   },
   selectedOption: {
-    backgroundColor: '#004AAD',
-  },
+    backgroundColor: '#E91E63',
+    borderColor: '#FFEAF4',
+  },  
   optionText: {
     color: '#fff',
     fontSize: 16,
@@ -186,4 +412,39 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 10,
   },
+  helperText: {
+    fontSize: 18,
+    color: '#555',
+    marginBottom: 10,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    paddingHorizontal: 20,
+ },
+ backgroundImage: {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  resizeMode: 'cover',
+  opacity: 0.09,
+  zIndex: -1,
+ },
+ backButton: {
+  backgroundColor: '#333',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 20,
+},
+buttonRow: {
+  flexDirection: 'row',
+  justifyContent: 'center',
+  gap: 12,
+  marginTop: 20,
+},
+disabledButton: {
+  backgroundColor: '#999',
+  opacity: 0.7,
+},
+
 });
