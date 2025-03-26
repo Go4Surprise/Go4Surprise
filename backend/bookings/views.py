@@ -1,6 +1,8 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
+from go4surprise import settings
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -13,6 +15,8 @@ from drf_yasg import openapi
 from users.models import Usuario
 from bookings.models import Booking, Experience
 from bookings.serializers import CrearReservaSerializer, ReservaSerializer, AdminBookingUpdateSerializer, AdminBookingSerializer
+from django.views.decorators.csrf import csrf_exempt
+import stripe
 
 @swagger_auto_schema(
     method='post',
@@ -70,7 +74,7 @@ def crear_reserva(request):
     tags=['Booking']
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def obtener_reserva(request, id):
     """
     Obtiene una reserva por su ID
@@ -259,3 +263,66 @@ def admin_booking_update(request, pk):
         serializer.save()
         return Response(AdminBookingSerializer(booking).data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@api_view(['POST'])
+@permission_classes([])
+def iniciar_pago(request, booking_id):
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': f"Reserva {booking.experience.location}",
+                    },
+                    'unit_amount': int(booking.total_price * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url="http://localhost:8081/HomeScreen",
+            cancel_url="http://localhost:8081/BookingDetails",
+            metadata={
+                'booking_id': str(booking.id),
+            },
+        )
+
+        return Response({'checkout_url': session.url}, status=status.HTTP_200_OK)
+
+    except Booking.DoesNotExist:
+        return Response({'error': 'Reserva no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            booking_id = session.get('metadata', {}).get('booking_id')
+
+            if booking_id:
+                booking = Booking.objects.get(id=booking_id)
+                booking.status = "CONFIRMED"
+                booking.save()
+
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({'error': 'Webhook signature verification failed'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'status': 'success'}, status=200)
