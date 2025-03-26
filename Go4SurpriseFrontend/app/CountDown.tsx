@@ -8,6 +8,7 @@ import { router } from "expo-router";
 
 interface BookingResponse {
     experience_date: string;
+    status: string;
     // Add other booking properties here
     id: number;
     // Add any other fields your booking object has
@@ -47,7 +48,9 @@ export default function CountDown() {
                   .map((booking: BookingResponse) => ({
                     ...booking,
                     experience_date: parseISO(booking.experience_date),
+                    status: booking.status.toUpperCase(),
                   }))
+                  .filter((booking: Booking) => booking.status !== "CANCELLED")
                   .filter((booking: Booking) => booking.experience_date > new Date())
                   .sort((a: Booking, b: Booking) => a.experience_date.getTime() - b.experience_date.getTime());
                 
