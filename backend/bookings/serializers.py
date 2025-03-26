@@ -6,6 +6,7 @@ from users.models import Usuario
 from .models import Booking
 from django.utils import timezone
 from experiences.serializers import ExperienceSerializer
+from datetime import datetime, timedelta
 
 class CrearReservaSerializer(serializers.ModelSerializer):
     participants= serializers.IntegerField(required=True)
@@ -123,13 +124,79 @@ class CrearReservaSerializer(serializers.ModelSerializer):
             return Booking.objects.create(**validated_data)
 
 class ReservaSerializer(serializers.ModelSerializer):
-    experience = ExperienceSerializer()
+    experience = ExperienceSerializer()  # Serializa la experiencia completa
+    experience_hint = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id', 'participants', 'total_price', 'experience_date', 'cancellable', 
+            'status', 'user', 'experience', 'experience_hint'
+        ]
+
+    def get_experience_hint(self, obj):
+        # Devuelve la pista de la experiencia si faltan 48 horas o menos para la fecha de la experiencia.
+        now = timezone.now().date()
+
+        if obj.experience_date - now <= timedelta(days=2):
+            return obj.experience.hint or "No hay ninguna pista para esta experiencia."
+    
+        return None
+    
+
+class AdminBookingSerializer(serializers.ModelSerializer):
+    experience = ExperienceSerializer()  # Incluir el serializador de la experiencia
 
     class Meta:
         model = Booking
         fields = '__all__'
 
 
+class ExperienceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experience
+        fields = ['id', 'name', 'description', 'hint']  # Aquí puedes agregar los campos que necesitas de la experiencia
+
+
+class AdminBookingUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating Booking model from admin panel"""
+
+    participants = serializers.IntegerField(required=False)
+    price = serializers.FloatField(write_only=True, required=False)
+    booking_date = serializers.DateField(write_only=True, required=False)
+    experience_date = serializers.DateField(required=False)
+    cancellable = serializers.BooleanField(required=False)
+    status = serializers.ChoiceField(
+        choices=['PENDING', 'CANCELLED', 'CONFIRMED'],
+        required=False
+    )
+    hint = serializers.CharField(required=False, allow_blank=True)
+    duracion = serializers.IntegerField(required=False)
+    localizacion = serializers.CharField(required=False)
+    categoria = serializers.ChoiceField(choices=ExperienceCategory.choices, required=False)
+
+    class Meta:
+        model = Booking
+        fields = ['participants', 'price', 'booking_date', 'experience_date', 'cancellable', 'status', 'hint', 'duracion',
+                  'localizacion', 'categoria']
+
+    def validate(self, data):
+        if len(data) == 0:
+            raise serializers.ValidationError("No hay ningún campo para actualizar.")
+        return data
+
+    def update(self, instance, validated_data):
+        hint = validated_data.pop('hint', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        if hint is not None and instance.experience:
+            instance.experience.hint = hint
+            instance.experience.save()
+
+        instance.save()
+        return instance
     def get_experience(self, obj):
         return {"name": obj.experience.title}
 
