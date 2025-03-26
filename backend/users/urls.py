@@ -1,13 +1,17 @@
 from django.urls import include, path
 from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_user_update
-from .views import password_reset, register_user, login_user, update_preferences, get_usuario_id, check_username_exists, password_reset_confirm
-from .views import get_user_info, update_user_profile, delete_user_account, change_password, GoogleLogin
+from .views import (
+    password_reset, register_user, login_user, update_preferences, get_usuario_id, 
+    check_username_exists, password_reset_confirm, verify_email,
+    get_user_info, update_user_profile, delete_user_account, change_password, GoogleLogin
+)
 from django.contrib.auth.views import PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('register/', register_user, name='register'),
     path('login/', login_user, name='login'),
+    path('verify-email/', verify_email, name='verify_email'),  # Nuevo endpoint para verificación
     path('preferences/', update_preferences, name='update-preferences'),
     path('get-usuario-id/', get_usuario_id, name='get-usuario-id'),
     path('get_user_info/', get_user_info, name='get-user-info'),

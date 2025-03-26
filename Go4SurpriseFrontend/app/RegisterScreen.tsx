@@ -145,12 +145,13 @@ export default function RegisterScreen() {
             // Guardar tokens y redirigir automáticamente
             await AsyncStorage.setItem('accessToken', access);
             await AsyncStorage.setItem('refreshToken', refresh);
-            await AsyncStorage.setItem('userId', user_id.toString());
+            await AsyncStorage.setItem('userId', user_id);
             await AsyncStorage.setItem('id', id);
     
             Alert.alert("¡Bienvenido!", "Tu cuenta ha sido creada con éxito.");
-            router.push('/IntroPreferencesScreen');
+            router.push('/LoginScreen');
         } catch (error) {
+            console.log(error);
             if (axios.isAxiosError(error)) {
                 const serverError = error.response?.data;
                 if (serverError?.username) {

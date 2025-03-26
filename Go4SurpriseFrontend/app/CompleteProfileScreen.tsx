@@ -93,7 +93,7 @@ export default function CompleteProfileScreen() {
       // Success: Navigate and clear errors
       setBirthdateError('');
       setPhoneError('');
-      router.push('/PreferencesFormScreen');
+      router.push('/IntroPreferencesScreen');
     } catch (error) {
       console.error('Error updating profile:', error);
       if (axios.isAxiosError(error)) {

@@ -20,6 +20,7 @@ export default function RootLayout() {
         <Stack.Screen name="IntroPreferencesScreen" options={{ headerShown: false }} />
         <Stack.Screen name="CondicionesUso" options={{ headerShown: false }} />
         <Stack.Screen name="PoliticaPrivacidad" options={{ headerShown: false }} />
+        <Stack.Screen name="CompleteProfileScreen" options={{ headerShown: false }} />
       </Stack>
       {Platform.OS === 'web' && <div id="root-portal" style={{ zIndex: 99999 }} />}
     </>
