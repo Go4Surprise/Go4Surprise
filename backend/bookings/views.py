@@ -181,3 +181,53 @@ def obtener_reservas_pasadas_usuario(request, user_id):
             {"error": f"Error del servidor: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@swagger_auto_schema(
+    method='put',  # Changed from 'patch' to 'put'
+    operation_id="cancel_booking",
+    operation_description="Cancelar una reserva",
+    manual_parameters=[
+        openapi.Parameter(
+            'id', 
+            openapi.IN_PATH, 
+            description="ID de la reserva (UUID)", 
+            type=openapi.TYPE_STRING,
+            format='uuid',
+            required=True
+        ),
+    ],
+    responses={
+        200: "OK",
+        404: "Not Found",
+        500: "Internal Server Error"
+    },
+    tags=['Booking']
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def cancelar_reserva(request, id):
+    """
+    Cambia el estado de una reserva a 'cancelled'
+    """
+    try:
+        print(f"Received request to cancel booking with ID: {id}")  # Debugging log
+        reserva = get_object_or_404(Booking, id=id)
+        if reserva.status != "cancelled":
+            reserva.status = "cancelled"
+            reserva.save()
+            print(f"Booking {id} status updated to 'cancelled'")  # Debugging log
+            return Response({"message": "Reserva cancelada exitosamente"}, status=status.HTTP_200_OK)
+        print(f"Booking {id} is already cancelled")  # Debugging log
+        return Response({"message": "La reserva ya está cancelada"}, status=status.HTTP_400_BAD_REQUEST)
+    except Http404:
+        print(f"Booking with ID {id} not found")  # Debugging log
+        return Response(
+            {"error": "Reserva no encontrada"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        print(f"Error while cancelling booking {id}: {str(e)}")  # Debugging log
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
