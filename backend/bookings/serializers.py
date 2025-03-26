@@ -170,7 +170,7 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
     hint = serializers.CharField(required=False, allow_blank=True)
     duracion = serializers.IntegerField(required=False)
     localizacion = serializers.CharField(required=False)
-    categoria = serializers.ChoiceField(choices=Experience.ExperienceCategory.choices, required=False)
+    categoria = serializers.ChoiceField(choices=ExperienceCategory.choices, required=False)
 
     class Meta:
         model = Booking

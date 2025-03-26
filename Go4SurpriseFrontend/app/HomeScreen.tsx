@@ -52,6 +52,7 @@ export default function HomeScreen() {
     };
   
     fetchBookings();
+    checkAdminStatus(); // ✅ Llama a la función para verificar si el usuario es administrador
   }, []);
   
 

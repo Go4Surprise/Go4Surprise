@@ -28,10 +28,10 @@ const AdminDashboard = ({ router }: AdminDashboardProps) => {
         {
             id: 'reservations',
             title: 'Gestión de Reservas',
-            description: 'Administra las reservas, visualiza detalles y gestiona estados. No Implementado.',
+            description: 'Administra las reservas, visualiza detalles y gestiona estados.',
             icon: 'calendar',
             color: '#FF6B00',
-            onPress: () => null
+            onPress: () => router.push('/AdminBookingsPanel'),
         }
     ];
 
