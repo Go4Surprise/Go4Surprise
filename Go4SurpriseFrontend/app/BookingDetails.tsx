@@ -54,7 +54,7 @@ const BookingDetailsScreen = () => {
       const { checkout_url } = response.data;
   
       if (checkout_url) {
-        Linking.openURL(checkout_url); // Abre la URL de Stripe en el navegador
+        window.location.href = checkout_url; // Abre la URL de Stripe en el navegador
       } else {
         console.error("No se recibió una URL de pago.");
       }

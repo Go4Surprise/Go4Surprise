@@ -272,6 +272,8 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def iniciar_pago(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id)
+
+        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -286,8 +288,8 @@ def iniciar_pago(request, booking_id):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url="http://localhost:8081/HomeScreen",
-            cancel_url="http://localhost:8081/BookingDetails",
+            success_url=f"{base_url}/HomeScreen",
+            cancel_url=f"{base_url}/BookingDetails",
             metadata={
                 'booking_id': str(booking.id),
             },
