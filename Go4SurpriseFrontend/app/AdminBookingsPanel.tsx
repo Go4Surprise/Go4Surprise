@@ -51,6 +51,12 @@ const AdminBookings = () => {
     const fetchBookings = async () => {
         try {
             const token = await AsyncStorage.getItem('accessToken');
+            if (!token) {
+                Alert.alert('Error', 'No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login if no token
+                return;
+            }
+
             const response = await axios.get(`${BASE_URL}/bookings/admin/list/`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -61,8 +67,13 @@ const AdminBookings = () => {
                 new Date(b.experience_date).getTime() - new Date(a.experience_date).getTime()
             );
             setBookings(sortedBookings);
-        } catch (error) {
-            setError('Error al cargar las reservas. Por favor, inténtalo de nuevo.');
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login on 401
+            } else {
+                setError('Error al cargar las reservas. Por favor, inténtalo de nuevo.');
+            }
             console.error('Error fetching bookings:', error);
         } finally {
             setLoading(false);
@@ -111,6 +122,12 @@ const AdminBookings = () => {
             styles.card,
             isPastDate ? styles.cardPastDate : null,
             item.status === 'CANCELLED' ? styles.cardCancelled : null,
+            item.status === 'CONFIRMED' ? styles.cardConfirmed : null,
+        ];
+        const statusTextStyle = [
+            styles.statusText,
+            item.status === 'CANCELLED' ? styles.statusCancelled : null,
+            item.status === 'CONFIRMED' ? styles.statusConfirmed : null,
         ];
 
         return (
@@ -119,6 +136,7 @@ const AdminBookings = () => {
                     <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
                     <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
+                    <Text style={statusTextStyle}>Estado: {item.status}</Text>
                     <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
                         <Ionicons name="trash" size={16} color="white" />
                         <Text style={styles.deleteButtonText}>Eliminar</Text>
@@ -215,10 +233,25 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFE4E1', // Light red for canceled bookings
         borderColor: '#FF6B6B', // Red border for canceled bookings
     },
+    cardConfirmed: {
+        backgroundColor: '#DFF2BF', // Light green for confirmed bookings
+        borderColor: '#4CAF50', // Dark green border for confirmed bookings
+    },
     label: {
         fontSize: 16,
         marginBottom: 6,
         color: '#333',
+    },
+    statusText: {
+        fontSize: 16,
+        marginBottom: 6,
+        color: '#333',
+    },
+    statusCancelled: {
+        color: '#FF6B6B', // Red text for canceled bookings
+    },
+    statusConfirmed: {
+        color: '#4CAF50', // Green text for confirmed bookings
     },
     deleteButton: {
         backgroundColor: '#dc3545',

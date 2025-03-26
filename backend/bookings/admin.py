@@ -77,19 +77,31 @@ def admin_booking_detail(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == 'PUT':
-        experience_id = request.data.get('experience_id')
-        hint = request.data.get('hint')
+        data = request.data
+        experience_data = data.get('experience', None)
 
-        try:
-            experience = Experience.objects.get(id=experience_id)
-            booking.experience = experience
-            if hint:
-                booking.experience.hint = hint
-                booking.experience.save()
-            booking.save()
-            return Response(AdminBookingSerializer(booking, context={'request': request}).data)
-        except Experience.DoesNotExist:
-            return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        if experience_data and isinstance(experience_data, dict):
+            experience_id = experience_data.get('id', None)
+            if experience_id:
+                try:
+                    experience = Experience.objects.get(id=experience_id)
+                    booking.experience = experience
+                except Experience.DoesNotExist:
+                    return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+            for attr, value in experience_data.items():
+                if hasattr(booking.experience, attr):
+                    setattr(booking.experience, attr, value)
+            booking.experience.save()
+
+        for field in ['participants', 'price', 'total_price', 'booking_date', 'experience_date', 'cancellable', 'status']:
+            if field in data:
+                setattr(booking, field, data[field])
+
+        booking.save()
+        booking.refresh_from_db()  # Ensure the updated experience is reflected in the booking
+        serializer = AdminBookingSerializer(booking, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(
@@ -115,14 +127,26 @@ def admin_booking_update(request, pk):
     except Booking.DoesNotExist:
         return Response({"error": "Reserva no encontrada"}, status=status.HTTP_404_NOT_FOUND)
     
-    hint = request.data.get('hint', None)
+    experience_data = request.data.get('experience', None)  # Obtener datos de la experiencia
+    if experience_data and isinstance(experience_data, dict):
+        experience_id = experience_data.get('id', None)
+        if experience_id:
+            try:
+                experience = Experience.objects.get(id=experience_id)
+                booking.experience = experience  # Asignar la experiencia a la reserva
+            except Experience.DoesNotExist:
+                return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Actualizar los campos de la experiencia
+        for attr, value in experience_data.items():
+            if hasattr(booking.experience, attr):
+                setattr(booking.experience, attr, value)
+        booking.experience.save()  # Guardar los cambios en la experiencia
+
+    # Actualizar otros campos de la reserva
     serializer = AdminBookingUpdateSerializer(booking, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        if hint is not None:
-            booking.experience.hint = hint
-            booking.experience.save()
-        
         return Response(AdminBookingSerializer(booking, context={'request': request}).data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

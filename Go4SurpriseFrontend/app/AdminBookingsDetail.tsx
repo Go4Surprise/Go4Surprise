@@ -35,16 +35,30 @@ const AdminBookingsDetail = () => {
     const [experienceDuration, setExperienceDuration] = useState<number | null>(null);
     const [experienceCategory, setExperienceCategory] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
+    type Experience = {
+        id: string;
+        title: string;
+    };
+
+    const [experiences, setExperiences] = useState<Experience[]>([]); // Lista de experiencias
+    const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null); // Experiencia seleccionada
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
         fetchBookingDetail();
+        fetchExperiences(); // Cargar experiencias disponibles
     }, []);
 
     const fetchBookingDetail = async () => {
         try {
             const token = await AsyncStorage.getItem('accessToken');
+            if (!token) {
+                Alert.alert('Error', 'No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login if no token
+                return;
+            }
+
             const response = await axios.get(`${BASE_URL}/bookings/admin/detail/${id}/`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -56,31 +70,64 @@ const AdminBookingsDetail = () => {
             setExperienceDate(response.data.experience_date);
             setParticipants(response.data.participants);
             setTotalPrice(response.data.total_price);
-            setExperienceLocation(response.data.experience.location);
-            setExperienceDuration(response.data.experience.duration);
-            setExperienceCategory(response.data.experience.category);
-            setHint(response.data.experience.hint || '');
-        } catch (error) {
-            setError('Error al cargar los detalles de la reserva. Por favor, inténtalo de nuevo.');
+            setExperienceLocation(response.data.experience?.location || '');
+            setExperienceDuration(response.data.experience?.duration || 0);
+            setExperienceCategory(response.data.experience?.category || '');
+            setHint(response.data.experience?.hint || '');
+            setSelectedExperienceId(response.data.experience?.id || null); // Ensure experience ID is set
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login on 401
+            } else {
+                setError('Error al cargar los detalles de la reserva. Por favor, inténtalo de nuevo.');
+            }
             console.error('Error fetching booking detail:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    const fetchExperiences = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const response = await axios.get(`${BASE_URL}/experiences/list/`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            setExperiences(response.data);
+        } catch (error) {
+            console.error('Error fetching experiences:', error);
+        }
+    };
+
     const updateBookingStatus = async () => {
-        if (!selectedStatus || !experienceDate || !participants || !totalPrice) {
+        if (!selectedStatus || !experienceDate || !participants || !totalPrice || !selectedExperienceId) {
             Alert.alert('Error', 'Por favor asegúrate de completar todos los campos.');
             return;
         }
 
         try {
             const token = await AsyncStorage.getItem('accessToken');
+            if (!token) {
+                Alert.alert('Error', 'No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login if no token
+                return;
+            }
+
             await axios.put(
                 `${BASE_URL}/bookings/admin/update/${id}/`,
                 {
                     status: selectedStatus,
-                    hint: hint || "", // Enviar el hint vacío si no se ha ingresado nada
+                    experience: {
+                        id: selectedExperienceId,
+                        location: experienceLocation,
+                        duration: experienceDuration,
+                        category: experienceCategory,
+                        hint: hint || "",
+                    },
                     experience_date: experienceDate,
                     participants: participants,
                     total_price: totalPrice,
@@ -96,9 +143,14 @@ const AdminBookingsDetail = () => {
                 pathname: '/AdminBookingsPanel',
                 params: { successMessage: 'La reserva se ha actualizado correctamente.' },
             });
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo actualizar el estado de la reserva.');
-            console.error('Error updating booking status:', error);
+        } catch (error: any) {
+            if (error.response?.status === 401) {
+                Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                router.replace('/LoginScreen'); // Redirect to login on 401
+            } else {
+                Alert.alert('Error', 'No se pudo actualizar la reserva.');
+            }
+            console.error('Error updating booking:', error);
         }
     };
 
@@ -140,11 +192,25 @@ const AdminBookingsDetail = () => {
                             onValueChange={(itemValue) => {
                                 setSelectedStatus(itemValue);
                             }}
-                            style={styles.inlinePicker}
+                            style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
                         >
                             <Picker.Item label="Pendiente" value="PENDING" />
                             <Picker.Item label="Confirmada" value="CONFIRMED" />
                             <Picker.Item label="Cancelada" value="CANCELLED" />
+                        </Picker>
+                    </View>
+
+                    {/* Mover el desplegable de experiencias al lado del título */}
+                    <View style={styles.row}>
+                        <Text style={styles.label}><Ionicons name="briefcase" size={16} color="#1877F2" /> Experiencia:</Text>
+                        <Picker
+                            selectedValue={selectedExperienceId}
+                            onValueChange={(itemValue) => setSelectedExperienceId(itemValue)}
+                            style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
+                        >
+                            {experiences.map((exp) => (
+                                <Picker.Item key={exp.id} label={exp.title} value={exp.id} />
+                            ))}
                         </Picker>
                     </View>
 
@@ -160,9 +226,9 @@ const AdminBookingsDetail = () => {
                         placeholder="Ingrese una pista para la experiencia..."
                     />
 
-                    {/* Botón para actualizar */}
+                    {/* Botón para actualizar con más espacio */}
                     <TouchableOpacity
-                        style={styles.updateButton}
+                        style={[styles.updateButton, styles.updateButtonSpacing]}
                         onPress={updateBookingStatus}
                     >
                         <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
@@ -249,6 +315,22 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 10,
         backgroundColor: 'white',
+    },
+    updateButtonSpacing: {
+        marginTop: 20, // Agregar espacio adicional entre el botón y las propiedades
+    },
+    transparentPicker: {
+        height: 40,
+        backgroundColor: 'white', // Fondo blanco como los inputs
+        borderColor: '#ddd', // Borde gris claro
+        borderWidth: 1,
+        borderRadius: 6,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+    },
+    widePicker: {
+        flex: 1, // Hacer que el Picker ocupe más espacio horizontal
+        marginLeft: 15, // Agregar espacio entre el título y el Picker
     },
 });
 

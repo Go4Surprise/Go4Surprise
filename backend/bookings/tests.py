@@ -139,3 +139,10 @@ class BookingTestCase(TestCase):
         url = reverse('obtener_reservas_pasadas_usuario', kwargs={'user_id': self.usuario.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_obtener_reserva_con_experiencia(self):
+        url = reverse('obtener_reserva', kwargs={'id': self.booking.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('experience', response.data)  # Verifica que el campo 'experience' está presente
+        self.assertIn('title', response.data['experience'])  # Verifica que los detalles de la experiencia están presentes

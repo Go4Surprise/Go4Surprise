@@ -5,14 +5,14 @@ from rest_framework.decorators import api_view, parser_classes, permission_class
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.models import Usuario
-from bookings.models import Booking
-from bookings.serializers import CrearReservaSerializer, ReservaSerializer
+from bookings.models import Booking, Experience
+from bookings.serializers import CrearReservaSerializer, ReservaSerializer, AdminBookingUpdateSerializer, AdminBookingSerializer
 
 @swagger_auto_schema(
     method='post',
@@ -76,9 +76,9 @@ def obtener_reserva(request, id):
     Obtiene una reserva por su ID
     """
     try:
-      reserva_obj = get_object_or_404(Booking, id=id)
-      serializer = ReservaSerializer(reserva_obj)
-      return Response(serializer.data, status=status.HTTP_200_OK)
+        reserva_obj = get_object_or_404(Booking, id=id)
+        serializer = ReservaSerializer(reserva_obj)  # Usa el serializador actualizado
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Http404:
         return Response(
             {"error": "Reserva no encontrada"},
@@ -234,3 +234,28 @@ def actualizar_estado_reserva(request, id):
             {"error": f"Error del servidor: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def admin_booking_update(request, pk):
+    """
+    Update a booking (admin only)
+    """
+    try:
+        booking = Booking.objects.get(pk=pk)
+    except Booking.DoesNotExist:
+        return Response({"error": "Reserva no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    experience_id = request.data.get('experience_id', None)
+    if experience_id:
+        try:
+            experience = Experience.objects.get(id=experience_id)
+            booking.experience = experience
+        except Experience.DoesNotExist:
+            return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = AdminBookingUpdateSerializer(booking, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(AdminBookingSerializer(booking).data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
