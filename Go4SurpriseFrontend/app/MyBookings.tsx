@@ -29,6 +29,7 @@ interface Reserva {
   cancellable: boolean;
   time_preference: string;
   city: string;
+  experience_hint: string;
 }
 
 const MyBookings = () => {
@@ -126,79 +127,89 @@ const MyBookings = () => {
     }
 };
 
-  const renderItem = ({ item }: { item: Reserva }) => {
-    const timePreferenceMap: { [key: string]: string } = {
-      MORNING: "Mañana",
-      AFTERNOON: "Tarde",
-      EVENING: "Noche",
-    };
-
-    const isCancelled = item.status === "cancelled";
-
-    return (
-      <View
-        style={[
-          styles.card,
-          isCancelled && styles.cancelledCard, // Apply gray tone and reduced opacity for canceled bookings
-        ]}
-      >
-        <Text style={styles.label}>
-          <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
-          {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
-        </Text>
-
-        <Text style={styles.label}>
-          <Ionicons name="people" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Participantes:</Text> {item.participants}
-        </Text>
-
-        <Text style={styles.label}>
-          <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
-        </Text>
-
-        <Text style={styles.label}>
-          <Ionicons name="time" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
-          {timePreferenceMap[item.time_preference] || item.time_preference}
-        </Text>
-
-        <Text style={styles.label}>
-          <Ionicons name="location" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Ciudad:</Text> {item.city}
-        </Text>
-
-        {!isCancelled && item.cancellable && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => {
-              setSelectedBookingId(item.id);
-              setModalVisible(true);
-            }}
-          >
-            <Ionicons name="close-circle" size={16} color="white" />
-            <Text style={styles.cancelButtonText}>Cancelar</Text>
-          </TouchableOpacity>
-        )}
-
-        {isBefore(
-          item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
-          new Date()
-        ) && (
-          <TouchableOpacity
-            style={styles.reviewButton}
-            onPress={() => {
-              console.log("Dejar reseña", item.id);
-            }}
-          >
-            <Ionicons name="star" size={16} color="white" />
-            <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
+const renderItem = ({ item }: { item: Reserva }) => {
+  const timePreferenceMap: { [key: string]: string } = {
+    MORNING: "Mañana",
+    AFTERNOON: "Tarde",
+    EVENING: "Noche",
   };
+
+      {item.experience_hint && (  // Solo mostramos la pista si existe
+        <Text style={styles.label}>
+          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
+          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
+        </Text>
+      
+      )}
+
+  const isCancelled = item.status === "cancelled";
+  const isConfirmed = item.status === "CONFIRMED";
+
+  return (
+    <View
+      style={[
+        styles.card,
+        isCancelled && styles.cancelledCard, // Apply gray tone and reduced opacity for canceled bookings
+        isConfirmed && styles.confirmedCard, // Apply green tone and reduced opacity for confirmed bookings
+      ]}
+    >
+      <Text style={styles.label}>
+        <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
+        {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="people" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Participantes:</Text> {item.participants}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="time" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
+        {timePreferenceMap[item.time_preference] || item.time_preference}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="location" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Ciudad:</Text> {item.city}
+      </Text>
+
+      {!isCancelled && item.cancellable && (
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => {
+            setSelectedBookingId(item.id);
+            setModalVisible(true);
+          }}
+        >
+          <Ionicons name="close-circle" size={16} color="white" />
+          <Text style={styles.cancelButtonText}>Cancelar</Text>
+        </TouchableOpacity>
+      )}
+
+      {isBefore(
+        item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
+        new Date()
+      ) && (
+        <TouchableOpacity
+          style={styles.reviewButton}
+          onPress={() => {
+            console.log("Dejar reseña", item.id);
+          }}
+        >
+          <Ionicons name="star" size={16} color="white" />
+          <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
 
   if (loading) return <ActivityIndicator style={styles.loader} size="large" color="#1877F2" />;
   if (error) return <Text style={styles.errorText}>{error}</Text>;
@@ -347,6 +358,9 @@ const styles = StyleSheet.create({
   cancelledCard: {
     backgroundColor: "#d3d3d3", // Light gray background
     opacity: 0.6, // Reduced opacity
+  },
+  confirmedCard: {
+    backgroundColor: "#d4edda", // Light green background
   },
   modalOverlay: {
     flex: 1,

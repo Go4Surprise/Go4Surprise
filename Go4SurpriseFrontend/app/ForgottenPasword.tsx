@@ -64,7 +64,7 @@ export default function ForgottenPassword() {
                     <Text style={styles.buttonText}>Enviar enlace</Text>
                 </TouchableOpacity>
 
-                <Text style={styles.loginText} onPress={() => router.push('/')}>
+                <Text style={styles.loginText} onPress={() => router.push('/LoginScreen')}>
                     ¿Ya la recordaste? <Text style={styles.loginLink}>Inicia sesión</Text>
                 </Text>
             </View>

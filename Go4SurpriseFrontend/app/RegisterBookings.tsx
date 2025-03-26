@@ -8,6 +8,7 @@ import {
 import axios from "axios";
 import { ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from '../constants/apiUrl';
 import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
 
@@ -356,13 +357,20 @@ export default function RegisterBooking() {
         throw new Error("No se encontró un token de autenticación.");
       }
       
-      await axios.post(
+      const response = await axios.post(
         `${BASE_URL}/bookings/crear-reserva/`, 
         data, 
         { headers: { Authorization: `Bearer ${token}` }}
       );
       
-      router.push("/HomeScreen");
+      // Obtén el bookingId de la respuesta
+      const bookingId = response.data.id;
+      console.log("BookingId:", bookingId);
+
+      // Redirige a la página de detalles de la reserva pasando el bookingId
+      //navigation.navigate("BookingDetailsScreen", { bookingId });
+      router.push({ pathname: "/BookingDetails", params: { bookingId } });
+      
     } catch (error: any) {
       console.error("Error:", error.response ? error.response.data : error.message);
 

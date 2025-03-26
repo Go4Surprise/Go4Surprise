@@ -34,8 +34,9 @@ class Booking(models.Model):
             ('CONFIRMED', 'Confirmada'),
         ),
         default='PENDING',
-        help_text="Estado de la reserva. Comienza en 'PENDING' y se actualiza según se asigne la experiencia."
+        help_text="Estado de la reserva. Comienza en 'PENDING' y puede ser modificado por el administrador una vez se asigne la experiencia."
     )
 
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='usuario')
     experience = models.ForeignKey(Experience, on_delete=models.CASCADE, related_name='reservas')
+

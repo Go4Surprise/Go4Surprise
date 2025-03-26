@@ -1,18 +1,22 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
+from go4surprise import settings
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from users.models import Usuario
-from bookings.models import Booking
-from bookings.serializers import CrearReservaSerializer, ReservaSerializer
+from bookings.models import Booking, Experience
+from bookings.serializers import CrearReservaSerializer, ReservaSerializer, AdminBookingUpdateSerializer, AdminBookingSerializer
+from django.views.decorators.csrf import csrf_exempt
+import stripe
 
 @swagger_auto_schema(
     method='post',
@@ -70,15 +74,15 @@ def crear_reserva(request):
     tags=['Booking']
 )
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def obtener_reserva(request, id):
     """
     Obtiene una reserva por su ID
     """
     try:
-      reserva_obj = get_object_or_404(Booking, id=id)
-      serializer = ReservaSerializer(reserva_obj)
-      return Response(serializer.data, status=status.HTTP_200_OK)
+        reserva_obj = get_object_or_404(Booking, id=id)
+        serializer = ReservaSerializer(reserva_obj)  # Usa el serializador actualizado
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Http404:
         return Response(
             {"error": "Reserva no encontrada"},
@@ -115,7 +119,7 @@ def obtener_reserva(request, id):
 @permission_classes([IsAuthenticated])
 def obtener_reservas_usuario(request, user_id):
     """
-    Obtiene una reserva por su ID
+    Obtiene las reservas de un usuario
     """
     try:
       usuario = get_object_or_404(Usuario, id=user_id)
@@ -182,8 +186,58 @@ def obtener_reservas_pasadas_usuario(request, user_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def admin_booking_update(request, pk):
+    """
+    Update a booking (admin only)
+    """
+    try:
+        booking = Booking.objects.get(pk=pk)
+    except Booking.DoesNotExist:
+        return Response({"error": "Reserva no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    experience_id = request.data.get('experience_id', None)
+    if experience_id:
+        try:
+            experience = Experience.objects.get(id=experience_id)
+            booking.experience = experience
+        except Experience.DoesNotExist:
+            return Response({"error": "Experiencia no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = AdminBookingUpdateSerializer(booking, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(AdminBookingSerializer(booking).data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@api_view(['POST'])
+@permission_classes([])
+def iniciar_pago(request, booking_id):
+    try:
+        booking = get_object_or_404(Booking, id=booking_id)
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            booking_id = session.get('metadata', {}).get('booking_id')
+
+            if booking_id:
+                booking = Booking.objects.get(id=booking_id)
+                booking.status = "CONFIRMED"
+                booking.save()
+
+    except stripe.error.SignatureVerificationError:
+        return JsonResponse({'error': 'Webhook signature verification failed'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'status': 'success'}, status=200)
+
 @swagger_auto_schema(
-    method='put',  # Changed from 'patch' to 'put'
+method='put',  # Changed from 'patch' to 'put'
     operation_id="cancel_booking",
     operation_description="Cancelar una reserva",
     manual_parameters=[
@@ -203,6 +257,7 @@ def obtener_reservas_pasadas_usuario(request, user_id):
     },
     tags=['Booking']
 )
+
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def cancelar_reserva(request, id):
@@ -228,6 +283,6 @@ def cancelar_reserva(request, id):
     except Exception as e:
         print(f"Error while cancelling booking {id}: {str(e)}")  # Debugging log
         return Response(
-            {"error": f"Error del servidor: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    {"error": f"Error del servidor: {str(e)}"},
+    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

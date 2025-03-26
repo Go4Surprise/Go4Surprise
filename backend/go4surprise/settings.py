@@ -38,7 +38,7 @@ if SECRET_KEY is None:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "localhost:8081"]
+ALLOWED_HOSTS = ['*']
 
 APPENGINE_URL = os.getenv('APPENGINE_URL')
 if APPENGINE_URL:
@@ -272,3 +272,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Use environment variables in production!
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Use environment variables in production!
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+STRIPE_SECRET_KEY = 'sk_test_51QPNbqFSJFG8C7sOxyEAUk2v9hbyiZuFDJPpqQdATQ1DhWZM58Z1eD1qzReX1HpmQiNjWHKWugPeeyv51yGRoHUE003juwGGeN'
+STRIPE_PUBLIC_KEY = 'pk_test_51QPNbqFSJFG8C7sO5n4Ooe1Uc2sA827AuPqhc70kYNxiUhW9KW0uE4ccty8YV8v3WRdHjWfbZi2pFEC1XpZmLgRy00dsXZoUeZ'
+STRIPE_ENDPOINT_SECRET = 'whsec_l7kVoTXrfWpVC0ZLT30FCdnXJEcy2sjL'

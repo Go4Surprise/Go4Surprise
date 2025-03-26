@@ -334,7 +334,7 @@ export default function UserProfileScreen() {
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Profile</Text>
+            <Text style={styles.modalTitle}>Editar Perfil</Text>
             <TextInput 
               style={styles.input} 
               value={editedUser.name} 

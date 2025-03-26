@@ -46,6 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+    resend_verification = serializers.BooleanField(required=False, default=False)
     
     def validate(self, data):
         username = data.get("username")
@@ -65,6 +66,9 @@ class LoginSerializer(serializers.Serializer):
         except Usuario.DoesNotExist:
             raise serializers.ValidationError({"error": "El usuario autenticado no tiene un perfil asociado."})
         
+        # No verificamos aquí el email_verified porque lo hacemos en la vista
+        # para poder dar mensajes personalizados
+        
         preferences, created = Preferences.objects.get_or_create(usuario=usuario)
         preferences_set = any([
             preferences.music, preferences.culture, preferences.sports,
@@ -83,14 +87,15 @@ class LoginSerializer(serializers.Serializer):
             "surname": usuario.surname,
             "email": usuario.email,
             "phone": usuario.phone,
-            "birthdate": usuario.birthdate,  # new field
+            "birthdate": usuario.birthdate,
             "pfp": usuario.pfp.url if usuario.pfp else None,
             "access": str(tokens.access_token),
             "refresh": str(tokens),
             "preferences_set": preferences_set,
             "profile_complete": profile_complete,
             "is_staff": user.is_staff,
-            "is_superuser": user.is_superuser
+            "is_superuser": user.is_superuser,
+            "email_verified": usuario.email_verified
         }
 
 
