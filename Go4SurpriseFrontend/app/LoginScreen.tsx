@@ -51,14 +51,14 @@ export default function LoginScreen() {
         { headers: { 'Content-Type': 'application/json' } }
       )
       .then(response => {
-        console.log("Response data: ", response.data)
+        //console.log("Response data: ", response.data)
         const { access, refresh, user_id, id, preferences_set, is_superuser, is_staff, profile_complete } = response.data;
         AsyncStorage.setItem('accessToken', access);
         AsyncStorage.setItem('refreshToken', refresh);
         AsyncStorage.setItem('userId', user_id.toString());
         AsyncStorage.setItem('id', id);
         AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
-        console.log("User admin status set to:", (is_superuser && is_staff).toString());
+        //console.log("User admin status set to:", (is_superuser && is_staff).toString());
         Alert.alert('Éxito', 'Inicio de sesión con Google correcto');
         if (!profile_complete) {
           router.push('/CompleteProfileScreen');
