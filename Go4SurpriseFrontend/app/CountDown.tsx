@@ -1,52 +1,64 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { differenceInDays, parseISO } from "date-fns";
 import { BASE_URL } from '../constants/apiUrl';
+import { router } from "expo-router";
+
+interface BookingResponse {
+    experience_date: string;
+    // Add other booking properties here
+    id: number;
+    // Add any other fields your booking object has
+  }
+  
+  // Define a type for the processed booking with Date object
+  interface Booking extends Omit<BookingResponse, 'experience_date'> {
+    experience_date: Date;
+  }
 
 export default function CountDown() {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchNextBooking();
+        void fetchNextBooking();
     }, []);
 
     const fetchNextBooking = async () => {
         try {
             const token = await AsyncStorage.getItem("accessToken");
-            const userId = await AsyncStorage.getItem("userId");
+            const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
 
-            if (!token || !userId) return;
-
-            const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { user_id: userId },
-            });
-
-            const usuarioId = usuarioResponse.data.usuario_id;
+            if (!token) {
+                Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+                router.push("/LoginScreen");
+                return;
+            }
 
             const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { 
+                    Authorization: `Bearer ${token}` 
+                },
             });
 
             if (Array.isArray(response.data)) {
                 const upcomingBookings = response.data
-                    .map((booking: any) => ({
-                        ...booking,
-                        experience_date: parseISO(booking.experience_date),
-                    }))
-                    .filter((booking: any) => booking.experience_date > new Date())
-                    .sort((a: any, b: any) => a.experience_date - b.experience_date);
-
+                  .map((booking: BookingResponse) => ({
+                    ...booking,
+                    experience_date: parseISO(booking.experience_date),
+                  }))
+                  .filter((booking: Booking) => booking.experience_date > new Date())
+                  .sort((a: Booking, b: Booking) => a.experience_date.getTime() - b.experience_date.getTime());
+                
                 if (upcomingBookings.length > 0) {
-                    const nextBooking = upcomingBookings[0];
-                    const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
-                    setDaysLeft(daysRemaining);
+                  const nextBooking = upcomingBookings[0];
+                  const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
+                  setDaysLeft(daysRemaining);
                 } else {
-                    setDaysLeft(null);
+                  setDaysLeft(null);
                 }
-            }
+              }
         } catch (error) {
             console.error("Error al obtener la próxima reserva:", error);
         }

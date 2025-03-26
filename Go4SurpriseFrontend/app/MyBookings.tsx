@@ -35,33 +35,36 @@ const MyBookings = () => {
   const fadeAnim = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
-    fetchReservas();
+    void fetchReservas();
     fadeIn();
   }, []);
 
   const fetchReservas = async () => {
     try {
       const token = await AsyncStorage.getItem("accessToken");
-      const userId = await AsyncStorage.getItem("userId");
+      const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
 
-      if (!token || !userId) {
-        Alert.alert("Error", "Usuario no autenticado. Inicia sesión nuevamente.");
+      if (!token) {
+        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+        router.push("/LoginScreen");
         return;
       }
-
-      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { user_id: userId },
-      });
-
-      const usuarioId = usuarioResponse.data.usuario_id;
-
+      
       const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        },
       });
 
       if (Array.isArray(response.data)) {
-        setReservas(response.data);
+        const sorted = response.data
+          .map(item => ({
+            ...item,
+            experience_date: new Date(item.experience_date),
+          }))
+          .filter(item => item.experience_date >= new Date())
+          .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
+        setReservas(sorted);
       } else {
         throw new Error("Formato de datos incorrecto");
       }
@@ -86,7 +89,7 @@ const MyBookings = () => {
       "¿Estás seguro de que quieres cancelar esta reserva?",
       [
         { text: "No", style: "cancel" },
-        { text: "Sí", onPress: () => console.log("Reserva cancelada:", id) },
+        { text: "Sí", onPress: () => { console.log("Reserva cancelada:", id); } },
       ]
     );
   };
@@ -109,14 +112,14 @@ const MyBookings = () => {
       </Text>
 
       {item.cancellable && (
-        <TouchableOpacity style={styles.cancelButton} onPress={() => cancelarReserva(item.id)}>
+        <TouchableOpacity style={styles.cancelButton} onPress={() => { cancelarReserva(item.id); }}>
           <Ionicons name="close-circle" size={16} color="white" />
           <Text style={styles.cancelButtonText}>Cancelar</Text>
         </TouchableOpacity>
       )}
 
-      {isBefore(parseISO(item.experience_date), new Date()) && (
-          <TouchableOpacity style={styles.reviewButton} onPress={() => console.log("Dejar reseña", item.id)}>
+      {isBefore(item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date), new Date()) && (
+          <TouchableOpacity style={styles.reviewButton} onPress={() => { console.log("Dejar reseña", item.id); }}>
             <Ionicons name="star" size={16} color="white" />
             <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
           </TouchableOpacity>
@@ -234,6 +237,12 @@ const styles = StyleSheet.create({
   reviewButtonText: {
     color: "white",
     marginLeft: 5,
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 16,
+    zIndex: 1,
   },
 });
 
