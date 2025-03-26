@@ -1,7 +1,8 @@
-import React, { useState, useEffect, Profiler } from 'react';
+// Go4SurpriseFrontend/app/LoginScreen.tsx - Modificaciones
+import React, { useState, useEffect } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, 
-  StyleSheet, Image, Alert, useWindowDimensions 
+  StyleSheet, Image, Alert, useWindowDimensions, Modal
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
@@ -21,6 +22,12 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // State for email verification
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [resendInProgress, setResendInProgress] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   // Set up the Google authentication request
   const [, response, promptAsync] = Google.useAuthRequest({
@@ -66,7 +73,6 @@ export default function LoginScreen() {
     }
   }, [response]);
 
-
   const handleLogin = async () => {
     setErrorMessage(null);
     try {
@@ -75,7 +81,15 @@ export default function LoginScreen() {
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
-      const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff } = response.data;
+      const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff, email_verified } = response.data;
+      
+      // Verificar si el email está verificado
+      if (!email_verified) {
+        setVerificationEmail(response.data.email);
+        setShowVerificationModal(true);
+        return;
+      }
+      
       await AsyncStorage.setItem('accessToken', access);
       await AsyncStorage.setItem('userId', user_id.toString());
       await AsyncStorage.setItem('refreshToken', refresh);
@@ -84,7 +98,41 @@ export default function LoginScreen() {
       Alert.alert('Éxito', 'Inicio de sesión correcto');
       router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        // Email no verificado
+        if (error.response.data?.error?.includes('verificar')) {
+          setVerificationEmail(username); // Suponemos que username es el correo o tiene un formato reconocible
+          setShowVerificationModal(true);
+          return;
+        }
+      }
       setErrorMessage('Credenciales incorrectas. Inténtalo de nuevo.');
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendInProgress(true);
+    setResendSuccess(false);
+    
+    try {
+      await axios.post(
+        `${BASE_URL}/users/login/`,
+        { 
+          username, 
+          password, 
+          resend_verification: true 
+        },
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      setResendSuccess(true);
+      setTimeout(() => {
+        setShowVerificationModal(false);
+      }, 3000); // Cerrar el modal automáticamente después de 3 segundos
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo enviar el correo de verificación. Inténtalo más tarde.');
+    } finally {
+      setResendInProgress(false);
     }
   };
 
@@ -139,6 +187,51 @@ export default function LoginScreen() {
           </View>
         </View>
       </View>
+      
+      {/* Modal de verificación de correo */}
+      <Modal
+        visible={showVerificationModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowVerificationModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Verificación de correo</Text>
+            
+            {resendSuccess ? (
+              <Text style={styles.successMessage}>
+                Correo de verificación enviado. Por favor, revisa tu bandeja de entrada.
+              </Text>
+            ) : (
+              <>
+                <Text style={styles.modalText}>
+                  Tu cuenta no ha sido verificada. Necesitas verificar tu correo electrónico para continuar.
+                </Text>
+                {verificationEmail && (
+                  <Text style={styles.emailText}>Correo: {verificationEmail}</Text>
+                )}
+                <TouchableOpacity 
+                  style={[styles.verifyButton, resendInProgress && styles.disabledButton]}
+                  onPress={() => void handleResendVerification()}
+                  disabled={resendInProgress}
+                >
+                  <Text style={styles.verifyButtonText}>
+                    {resendInProgress ? 'Enviando...' : 'Reenviar correo de verificación'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setShowVerificationModal(false)}
+            >
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -260,4 +353,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-});
+  
+  // Estilos del modal de verificación
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1877F2',
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  emailText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#555',
+    marginBottom: 20,
+  },
+  verifyButton: {
+    backgroundColor: '#1877F2',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 15,
+    width: '100%',},});
