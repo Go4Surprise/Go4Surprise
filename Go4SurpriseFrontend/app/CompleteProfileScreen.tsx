@@ -32,7 +32,7 @@ export default function CompleteProfileScreen() {
     void checkToken();
   }, []);
 
-  const onDateChange = (event, selectedDate) => {
+  const onDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
@@ -41,14 +41,14 @@ export default function CompleteProfileScreen() {
     setBirthdateError(''); // Clear error when user selects a date
   };
 
-  const onWebDateChange = (selectedDate) => {
+  const onWebDateChange = (selectedDate: Date) => {
     setDate(selectedDate);
     const formattedDate = selectedDate.toISOString().split('T')[0];
     setBirthdate(formattedDate);
     setBirthdateError(''); // Clear error when user selects a date
   };
 
-  const isValidPhoneNumber = (phoneNumber) => {
+  const isValidPhoneNumber = (phoneNumber: string) => {
     const phoneRegex = /^\+?[1-9]\d{8,14}$/;
     return phoneRegex.test(phoneNumber);
   };
@@ -96,7 +96,11 @@ export default function CompleteProfileScreen() {
       router.push('/PreferencesFormScreen');
     } catch (error) {
       console.error('Error updating profile:', error);
-      setPhoneError(error.message || 'No se pudo actualizar el perfil');
+      if (axios.isAxiosError(error)) {
+        setPhoneError(error.message || 'No se pudo actualizar el perfil');
+      } else {
+        setPhoneError('No se pudo actualizar el perfil');
+      }
     }
   };
 
