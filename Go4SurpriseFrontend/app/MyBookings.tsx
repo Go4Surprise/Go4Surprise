@@ -235,6 +235,12 @@ const styles = StyleSheet.create({
     color: "white",
     marginLeft: 5,
   },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 16,
+    zIndex: 1,
+  },
 });
 
 export default MyBookings;

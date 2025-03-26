@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   surpriseButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
   },

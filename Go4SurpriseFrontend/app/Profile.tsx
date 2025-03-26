@@ -296,27 +296,27 @@ export default function UserProfileScreen() {
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.optionButton} onPress={handleEditProfile}>
           <Ionicons name="person" size={20} color="#004AAD" style={styles.icon}/>
-          <Text style={styles.optionText}>Edit Profile</Text>
+          <Text style={styles.optionText}>Editar Perfil</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.optionButton} onPress={() => { setPasswordModalVisible(true); }}>
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Change Password</Text>
+          <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.optionButton} onPress={() => void fetchPastReservations()}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Reservation History</Text>
+          <Text style={styles.optionText}>Historial de reservas</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={() => void handleLogout()}>
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => void handleDeleteAccount()}>
           <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
-          <Text style={styles.deleteText}>Delete Account</Text>
+          <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
       </View>
 
@@ -369,10 +369,10 @@ export default function UserProfileScreen() {
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
-                <Text style={styles.modalButtonText}>Save</Text>
+                <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -383,7 +383,7 @@ export default function UserProfileScreen() {
       <Modal visible={passwordModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Change Password</Text>
+            <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
 
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
@@ -405,10 +405,10 @@ export default function UserProfileScreen() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => void handleChangePassword()}>
-                <Text style={styles.modalButtonText}>Save</Text>
+                <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setPasswordModalVisible(false); }}>
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -419,27 +419,27 @@ export default function UserProfileScreen() {
       <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Reservation History</Text>
+            <Text style={styles.modalTitle}>Historial de reservas</Text>
 
             {reservations.length > 0 ? (
               <ScrollView style={{ maxHeight: 300 }}>
                 {reservations.map((res, index) => (
                   <View key={index} style={styles.reservationItem}>
-                    <Text style={styles.reservationText}>📅 Date: {res.experience_date}</Text>
-                    <Text style={styles.reservationText}>🏠 Experience: {res.experience.title}</Text>
+                    <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
+                    <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
                     <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
                   </View>
                 ))}
               </ScrollView>
             ) : (
-              <Text style={styles.noReservations}>You don't have past reservations.</Text>
+              <Text style={styles.noReservations}>No existen reservas pasadas</Text>
             )}
 
             <TouchableOpacity 
               style={[styles.modalButton, styles.cancelButton]} 
               onPress={() => { setReservationsModalVisible(false); }}
             >
-              <Text style={styles.modalButtonText}>Close</Text>
+              <Text style={styles.modalButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
   },
   noReservations: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 22,
     color: 'gray',
     marginTop: 10,
   },

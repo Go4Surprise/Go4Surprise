@@ -104,7 +104,7 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <TextInput 
               style={styles.input} 
-              placeholder="Username" 
+              placeholder="Nombre de usuario" 
               value={username} 
               onChangeText={setUsername} 
             />
