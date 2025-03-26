@@ -81,7 +81,7 @@ export default function LoginScreen() {
         { username, password },
         { headers: { 'Content-Type': 'application/json' } }
       );
-      const { access, user_id, refresh, id, preferences_set, is_superuser, is_staff, email_verified } = response.data;
+      const { access, user_id, refresh, id, profile_complete, preferences_set, is_superuser, is_staff, email_verified } = response.data;
       
       // Verificar si el email está verificado
       if (!email_verified) {
@@ -96,7 +96,11 @@ export default function LoginScreen() {
       await AsyncStorage.setItem('id', id);
       await AsyncStorage.setItem('isAdmin', (is_superuser && is_staff).toString());
       Alert.alert('Éxito', 'Inicio de sesión correcto');
-      router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
+      if (!profile_complete) {
+        router.push('/CompleteProfileScreen');
+      } else {
+        router.push(preferences_set ? '/HomeScreen' : '/IntroPreferencesScreen');
+      }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         // Email no verificado
