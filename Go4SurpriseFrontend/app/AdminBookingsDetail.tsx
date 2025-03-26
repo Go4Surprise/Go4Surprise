@@ -130,6 +130,7 @@ const AdminBookingsDetail = () => {
                         time_preference: experienceHorario,
                         categories: experienceCategories,
                         hint: hint || "",
+                        price: experiencePrice
                     },
                     experience_date: experienceDate,
                     participants: participants,
