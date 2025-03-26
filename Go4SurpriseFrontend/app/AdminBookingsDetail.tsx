@@ -224,8 +224,7 @@ const AdminBookingsDetail = () => {
                     <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
                     <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Horario Preferencia: {experienceHorario} </Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categorías descartadas: {experienceCategories}</Text>
-                    
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categorías descartadas: {experienceCategories.join(', ')}</Text>
                     <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
                     <TextInput
                         style={styles.input}
