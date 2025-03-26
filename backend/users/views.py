@@ -38,6 +38,9 @@ class GoogleLogin(SocialLoginView):
         user = self.user
         try:
             usuario = user.usuario
+            # Para autenticación social, marcamos el email como verificado automáticamente
+            usuario.email_verified = True
+            usuario.save()
         except Usuario.DoesNotExist:
             logger.error(f"get_response - No Usuario found for user {user.username}")
             # Create it here as a fallback (though save_user should handle this)
@@ -49,6 +52,7 @@ class GoogleLogin(SocialLoginView):
                 email=user.email,
                 phone='',
                 birthdate='2000-01-01',
+                email_verified=True,  # Marcamos como verificado para autenticación social
             )
         serializer = SocialLoginResponseSerializer(usuario, context={'request': self.request})
         data = serializer.data
@@ -71,28 +75,54 @@ def register_user(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         usuario = serializer.save()
-
-        # Generar token JWT para el nuevo usuario
-        user = usuario.user
-        refresh = RefreshToken.for_user(user)
-
+        
+        # Generar el token de verificación
+        verification_token = usuario.email_verification_token
+        
+        # Construir el enlace de verificación
+        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+        verification_link = f"{base_url}/VerifyEmail?token={verification_token}&user_id={usuario.id}"
+        
+        # Enviar email de verificación
+        subject = "Verifica tu correo electrónico - Go4Surprise"
+        message = f"""
+        Hola {usuario.name},
+        
+        Gracias por registrarte en Go4Surprise. Para completar tu registro, necesitamos verificar tu dirección de correo electrónico.
+        
+        Por favor, haz clic en el siguiente enlace para verificar tu correo:
+        {verification_link}
+        
+        Este enlace expirará en 48 horas.
+        
+        Si no has sido tú quien se ha registrado, puedes ignorar este mensaje.
+        
+        Saludos,
+        El equipo de Go4Surprise
+        """
+        
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=config('DEFAULT_FROM_EMAIL'),
+                recipient_list=[usuario.email],
+            )
+        except Exception as e:
+            logger.error(f"Error al enviar email de verificación: {str(e)}")
+            # En caso de error, continuamos con el registro pero informamos al usuario
+        
         return Response({
-            "message": "Usuario correctamente creado",
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "user_id": user.id,
+            "message": "Usuario correctamente creado. Por favor, verifica tu correo electrónico para activar tu cuenta.",
             "id": usuario.id,
-            "username": user.username,
+            "username": usuario.user.username,
             "name": usuario.name,
             "surname": usuario.surname,
             "email": usuario.email,
-            "phone": usuario.phone,
-            "birthdate": usuario.birthdate,
-            "pfp": usuario.pfp.url if usuario.pfp else None,
+            "verification_sent": True,
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @swagger_auto_schema(
@@ -101,6 +131,7 @@ def register_user(request):
     responses={
         200: openapi.Response("Login exitoso"),
         400: openapi.Response("Credenciales inválidas"),
+        403: openapi.Response("Email no verificado"),
     },
     operation_summary="Inicio de sesión",
     operation_description="Autentica al usuario y devuelve un token JWT.",
@@ -109,8 +140,110 @@ def register_user(request):
 def login_user(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        # Obtenemos el usuario del serializador
+        username = serializer.validated_data.get('username')
+        user = User.objects.get(username=username)
+        
+        try:
+            usuario = user.usuario
+            
+            # Verificamos si el correo ha sido verificado
+            if not usuario.email_verified:
+                # Verificamos si han pasado 48 horas desde el registro
+                if usuario.is_verification_expired:
+                    # Eliminamos el usuario si ha expirado
+                    user.delete()  # Esto eliminará también el Usuario por la cascada
+                    return Response(
+                        {"error": "Tu cuenta ha sido eliminada porque no verificaste tu correo electrónico en las 48 horas establecidas. Por favor, regístrate de nuevo."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+                else:
+                    # Enviamos un nuevo correo de verificación si lo solicita
+                    if request.data.get('resend_verification'):
+                        usuario.refresh_verification_token()
+                        
+                        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+                        verification_link = f"{base_url}/VerifyEmail?token={usuario.email_verification_token}&user_id={usuario.id}"
+                        
+                        send_mail(
+                            subject="Verifica tu correo electrónico - Go4Surprise",
+                            message=f"Por favor, verifica tu correo haciendo clic en este enlace: {verification_link}",
+                            from_email=config('DEFAULT_FROM_EMAIL'),
+                            recipient_list=[usuario.email],
+                        )
+                        
+                        return Response(
+                            {"message": "Se ha enviado un nuevo correo de verificación. Por favor, verifica tu cuenta."},
+                            status=status.HTTP_200_OK
+                        )
+                    
+                    return Response(
+                        {"error": "Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada."},
+                        status=status.HTTP_403_FORBIDDEN
+                    )
+            
+            # Si el correo está verificado, continúa con el login normal
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+            
+        except Usuario.DoesNotExist:
+            return Response({"error": "Perfil de usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter('token', openapi.IN_QUERY, description="Token de verificación", type=openapi.TYPE_STRING),
+        openapi.Parameter('user_id', openapi.IN_QUERY, description="ID del usuario", type=openapi.TYPE_STRING),
+    ],
+    responses={
+        200: openapi.Response("Email verificado correctamente"),
+        400: openapi.Response("Token inválido o expirado"),
+        404: openapi.Response("Usuario no encontrado"),
+    },
+    operation_summary="Verificar email",
+    operation_description="Verifica el correo electrónico del usuario.",
+)
+@api_view(['GET'])
+def verify_email(request):
+    token = request.query_params.get('token')
+    user_id = request.query_params.get('user_id')
+    
+    if not token or not user_id:
+        return Response({"error": "Token y user_id son requeridos"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        usuario = Usuario.objects.get(id=user_id)
+        
+        # Verificar si el token coincide
+        if str(usuario.email_verification_token) != token:
+            return Response({"error": "Token de verificación inválido"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Verificar si el token ha expirado
+        if usuario.is_verification_expired:
+            # Si ha expirado, eliminamos el usuario
+            user = usuario.user
+            user.delete()  # Esto eliminará también el Usuario por la cascada
+            return Response({"error": "El token de verificación ha expirado. Por favor, regístrate de nuevo."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Activar la cuenta
+        usuario.email_verified = True
+        usuario.save()
+        
+        # Generar tokens para permitir al usuario iniciar sesión directamente
+        refresh = RefreshToken.for_user(usuario.user)
+        
+        return Response({
+            "message": "Correo electrónico verificado correctamente. Ya puedes utilizar tu cuenta.",
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user_id": usuario.user.id,
+            "id": usuario.id
+        }, status=status.HTTP_200_OK)
+        
+    except Usuario.DoesNotExist:
+        return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @swagger_auto_schema(

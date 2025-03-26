@@ -88,6 +88,17 @@ export default function IndexScreen() {
           </Text>
         </View>
 
+        {/* FOOTER CON ENLACES LEGALES */}
+        <View style={styles.footer}>
+          <TouchableOpacity onPress={() => router.push('/PoliticaPrivacidad')}>
+            <Text style={styles.footerLink}>Política de Privacidad</Text>
+          </TouchableOpacity>
+          <Text style={styles.footerSeparator}>|</Text>
+          <TouchableOpacity onPress={() => router.push('/CondicionesUso')}>
+            <Text style={styles.footerLink}>Condiciones de Uso</Text>
+          </TouchableOpacity>
+        </View>
+
 
       </ScrollView>
     </ImageBackground>
@@ -95,6 +106,25 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
+  footer: {
+    paddingVertical: 20,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+  },
+  footerLink: {
+    color: '#4f46e5',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginHorizontal: 8,
+  },
+  footerSeparator: {
+    fontSize: 14,
+    color: '#6b7280',
+  },  
   aboutContainer: {
     backgroundColor: '#fff',
     marginHorizontal: 20,
