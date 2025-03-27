@@ -8,25 +8,20 @@ import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
 import { Ionicons } from '@expo/vector-icons';
 import { TextField } from '@mui/material';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RegisterScreen() {
     const router = useRouter();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [birthdate, setBirthdate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
-
 
     const [errors, setErrors] = useState<{ 
         username?: string; 
         password?: string; 
-        confirmPassword?: string;
         name?: string; 
         surname?: string; 
         email?: string; 
@@ -38,10 +33,10 @@ export default function RegisterScreen() {
         const validations = [
             { field: "username", value: username, message: "El nombre de usuario es obligatorio" },
             { field: "password", value: password, message: "La contraseña es obligatoria" },
-            { field: "confirmPassword", value: confirmPassword, message: "La confirmación de la contraseña es obligatoria" },
             { field: "name", value: name, message: "El nombre es obligatorio" },
             { field: "surname", value: surname, message: "El apellido es obligatorio" },
             { field: "email", value: email, message: "El correo es obligatorio" },
+            { field: "phone", value: phone, message: "El teléfono es obligatorio" },
         ];
     
         let newErrors: Record<string, string> = {};
@@ -51,40 +46,16 @@ export default function RegisterScreen() {
                 Object.assign(newErrors, { [field]: message });
             }
         });
-
-        const nameRegex = /^[A-Za-z]+$/;
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^[0-9]+$/;
-
-        if (name && !nameRegex.test(name)) {
-            newErrors.name = "El nombre no puede contener números ni caracteres especiales.";
-        }
-        if (surname && !nameRegex.test(surname)) {
-            newErrors.surname = "El apellido no puede contener números ni caracteres especiales.";
-        }
+    
         if (password && password.length < 6) {
             newErrors.password = "La contraseña debe tener al menos 6 caracteres";
         }
-
-        if (email && !emailRegex.test(email)) {
-            newErrors.email = "El correo electrónico no es válido.";
-        }        
         if (email && !/\S+@\S+\.\S+/.test(email)) {
             newErrors.email = "El correo electrónico no es válido";
         }
-        if (phone && !phoneRegex.test(phone)) {
-            newErrors.phone = "El teléfono solo puede contener números.";
-        }
-
-
-        if (confirmPassword && confirmPassword !== password) {
-            newErrors.confirmPassword = "Las contraseñas no coinciden";
-        }
-
-        if (phone && phone.length > 0 && !/^\d{9}$/.test(phone)) {
-
+        if (phone && !/^\d{9}$/.test(phone)) {
             newErrors.phone = "El teléfono debe tener 9 dígitos";
-        } 
+        }
     
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -102,73 +73,39 @@ export default function RegisterScreen() {
     };
 
     const handleRegister = async () => {
-        if (!acceptedTerms) {
-            Alert.alert("Atención", "Debes aceptar la política de privacidad y condiciones de uso para continuar.");
-            return;
-          }          
         const fieldsValid = validateFields();
-        if (!fieldsValid) return;
-    
+        if (!fieldsValid) return; 
+
         const userExists = await checkUsernameExists();
         if (userExists) {
             setErrors((prev) => ({ ...prev, username: "El nombre de usuario ya está en uso" }));
-            return;
+            return; 
         }
-    
-        setErrorMessage(null);
-    
-        const dateFormatted =
+
+        setErrorMessage(null); 
+        var date =
             birthdate.getFullYear() +
             "-" +
             String(birthdate.getMonth() + 1).padStart(2, "0") +
             "-" +
             String(birthdate.getDate()).padStart(2, "0");
-    
         try {
-            const response = await axios.post(`${BASE_URL}/users/register/`, {
+            await axios.post(`${BASE_URL}/users/register/`, {
                 username,
                 password,
                 name,
                 surname,
                 email,
                 phone,
-                birthdate: dateFormatted,
+                date,
             });
-    
-            const {
-                access,
-                refresh,
-                user_id,
-                id,
-            } = response.data;
-    
-            // Guardar tokens y redirigir automáticamente
-            await AsyncStorage.setItem('accessToken', access);
-            await AsyncStorage.setItem('refreshToken', refresh);
-            await AsyncStorage.setItem('userId', user_id);
-            await AsyncStorage.setItem('id', id);
-    
-            Alert.alert("¡Bienvenido!", "Tu cuenta ha sido creada con éxito.");
+
+            Alert.alert('Registro exitoso');
             router.push('/LoginScreen');
         } catch (error) {
-            console.log(error);
-            if (axios.isAxiosError(error)) {
-                const serverError = error.response?.data;
-                if (serverError?.username) {
-                  setErrors(prev => ({ ...prev, username: serverError.username[0] }));
-                } else if (serverError?.non_field_errors) {
-                  setErrorMessage(serverError.non_field_errors[0]);
-                } else {
-                  setErrorMessage("Error al hacer el registro. Intenta más tarde.");
-                }
-              } else {
-                setErrorMessage("Error desconocido.");
-              }
-              
+            setErrorMessage('Error al hacer el registro. Verifica que todos los campos están correctos');
         }
     };
-    
-    
 
     return (
         <View style={styles.container}>
@@ -197,15 +134,6 @@ export default function RegisterScreen() {
                     secureTextEntry 
                 />
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-                <TextInput 
-                    style={styles.input} 
-                    placeholder="Confirmar Contraseña" 
-                    value={confirmPassword} 
-                    onChangeText={setConfirmPassword} 
-                    secureTextEntry 
-                />
-                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
 
                 <TextInput 
                     style={styles.input} 
@@ -243,7 +171,7 @@ export default function RegisterScreen() {
 
                 {/* Selector de fecha nativo */}
                     <TextField
-                                  label="Fecha de Nacimiento"
+                                  label="Fecha de la Experiencia"
                                   name="birthdate"
                                   type="date"
                                   fullWidth
@@ -265,24 +193,8 @@ export default function RegisterScreen() {
                                 />
 
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                    <TouchableOpacity onPress={() => setAcceptedTerms(!acceptedTerms)} style={styles.checkbox}>
-                        <Ionicons 
-                        name={acceptedTerms ? 'checkbox-outline' : 'square-outline'} 
-                        size={24} 
-                        color="#1877F2" 
-                        />
-                    </TouchableOpacity>
-                    <Text style={styles.termsText}>
-                        He leído y acepto la{' '}
-                        <Text style={styles.link} onPress={() => router.push('/PoliticaPrivacidad')}>Política de Privacidad</Text>
-                        {' '}y las{' '}
-                        <Text style={styles.link} onPress={() => router.push('/CondicionesUso')}>Condiciones de Uso</Text>.
-                    </Text>
-                </View>
 
-
-                <TouchableOpacity style={styles.button} onPress={() => void handleRegister()}>
+                <TouchableOpacity style={styles.button} onPress={handleRegister}>
                     <Text style={styles.buttonText}>Registrarse</Text>
                 </TouchableOpacity>
 
@@ -291,7 +203,8 @@ export default function RegisterScreen() {
                 </Text>
             </View>
         </View>
-    );}
+    );
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -387,17 +300,4 @@ const styles = StyleSheet.create({
         color: '#1877F2',
         fontWeight: 'bold',
     },
-    checkbox: {
-        marginRight: 8,
-      },
-      termsText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#374151',
-      },
-      link: {
-        color: '#1877F2',
-        textDecorationLine: 'underline',
-      },
-      
 });
