@@ -298,17 +298,19 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
     paddingHorizontal: 20,
     backgroundColor: '#F4F4F4',
   },
   container: {
-    width: '100%',
-    maxWidth: 400,
+    flex: 1,
+    backgroundColor: '#F0F2F5',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  
   content: {
     width: '100%',
     maxWidth: 1100,
