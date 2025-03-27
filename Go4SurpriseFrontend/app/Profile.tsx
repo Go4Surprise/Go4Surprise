@@ -3,375 +3,458 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ImageBackg
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
-import * as ImagePicker from 'expo-image-picker';
+
+interface Reservation {
+  id: string;
+  booking_date: string;
+  experience_date: string;
+  participants: number;
+  price: number;
+  status: string;
+  total_price: number;
+  experience: {
+    title: string;
+  };
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  surname: string;
+  phone: string;
+}
 
 
 export default function UserProfileScreen() {
-  
-  const [user, setUser] = useState({
+  const [user, setUser] = useState<User>({
     id: '',
     name: '',
     email: '',
     username: '',
     surname: '',
-    phone: '',
-    pfp: ''
+    phone: ''
   });
-  const [loading, setLoading] = useState(true);
+  
+  const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' });
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(''); // Estado para manejar errores en el modal
+  const [passwordError, setPasswordError] = useState('');
   const [reservationsModalVisible, setReservationsModalVisible] = useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
-
-  // Función para obtener datos del usuario
+  // Fetch user data from API
   const fetchUserData = async () => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) {
-            router.replace('/LoginScreen'); // Redirige si no hay token
-            return;
-        }
-
-        const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("Datos del usuario:", response.data);
-
-        // Asegura que el ID está incluido antes de actualizar el estado
-        setUser(prevState => ({
-            ...prevState,
-            id: response.data.id || '',  // 🔹 Se asegura de que el id se guarde
-            name: response.data.name,
-            email: response.data.email,
-            username: response.data.username,
-            surname: response.data.surname,
-            phone: response.data.phone,
-            pfp: response.data.pfp
-        }));
-
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+  
+      const data = response.data;
+  
+      setUser({
+        id: data.id || '',
+        name: data.name || '',
+        surname: data.surname || '',
+        username: data.username || '',
+        email: data.email || '',
+        phone: data.phone || '',
+      });
     } catch (error) {
-        console.error('Error obteniendo datos del usuario', error);
-        Alert.alert('Error', 'No se pudo obtener la información del usuario.');
-    } finally {
-        setLoading(false);
+      console.error("Error al cargar perfil:", error);
     }
   };
-
+  
 
   useEffect(() => {
     fetchUserData();
   }, []);
+  
 
+  // Open edit profile modal with current user data
   const handleEditProfile = () => {
-      if (user) {
-          setEditedUser({
-              name: user.name || '',
-              surname: user.surname || '', 
-              username: user.username || '',  
-              email: user.email || '',
-              phone: user.phone || '',
-              pfp: user.pfp || ''
-          });
-          setModalVisible(true);
-      }
-  };
-
-  const pickImage = async () => {
-
-    // Seleccionar una imagen de la galería
-    let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images',],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
+    setEditedUser({
+      name: user.name || '',
+      surname: user.surname || '',
+      username: user.username || '',
+      email: user.email || '',
+      phone: user.phone || ''
     });
-    console.log("Imagen detectada:", result);
-    if (!result.canceled) {
-          setEditedUser(prevState => ({ ...prevState, pfp: result.assets[0].uri })); // Actualiza el estado con la URI de la imagen seleccionada   
-    }
+    setModalVisible(true);
   };
 
+  // Save profile changes to API
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      const formData = new FormData();
-        formData.append('name', editedUser.name);
-        formData.append('surname', editedUser.surname);
-        formData.append('username', editedUser.username);
-        formData.append('email', editedUser.email);
-        formData.append('phone', editedUser.phone);
-        if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
-          const base64Data = editedUser.pfp.split(',')[1]; // Extraer solo los datos Base64
-          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
-
-          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-          formData.append('pfp', pfpFile);
-        }
-      await axios.put(`${BASE_URL}/users/update/`, formData, {
-      headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+      if (!token) {
+        Alert.alert('Error', 'Session expired. Please login again.');
+        return;
       }
+      
+      await axios.put(`${BASE_URL}/users/update/`, editedUser, {
+        headers: { Authorization: `Bearer ${token}` }
       });
+      
       setUser(prevState => ({
-        ...prevState, // Mantiene el id y otros campos
-        ...editedUser // Sobreescribe los campos editados
+        ...prevState,
+        ...editedUser
       }));
+      
       setModalVisible(false);
-      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
+      Alert.alert('Success', 'Profile updated successfully.');
     } catch (error) {
-      console.error('Error actualizando perfil', error);
-      Alert.alert('Error', 'No se pudo actualizar el perfil.');
+      console.error('Error updating profile', error);
+      Alert.alert('Error', 'Could not update profile.');
     }
   };
+
+  // Change password through API
   const handleChangePassword = async () => {
     try {
-        setPasswordError(''); // Reiniciar el mensaje de error al intentar cambiar la contraseña
+      setPasswordError('');
 
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) {
-            setPasswordError("No tienes sesión iniciada.");
-            return;
-        }
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        setPasswordError("No active session found.");
+        return;
+      }
 
-        const response = await axios.post(
-            `${BASE_URL}/users/change_password/`,
-            { current_password: currentPassword, new_password: newPassword },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+      await axios.post(
+        `${BASE_URL}/users/change_password/`,
+        { current_password: currentPassword, new_password: newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-        setPasswordModalVisible(false);
-        setCurrentPassword('');
-        setNewPassword('');
-        Alert.alert("Éxito", "Contraseña actualizada correctamente.");
-
+      setPasswordModalVisible(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      Alert.alert("Success", "Password updated successfully.");
     } catch (error) {
-        console.log("Error al cambiar contraseña:", error);
-
-        if (axios.isAxiosError(error) && error.response) {  
-            console.log("Detalles del error:", error.response);
-
-            if (error.response.status === 401) {
-                setPasswordError("❌ La contraseña actual es incorrecta.");
-            } else {
-                setPasswordError("⚠️ No se pudo cambiar la contraseña. Inténtalo de nuevo.");
-            }
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 401) {
+          setPasswordError("❌ Current password is incorrect.");
         } else {
-            setPasswordError("🚫 No se pudo conectar con el servidor.");
+          setPasswordError("⚠️ Could not change password. Please try again.");
         }
+      } else {
+        setPasswordError("🚫 Could not connect to server.");
+      }
     }
   };
+
+  // Get user ID from AsyncStorage
+  const getUserIdFromToken = async (): Promise<string | null> => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const userId = await AsyncStorage.getItem("userId");
+
+      if (!token || !userId) {
+        Alert.alert("Error", "No active session found.");
+        return null;
+      }
+      return userId;
+    } catch (error) {
+      console.error("Error getting userId:", error);
+      return null;
+    }
+  };
+
+  // Get usuario_id from API
+  const getUsuarioId = async (userId: string, token: string): Promise<string | null> => {
+    try {
+      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { user_id: userId }
+      });
+      return usuarioResponse.data.usuario_id;
+    } catch (error) {
+      console.error("Error getting usuario_id:", error);
+      return null;
+    }
+  };
+
+  // Fetch user bookings from API
+  const fetchUserBookings = async (usuarioId: string, token: string): Promise<Reservation[]> => {
+    const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      throw new Error("Incorrect data format");
+    }
+  };
+
+  // Handle reservation errors
+  const handleReservationError = (error: unknown) => {
+    if (axios.isAxiosError(error)) {
+      console.error('Error getting reservation history:', error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data?.message || "Could not get reservation history.");
+    } else {
+      console.error("Unexpected error:", error);
+      Alert.alert("Error", "An unexpected error occurred.");
+    }
+  };
+  
+  // Validate authentication data
+  const validateAuthData = async () => {
+    const token = await AsyncStorage.getItem("accessToken");
+    const userId = await getUserIdFromToken();
+    return { token, userId, isValid: !!userId && !!token };
+  };
+  
+  // Get booking data
+  const getBookingData = async (userId: string, token: string) => {
+    const usuarioId = await getUsuarioId(userId, token);
+    if (!usuarioId) {
+      Alert.alert("Error", "Could not get user information.");
+      return null;
+    }
+    return await fetchUserBookings(usuarioId, token);
+  };
+  
+  // Fetch past reservations
+  const fetchPastReservations = async () => {
+    try {
+      const auth = await validateAuthData();
+      if (!auth.isValid) return;
+  
+      const bookings = await getBookingData(auth.userId!, auth.token!);
+      if (bookings) {
+        setReservations(bookings);
+        setReservationsModalVisible(true);
+      }
+    } catch (error: unknown) {
+      handleReservationError(error);
+    }
+  };
+
+  // Handle user logout
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem('accessToken');
       await AsyncStorage.removeItem('refreshToken');
-      router.replace('/LoginScreen'); // Redirige a la pantalla de inicio de sesión
+      router.replace('/LoginScreen');
     } catch (error) {
-      console.error("Error al cerrar sesión", error);
+      console.error("Error logging out", error);
+      Alert.alert("Error", "Could not complete logout.");
     }
   };
+  
+  // Handle account deletion
   const handleDeleteAccount = async () => {
-    console.log("📌 handleDeleteAccount() ejecutándose..."); 
-
-    // Elimina el Alert.alert y prueba con un console.log primero
-    console.log("🛠️ Simulando alerta de confirmación...");
-    
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) {
-            console.error("❌ Token no encontrado");
-            return;
-        }
-
-        console.log("📡 Enviando petición DELETE a la API...");
-
-        const response = await axios.delete(`${BASE_URL}/users/delete/`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        console.log("✅ Respuesta del servidor:", response.status);
-
-        if (response.status === 204 || response.status === 200) {
-            await AsyncStorage.clear();
-            router.replace('/LoginScreen');
-            console.log("✅ Redirigiendo a la pantalla de Login...");
-        }
+      const accessToken = await AsyncStorage.getItem('accessToken');
+  
+      const response = await axios.delete(`${BASE_URL}/users/delete/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+  
+      if (response.status === 204) {
+        await AsyncStorage.clear();
+        router.replace('/LoginScreen');
+      } else {
+        Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
+      }
     } catch (error) {
-        console.error("❌ Error al eliminar la cuenta:", error);
+      console.error("Error al eliminar cuenta:", error);
+      Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
     }
   };
-
-
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
-       {/* Botón para ir a HomeScreen */}
-       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
-        <Ionicons name="home" size={30} color="#fff" />
-      </TouchableOpacity>
-      
-      {/* Encabezado con fondo de imagen */}
+      {/* Header with background image */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={user.pfp ? { uri: `${BASE_URL}${user.pfp}` } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image source={require('../assets/images/user-logo-none.png')} style={styles.avatar} />
         </View>
       </ImageBackground>
       
-      {/* Tarjeta del perfil */}
-      {user && (
-                <View style={styles.profileCard}>
-                  <Text style={styles.username}>{user.name} {user.surname}</Text>
-                  <Text style={styles.email}>{user.email}</Text>
-                </View>
-        )}
+      {/* Profile card */}
+      <View style={styles.profileCard}>
+        <Text style={styles.username}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
+      </View>
 
-      {/* Opciones del perfil */}
+      {/* Profile options */}
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.optionButton} onPress={handleEditProfile}>
           <Ionicons name="person" size={20} color="#004AAD" style={styles.icon}/>
           <Text style={styles.optionText}>Editar Perfil</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={() => setPasswordModalVisible(true)}>
+        
+        <TouchableOpacity style={styles.optionButton} onPress={() => { setPasswordModalVisible(true); }}>
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/MyBookings')}>
+        
+        <TouchableOpacity style={styles.optionButton} onPress={() => void fetchPastReservations()}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Reservas</Text>
+          <Text style={styles.optionText}>Historial de reservas</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={handleLogout}>
+        
+        <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={() => void handleLogout()}>
           <Ionicons name="log-out" size={20} color="#fff" style={styles.icon} />
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-            style={[styles.optionButton, styles.deleteButton]} 
-            onPress={() => {
-                console.log("🛠️ Botón de eliminar cuenta presionado."); // <-- Ver si se ejecuta
-                handleDeleteAccount();
-            }}
-        >
-            <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
-            <Text style={styles.deleteText}>Eliminar Cuenta</Text>
+        
+        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => void handleDeleteAccount()}>
+          <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
+          <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
+      </View>
 
-      </View>      
-      {/* Footer con logo pequeño y nombre de la app en línea */}
+      {/* Home button */}
+      <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
+        <Ionicons name="home" size={30} color="#fff" />
+      </TouchableOpacity>
+      
+      {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Go4Surprise</Text>
       </View>
 
-       {/* Modal de edición de perfil */}
-       <Modal visible={modalVisible} animationType="slide" transparent={true}>
+      {/* Edit profile modal */}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <Text style={styles.label}>Nombre</Text>
-            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
-            <Text style={styles.label}>Apellidos</Text>
-            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
-            <Text style={styles.label}>Usuario</Text>
-            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
-            <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
-            <Text style={styles.label}>Foto de Perfil</Text>
-            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-                <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
-            </TouchableOpacity>
-            {editedUser.pfp ? (
-                <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
-            ) : null}            
+            <TextInput 
+              style={styles.input} 
+              value={editedUser.name} 
+              onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} 
+              placeholder="Name" 
+            />
+            <TextInput 
+              style={styles.input} 
+              value={editedUser.surname} 
+              onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} 
+              placeholder="Surname" 
+            />
+            <TextInput 
+              style={styles.input} 
+              value={editedUser.username} 
+              onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} 
+              placeholder="Username" 
+            />
+            <TextInput 
+              style={styles.input} 
+              value={editedUser.email} 
+              onChangeText={(text) => { setEditedUser({ ...editedUser, email: text }); }} 
+              placeholder="Email" 
+              keyboardType="email-address" 
+            />
+            <TextInput 
+              style={styles.input} 
+              value={editedUser.phone} 
+              onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} 
+              placeholder="Phone" 
+              keyboardType="phone-pad" 
+            />
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleSaveChanges}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-      {/* Modal para cambiar contraseña */}
+      
+      {/* Change password modal */}
       <Modal visible={passwordModalVisible} animationType="slide" transparent={true}>
-          <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                  <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Cambiar Contraseña</Text>
 
-                  {/* Mostrar mensaje de error si existe */}
-                  {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-                  <TextInput
-                      style={styles.input}
-                      value={currentPassword}
-                      onChangeText={setCurrentPassword}
-                      placeholder="Contraseña actual"
-                      secureTextEntry
-                  />
+            <TextInput
+              style={styles.input}
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="Current password"
+              secureTextEntry
+            />
 
-                  <TextInput
-                      style={styles.input}
-                      value={newPassword}
-                      onChangeText={setNewPassword}
-                      placeholder="Nueva contraseña"
-                      secureTextEntry
-                  />
+            <TextInput
+              style={styles.input}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="New password"
+              secureTextEntry
+            />
 
-                  <View style={styles.modalButtons}>
-                      <TouchableOpacity style={styles.modalButton} onPress={handleChangePassword}>
-                          <Text style={styles.modalButtonText}>Guardar</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setPasswordModalVisible(false)}>
-                          <Text style={styles.modalButtonText}>Cancelar</Text>
-                      </TouchableOpacity>
-                  </View>
-              </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => void handleChangePassword()}>
+                <Text style={styles.modalButtonText}>Guardar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setPasswordModalVisible(false); }}>
+                <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        </View>
       </Modal>
-      </ScrollView>
+      
+      {/* Reservation history modal */}
+      <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Historial de reservas</Text>
+
+            {reservations.length > 0 ? (
+              <ScrollView style={{ maxHeight: 300 }}>
+                {reservations.map((res, index) => (
+                  <View key={index} style={styles.reservationItem}>
+                    <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
+                    <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
+                    <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.noReservations}>No existen reservas pasadas</Text>
+            )}
+
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.cancelButton]} 
+              onPress={() => { setReservationsModalVisible(false); }}
+            >
+              <Text style={styles.modalButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 4,
-    color: '#333',
-  },  
-  deleteButton: {
-    backgroundColor: '#d9534f',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deleteText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  }, 
   container: {
     flexGrow: 1,
     alignItems: 'center',
     backgroundColor: '#f8f9fd',
     paddingBottom: 50,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
   },
   header: {
     width: '100%',
@@ -453,28 +536,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
+  deleteButton: {
+    backgroundColor: '#d9534f',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
   homeButton: {
     position: 'absolute',
-    top: 40,           // Ajusta según altura de status bar
+    bottom: 20,
     left: 20,
     backgroundColor: '#004AAD',
-    padding: 10,
-    borderRadius: 20,
-    zIndex: 10,
-    elevation: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-  },  
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+  },
   footer: {
     alignItems: 'center',
     marginTop: 100,
     padding: 5,
-  },
-  footerLogo: {
-    width: 30,
-    height: 30,
-    resizeMode: 'contain',
   },
   footerText: {
     fontSize: 30,
@@ -482,71 +572,78 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 5,
   },
-  backgroundLogo: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  position: 'absolute',
-  width: '100%',
-  height: '100%',
-},modalContainer: {
-  flex: 1,
-  justifyContent: 'center',
-  alignItems: 'center',
-  backgroundColor: 'rgba(0,0,0,0.5)',
-},
-modalContent: {
-  width: '80%',
-  backgroundColor: 'white',
-  padding: 20,
-  borderRadius: 10,
-},
-modalTitle: {
-  fontSize: 20,
-  fontWeight: 'bold',
-  marginBottom: 10,
-},
-input: {
-  borderBottomWidth: 1,
-  borderColor: '#ccc',
-  marginBottom: 10,
-  paddingVertical: 5,
-},
-modalButtons: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  marginTop: 10,
-},
-modalButton: {
-  backgroundColor: '#004AAD',
-  padding: 10,
-  borderRadius: 5,
-  flex: 1,
-  alignItems: 'center',
-  marginHorizontal: 5,
-},
-cancelButton: {
-  backgroundColor: '#d9534f',
-},
-modalButtonText: {
-  color: 'white',
-  fontWeight: 'bold',
-},
-imagePickerButton: {
-  backgroundColor: '#004AAD',
-  padding: 10,
-  borderRadius: 5,
-  alignItems: 'center',
-  marginVertical: 10,
-},
-imagePickerButtonText: {
-  color: 'white',
-  fontWeight: 'bold',
-},
-profileImagePreview: {
-  width: 100,
-  height: 100,
-  borderRadius: 50,
-  marginVertical: 10,
-},
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 10,
+    paddingVertical: 5,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalButton: {
+    backgroundColor: '#004AAD',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#d9534f',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  reservationItem: {
+    backgroundColor: '#ffffff',
+    padding: 15,
+    marginVertical: 8,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    width: '90%',
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
+  reservationText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 2,
+  },
+  noReservations: {
+    textAlign: 'center',
+    fontSize: 22,
+    color: 'gray',
+    marginTop: 10,
+  },
 });

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Experience
+from .models import Experience, ExperienceCategory
 
 class ExperienceSerializer(serializers.ModelSerializer):
     title = serializers.CharField(required=True)
@@ -8,18 +8,21 @@ class ExperienceSerializer(serializers.ModelSerializer):
     link = serializers.URLField(required=False)
     price = serializers.DecimalField(max_digits=6, decimal_places=2, required=True)
     location = serializers.CharField(required=True)
-    duration = serializers.IntegerField(required=True)
-    category = serializers.ChoiceField(choices=Experience.ExperienceCategory.choices, required=True)
+    notas_adicionales = serializers.CharField(required=False)
+    categories = serializers.ListField(
+        child=serializers.ChoiceField(choices=ExperienceCategory.choices),
+        required=True
+    )
 
     def validate_price(self, value):
-        print(f"✅ Validando price: {value}")  # 🔥 Asegura que esta línea se imprime
+        print(f"✅ Validando price: {value}")
         if value < 0:
             raise serializers.ValidationError("El precio no puede ser negativo.")
         return value
-
-    def validate_duration(self, value):
-        if not isinstance(value, int) or value <= 0:
-            raise serializers.ValidationError("La duración debe ser un número entero mayor que 0.")
+    
+    def validate_categories(self, value):
+        if len(value) > 3:
+            raise serializers.ValidationError("No puedes seleccionar más de 3 categorías.")
         return value
 
     class Meta:
