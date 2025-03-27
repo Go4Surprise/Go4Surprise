@@ -7,19 +7,6 @@ import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
 
-interface Reservation {
-  id: string;
-  booking_date: string;
-  experience_date: string;
-  participants: number;
-  price: number;
-  status: string;
-  total_price: number;
-  experience: {
-    title: string;
-  };
-}
-
 interface User {
   id: string;
   name: string;
@@ -436,36 +423,7 @@ export default function UserProfileScreen() {
           </View>
         </View>
       </Modal>
-      
-      {/* Reservation history modal */}
-      <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Historial de reservas</Text>
 
-            {reservations.length > 0 ? (
-              <ScrollView style={{ maxHeight: 300 }}>
-                {reservations.map((res, index) => (
-                  <View key={index} style={styles.reservationItem}>
-                    <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
-                    <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
-                    <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            ) : (
-              <Text style={styles.noReservations}>No existen reservas pasadas</Text>
-            )}
-
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.cancelButton]} 
-              onPress={() => { setReservationsModalVisible(false); }}
-            >
-              <Text style={styles.modalButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 }
