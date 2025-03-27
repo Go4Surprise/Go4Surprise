@@ -205,7 +205,6 @@ export default function RegisterScreen() {
                     style={styles.eyeIcon}
                     onPress={() => setShowPassword(!showPassword)}
                 >
-                    <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#666" />
                 </TouchableOpacity>
                 </View>
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
@@ -222,7 +221,6 @@ export default function RegisterScreen() {
                         style={styles.eyeIcon}
                         onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                        <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#666" />
                     </TouchableOpacity>
                 </View>
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}

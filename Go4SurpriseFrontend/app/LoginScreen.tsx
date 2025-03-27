@@ -177,11 +177,6 @@ export default function LoginScreen() {
                 style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
               >
-                <Ionicons 
-                  name={showPassword ? 'eye-off' : 'eye'} 
-                  size={22} 
-                  color="#666" 
-                />
               </TouchableOpacity>
             </View>
 
