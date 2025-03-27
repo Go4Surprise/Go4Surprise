@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, 
-  StyleSheet, Image, Alert, useWindowDimensions, Modal
+  StyleSheet, Image, Alert, useWindowDimensions, Modal,ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
@@ -10,6 +10,7 @@ import * as WebBrowser from 'expo-web-browser';
 import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -28,6 +29,8 @@ export default function LoginScreen() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [resendInProgress, setResendInProgress] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   // Set up the Google authentication request
   const [, response, promptAsync] = Google.useAuthRequest({
@@ -141,6 +144,8 @@ export default function LoginScreen() {
   };
 
   return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    
     <View style={styles.container}>
       <View style={[styles.content, isMobile ? styles.contentMobile : styles.contentDesktop]}>
         {/* Left section - logo and text */}
@@ -160,13 +165,26 @@ export default function LoginScreen() {
               value={username} 
               onChangeText={setUsername} 
             />
-            <TextInput 
-              style={styles.input} 
-              placeholder="Contraseña" 
-              secureTextEntry 
-              value={password} 
-              onChangeText={setPassword} 
-            />
+            <View style={{ width: '100%', position: 'relative' }}>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Contraseña" 
+                secureTextEntry={!showPassword}
+                value={password} 
+                onChangeText={setPassword} 
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons 
+                  name={showPassword ? 'eye-off' : 'eye'} 
+                  size={22} 
+                  color="#666" 
+                />
+              </TouchableOpacity>
+            </View>
+
 
             {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
 
@@ -237,17 +255,60 @@ export default function LoginScreen() {
         </View>
       </Modal>
     </View>
+  </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F0F2F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -11 }],
+    padding: 4,
   },
+  
+  verifyButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  
+  disabledButton: {
+    backgroundColor: '#A5C9FF',
+  },
+  successMessage: {
+    fontSize: 16,
+    color: 'green',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    backgroundColor: '#e0e0e0',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#F4F4F4',
+  },
+  container: {
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  
   content: {
     width: '100%',
     maxWidth: 1100,
@@ -397,4 +458,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     marginBottom: 15,
-    width: '100%',},});
+    width: '100%',},
+  
+});

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
     View, Text, TextInput, TouchableOpacity, 
-    StyleSheet, Image, Alert
+    StyleSheet, Image, Alert,ScrollView
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -21,6 +21,9 @@ export default function RegisterScreen() {
     const [phone, setPhone] = useState('');
     const [birthdate, setBirthdate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() - 18)));
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
 
     const [errors, setErrors] = useState<{ 
@@ -171,6 +174,7 @@ export default function RegisterScreen() {
     
 
     return (
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.push('/LoginScreen')}> 
                 <Ionicons name="arrow-back" size={24} color="#333" />
@@ -188,23 +192,39 @@ export default function RegisterScreen() {
                     onChangeText={setUsername} 
                 />
                 {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-
+                
+                <View style={{ width: '100%', position: 'relative' }}>
                 <TextInput 
                     style={styles.input} 
                     placeholder="Contraseña" 
                     value={password} 
                     onChangeText={setPassword} 
-                    secureTextEntry 
+                    secureTextEntry={!showPassword} 
                 />
+                <TouchableOpacity
+                    style={styles.eyeIcon}
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={22} color="#666" />
+                </TouchableOpacity>
+                </View>
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
-                <TextInput 
-                    style={styles.input} 
-                    placeholder="Confirmar Contraseña" 
-                    value={confirmPassword} 
-                    onChangeText={setConfirmPassword} 
-                    secureTextEntry 
-                />
+                <View style={{ width: '100%', position: 'relative' }}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Confirmar Contraseña"
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry={!showConfirmPassword}
+                    />
+                    <TouchableOpacity
+                        style={styles.eyeIcon}
+                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                        <Ionicons name={showConfirmPassword ? 'eye-off' : 'eye'} size={22} color="#666" />
+                    </TouchableOpacity>
+                </View>
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
 
                 <TextInput 
@@ -275,9 +295,9 @@ export default function RegisterScreen() {
                     </TouchableOpacity>
                     <Text style={styles.termsText}>
                         He leído y acepto la{' '}
-                        <Text style={styles.link} onPress={() => router.push('/PoliticaPrivacidad')}>Política de Privacidad</Text>
+                        <Text style={styles.link} onPress={() =>router.push({ pathname: '/PoliticaPrivacidad', params: { from: 'register' } })}>Política de Privacidad</Text>
                         {' '}y las{' '}
-                        <Text style={styles.link} onPress={() => router.push('/CondicionesUso')}>Condiciones de Uso</Text>.
+                        <Text style={styles.link} onPress={() => router.push({ pathname: '/CondicionesUso', params: { from: 'register' } })}>Condiciones de Uso</Text>.
                     </Text>
                 </View>
 
@@ -291,9 +311,27 @@ export default function RegisterScreen() {
                 </Text>
             </View>
         </View>
+        </ScrollView>
     );}
 
 const styles = StyleSheet.create({
+    eyeIcon: {
+        position: 'absolute',
+        right: 10,
+        top: '50%',
+        transform: [{ translateY: -11 }],
+        padding: 4,
+      },
+      
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+        backgroundColor: '#F4F4F4',
+      },
+      
     container: {
         flex: 1,
         justifyContent: 'center',
