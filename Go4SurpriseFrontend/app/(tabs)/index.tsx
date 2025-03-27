@@ -90,11 +90,11 @@ export default function IndexScreen() {
 
         {/* FOOTER CON ENLACES LEGALES */}
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => router.push('/PoliticaPrivacidad')}>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/PoliticaPrivacidad', params: { from: 'home' } })}>
             <Text style={styles.footerLink}>Política de Privacidad</Text>
           </TouchableOpacity>
           <Text style={styles.footerSeparator}>|</Text>
-          <TouchableOpacity onPress={() => router.push('/CondicionesUso')}>
+          <TouchableOpacity onPress={() =>router.push({ pathname: '/CondicionesUso', params: { from: 'home' } })}>
             <Text style={styles.footerLink}>Condiciones de Uso</Text>
           </TouchableOpacity>
         </View>
