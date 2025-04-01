@@ -165,7 +165,7 @@ export default function LoginScreen() {
               value={username} 
               onChangeText={setUsername} 
             />
-            <View style={{ width: '100%', position: 'relative' }}>
+           <View style={{ width: '100%', position: 'relative' }}>
               <TextInput 
                 style={styles.input} 
                 placeholder="Contraseña" 
@@ -177,8 +177,14 @@ export default function LoginScreen() {
                 style={styles.eyeIcon}
                 onPress={() => setShowPassword(!showPassword)}
               >
+                <Ionicons 
+                  name={showPassword ? 'eye-off' : 'eye'} 
+                  size={24} 
+                  color="#666" 
+                />
               </TouchableOpacity>
             </View>
+
 
 
             {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
@@ -258,11 +264,13 @@ const styles = StyleSheet.create({
   eyeIcon: {
     position: 'absolute',
     right: 10,
-    top: '50%',
-    transform: [{ translateY: -11 }],
-    padding: 4,
-  },
-  
+    top: '30%',
+    transform: [{ translateY: -12 }],
+    padding: 8,
+    zIndex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },  
   verifyButtonText: {
     color: '#fff',
     fontSize: 16,
