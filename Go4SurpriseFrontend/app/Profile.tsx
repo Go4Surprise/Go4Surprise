@@ -6,6 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Platform } from 'react-native';
+
 
 interface User {
   id: string;
@@ -15,6 +18,7 @@ interface User {
   surname: string;
   phone: string;
   pfp: string;
+  birthdate: Date;
 }
 
 export default function UserProfileScreen() {
@@ -26,15 +30,18 @@ export default function UserProfileScreen() {
     surname: '',
     phone: '',
     pfp: '',
+    birthdate: new Date(),
   });
   
   const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' });
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' , birthdate: new Date() });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
 
   // Fetch user data from API
   const fetchUserData = async () => {
@@ -59,7 +66,8 @@ export default function UserProfileScreen() {
         username: response.data.username,
         surname: response.data.surname,
         phone: response.data.phone,
-        pfp: response.data.pfp
+        pfp: response.data.pfp,
+        birthdate: response.data.birthdate,
     }));
     } catch (error) {
       console.error("Error al cargar perfil:", error);
@@ -81,7 +89,8 @@ export default function UserProfileScreen() {
             username: user.username || '',  
             email: user.email || '',
             phone: user.phone || '',
-            pfp: user.pfp || ''
+            pfp: user.pfp || '',
+            birthdate: user.birthdate || new Date(),
         });
         setModalVisible(true);
     }
@@ -103,42 +112,44 @@ export default function UserProfileScreen() {
   };
 
 
-  // Save profile changes to API
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
       const formData = new FormData();
-        formData.append('name', editedUser.name);
-        formData.append('surname', editedUser.surname);
-        formData.append('username', editedUser.username);
-        formData.append('email', editedUser.email);
-        formData.append('phone', editedUser.phone);
-        if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
-          const base64Data = editedUser.pfp.split(',')[1]; // Extraer solo los datos Base64
-          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
-
-          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-          formData.append('pfp', pfpFile);
-        }
-      await axios.put(`${BASE_URL}/users/update/`, formData, {
-      headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+      formData.append('name', editedUser.name);
+      formData.append('surname', editedUser.surname);
+      formData.append('username', editedUser.username);
+      formData.append('email', editedUser.email);
+      formData.append('phone', editedUser.phone);
+      formData.append('birthdate', editedUser.birthdate.toISOString().split('T')[0]); // Formato YYYY-MM-DD
+  
+      if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
+        const base64Data = editedUser.pfp.split(',')[1];
+        const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+        const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+        formData.append('pfp', pfpFile);
       }
+  
+      await axios.put(`${BASE_URL}/users/update/`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      
+  
       setUser(prevState => ({
         ...prevState,
         ...editedUser
       }));
-      
+  
       setModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully.');
+      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
-      console.error('Error updating profile', error);
-      Alert.alert('Error', 'Could not update profile.');
+      console.error('Error al actualizar el perfil', error);
+      Alert.alert('Error', 'No se pudo actualizar el perfil.');
     }
   };
+  
 
   // Change password through API
   const handleChangePassword = async () => {
@@ -322,6 +333,24 @@ export default function UserProfileScreen() {
             <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
             <Text style={styles.label}>Teléfono</Text>
             <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+            <Text style={styles.label}>Fecha de Nacimiento</Text>
+            {Platform.OS === 'web' ? (
+              <input
+                style={styles.webDateInput}
+                type="date"
+                value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
+                onChange={(e) => setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) })}
+              />
+            ) : (
+              <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                <Text style={styles.dateText}>
+                  {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+
+
             <Text style={styles.label}>Foto de Perfil</Text>
             <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
                 <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
@@ -381,6 +410,32 @@ export default function UserProfileScreen() {
   );
 }
 const styles = StyleSheet.create({
+  webDateInput: {
+    width: '100%',
+    padding: 12,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
+    boxSizing: 'border-box',
+  },
+  
+  dateButton: {
+    backgroundColor: '#F0F0F0',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  
   label: {
     fontSize: 14,
     fontWeight: 'bold',
