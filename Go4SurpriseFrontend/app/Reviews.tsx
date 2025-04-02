@@ -1,7 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function Reviews({ navigation }) {
+export default function Reviews() {
+    const router = useRouter();
     const scrollViewRef = useRef<ScrollView>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
@@ -71,7 +73,7 @@ export default function Reviews({ navigation }) {
                     </View>
                 ))}
             </ScrollView>
-            <Text style={styles.linkText} onPress={() => navigation.navigate('MoreReviews')}>
+            <Text style={styles.linkText} onPress={() => router.push("/MoreReviews")}>
                 Más opiniones
             </Text>
         </View>
