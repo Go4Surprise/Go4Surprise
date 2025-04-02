@@ -194,18 +194,23 @@ export default function RegisterScreen() {
                 {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
                 
                 <View style={{ width: '100%', position: 'relative' }}>
-                <TextInput 
-                    style={styles.input} 
-                    placeholder="Contraseña" 
-                    value={password} 
-                    onChangeText={setPassword} 
-                    secureTextEntry={!showPassword} 
-                />
-                <TouchableOpacity
-                    style={styles.eyeIcon}
-                    onPress={() => setShowPassword(!showPassword)}
-                >
-                </TouchableOpacity>
+                    <TextInput 
+                        style={styles.input} 
+                        placeholder="Contraseña" 
+                        value={password} 
+                        onChangeText={setPassword} 
+                        secureTextEntry={!showPassword} 
+                    />
+                    <TouchableOpacity
+                        style={styles.eyeIcon}
+                        onPress={() => setShowPassword(!showPassword)}
+                    >
+                        <Ionicons 
+                            name={showPassword ? 'eye-off' : 'eye'} 
+                            size={24} 
+                            color="#666" 
+                        />
+                    </TouchableOpacity>
                 </View>
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
@@ -221,9 +226,15 @@ export default function RegisterScreen() {
                         style={styles.eyeIcon}
                         onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
+                        <Ionicons 
+                            name={showConfirmPassword ? 'eye-off' : 'eye'} 
+                            size={24} 
+                            color="#666" 
+                        />
                     </TouchableOpacity>
                 </View>
                 {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+
 
                 <TextInput 
                     style={styles.input} 
@@ -316,7 +327,7 @@ const styles = StyleSheet.create({
     eyeIcon: {
         position: 'absolute',
         right: 10,
-        top: '50%',
+        top: '30%',
         transform: [{ translateY: -11 }],
         padding: 4,
       },
