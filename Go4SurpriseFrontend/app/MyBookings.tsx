@@ -34,6 +34,7 @@ interface Reserva {
 
 const MyBookings = () => {
   const [reservas, setReservas] = useState<Reserva[]>([]);
+  const [pastReservas, setPastReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -56,11 +57,14 @@ const MyBookings = () => {
         return;
       }
       
-      const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-        headers: { 
-          Authorization: `Bearer ${token}` 
-        },
-      });
+      const [response, pastBookings] = await Promise.all([
+        axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
       console.log("Datos de la API:", response.data); // Agregado para depuración
 
@@ -77,6 +81,19 @@ const MyBookings = () => {
         setReservas(sorted);
       } else {
         throw new Error("Formato de datos incorrecto");
+      }
+
+      if (Array.isArray(pastBookings.data)) {
+        const sortedPast = pastBookings.data
+          .map(item => ({
+            ...item,
+            experience_date: new Date(item.experience_date),
+            time_preference: item.experience.time_preference,
+            city: item.experience.location,
+            hint: item.experience.hint,
+          }))
+          .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
+        setPastReservas(sortedPast);
       }
     } catch (error) {
       console.error("Error al obtener las reservas:", error); // Agregado para depuración
@@ -211,6 +228,69 @@ const renderItem = ({ item }: { item: Reserva }) => {
   );
 };
 
+
+const renderPastItem = ({ item }: { item: Reserva }) => {
+  const timePreferenceMap: { [key: string]: string } = {
+    MORNING: "Mañana",
+    AFTERNOON: "Tarde",
+    EVENING: "Noche",
+  };
+
+      {item.experience_hint && (  // Solo mostramos la pista si existe
+        <Text style={styles.label}>
+          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
+          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
+        </Text>
+      
+      )}
+
+  return (
+    <View style={[styles.card]}>
+      <Text style={styles.label}>
+        <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
+        {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="people" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Participantes:</Text> {item.participants}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="time" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
+        {timePreferenceMap[item.time_preference] || item.time_preference}
+      </Text>
+
+      <Text style={styles.label}>
+        <Ionicons name="location" size={16} color="#1877F2" />{" "}
+        <Text style={styles.bold}>Ciudad:</Text> {item.city}
+      </Text>
+
+      {isBefore(
+        item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
+        new Date()
+      ) && (
+        <TouchableOpacity
+          style={styles.reviewButton}
+          onPress={() => {
+            console.log("Dejar reseña", item.id);
+          }}
+        >
+          <Ionicons name="star" size={16} color="white" />
+          <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
   if (loading) return <ActivityIndicator style={styles.loader} size="large" color="#1877F2" />;
   if (error) return <Text style={styles.errorText}>{error}</Text>;
 
@@ -256,6 +336,16 @@ const renderItem = ({ item }: { item: Reserva }) => {
           </View>
         </View>
       </Modal>
+
+      <br/>
+
+      <Text style={styles.title}>Reservas Pasadas</Text>
+      <FlatList
+        data={pastReservas}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPastItem}
+        ListEmptyComponent={<Text style={styles.noReservationsText}>No tienes ninguna reserva en el pasado.</Text>}
+      />
     </Animated.View>
   );
 };
