@@ -3,12 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField, Button, MenuItem, FormControl, InputLabel,
   Select, Box, Stack, SelectChangeEvent, Typography,
-  Alert, Slider
+  Alert, Slider, useMediaQuery, useTheme, Grid, IconButton
 } from "@mui/material";
 import axios from "axios";
-import { ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View, Dimensions, Platform, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
 import { BASE_URL } from '../constants/apiUrl';
 import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
 
@@ -20,57 +19,129 @@ type ScrollState = {
 };
 import { cities, categories } from "../data/bookingData";
 
-// Card Components
-const CityCard = ({ city, isSelected, onSelect }: CardProps) => (
-  <Button
-    style={{ width: 200, height: 300, margin: 5 }}
-    onClick={onSelect}
-    variant={isSelected ? "outlined" : "text"}
-  >
-    <div style={{ width: "100%", height: "80%", position: "relative" }}>
-      <img
-        src={city.image}
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
-      />
-      <Text>{city.name}</Text>
-    </div>
-  </Button>
-);
+// Responsive card dimensions
+const getCardDimensions = (isMobile: boolean) => ({
+  width: isMobile ? 150 : 200,
+  height: isMobile ? 200 : 300,
+  margin: isMobile ? 5 : 8
+});
 
-const CategoryCard = ({ category, isSelected, onSelect }: CardProps) => (
-  <Button
-  style={{
-    width: 200,
-    height: 300,
-    margin: 5,
-    opacity: isSelected ? 0.5 : 1,
-    backgroundColor: isSelected ? "#e0e0e0" : "transparent", 
-    transition: "opacity 0.3s, background-color 0.3s", 
-  }}
-    onClick={onSelect}
-    variant={isSelected ? "outlined" : "text"}
-  >
-    <div style={{ width: "100%", height: "80%", position: "relative" }}>
-      <img
-        src={category.image}
-        alt={category.name}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          borderRadius: 8,
-          filter: isSelected ? "grayscale(100%)" : "none", 
-        }}
-      />
-      <Text>{category.name}</Text>
-    </div>
-  </Button>
-);
+// Card Components
+const CityCard = ({ city, isSelected, onSelect, isMobile }: CardProps & { isMobile: boolean }) => {
+  const { width, height, margin } = getCardDimensions(isMobile);
+  
+  return (
+    <Button
+      style={{ 
+        width, 
+        height, 
+        margin,
+        padding: 0,
+        overflow: 'hidden',
+        border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
+        borderRadius: 10
+      }}
+      onClick={onSelect}
+      variant={isSelected ? "outlined" : "text"}
+    >
+      <div style={{ 
+        width: "100%", 
+        height: "85%", 
+        position: "relative",
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ 
+          width: "100%", 
+          height: "100%", 
+          overflow: 'hidden',
+          position: 'relative' 
+        }}>
+          <img
+            src={city.image}
+            alt={city.name}
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "cover"
+            }}
+          />
+        </div>
+        <Text style={{ 
+          fontSize: isMobile ? 14 : 16,
+          textAlign: 'center',
+          width: '100%',
+          marginTop: 8,
+          fontWeight: isSelected ? 'bold' : 'normal',
+          color: isSelected ? '#1976d2' : 'inherit'
+        }}>{city.name}</Text>
+      </div>
+    </Button>
+  );
+};
+
+const CategoryCard = ({ category, isSelected, onSelect, isMobile }: CardProps & { isMobile: boolean }) => {
+  const { width, height, margin } = getCardDimensions(isMobile);
+  
+  return (
+    <Button
+      style={{
+        width,
+        height,
+        margin,
+        padding: 0,
+        overflow: 'hidden',
+        opacity: isSelected ? 0.8 : 1,
+        backgroundColor: isSelected ? "#e0e0e0" : "transparent", 
+        transition: "opacity 0.3s, background-color 0.3s",
+        border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
+        borderRadius: 10
+      }}
+      onClick={onSelect}
+      variant={isSelected ? "outlined" : "text"}
+    >
+      <div style={{ 
+        width: "100%", 
+        height: "85%", 
+        position: "relative",
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{ 
+          width: "100%", 
+          height: "100%", 
+          overflow: 'hidden',
+          position: 'relative' 
+        }}>
+          <img
+            src={category.image}
+            alt={category.name}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: isSelected ? "grayscale(50%)" : "none"
+            }}
+          />
+        </div>
+        <Text style={{ 
+          fontSize: isMobile ? 14 : 16,
+          textAlign: 'center',
+          width: '100%',
+          marginTop: 8,
+          fontWeight: isSelected ? 'bold' : 'normal',
+          color: isSelected ? '#1976d2' : 'inherit'
+        }}>{category.name}</Text>
+      </div>
+    </Button>
+  );
+};
 
 // Horizontal Scrollable Component
-const HorizontalScrollable = ({ children, scrollViewProps }: { 
+const HorizontalScrollable = ({ children, scrollViewProps, containerHeight }: { 
   children: React.ReactNode, 
-  scrollViewProps: ScrollViewProps 
+  scrollViewProps: ScrollViewProps,
+  containerHeight: number 
 }) => (
   <ScrollView
     ref={scrollViewProps.ref}
@@ -90,7 +161,9 @@ const HorizontalScrollable = ({ children, scrollViewProps }: {
     scrollEventThrottle={16}
     decelerationRate="normal"
   >
-    {children}
+    <View style={{ height: containerHeight }}>
+      {children}
+    </View>
   </ScrollView>
 );
 
@@ -164,15 +237,17 @@ const BookingFormFields = ({
   reserva, 
   handleTextFieldChange, 
   handleSelectChange,
-  errors
+  errors,
+  isMobile
 }: { 
   reserva: Reservation, 
   handleTextFieldChange: any, 
   handleSelectChange: any,
-  errors: any
+  errors: any,
+  isMobile: boolean
 }) => (
-  <>
-    <FormControl fullWidth>
+  <Stack spacing={isMobile ? 2.5 : 3}>
+    <FormControl fullWidth size={isMobile ? "small" : "medium"}>
       <InputLabel>Preferencia de Horario</InputLabel>
       <Select
         label="Preferencia de Horario"
@@ -188,7 +263,7 @@ const BookingFormFields = ({
     </FormControl>
     
     <FormControl fullWidth>
-      <Typography>Precio</Typography>
+      <Typography variant={isMobile ? "body2" : "body1"}>Precio</Typography>
       <Slider
         name="price"
         value={reserva.price}
@@ -202,6 +277,7 @@ const BookingFormFields = ({
         min={20}
         max={60}
         valueLabelDisplay="auto"
+        size={isMobile ? "small" : "medium"}
       />
     </FormControl>
     
@@ -213,6 +289,7 @@ const BookingFormFields = ({
       value={reserva.participants}
       onChange={handleTextFieldChange}
       required
+      size={isMobile ? "small" : "medium"}
       inputProps={{
         min: 1
       }}
@@ -225,6 +302,7 @@ const BookingFormFields = ({
       name="experience_date"
       type="date"
       fullWidth
+      size={isMobile ? "small" : "medium"}
       InputLabelProps={{ shrink: true }}
       inputProps={{
         min: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -244,17 +322,89 @@ const BookingFormFields = ({
       label="Notas Adicionales"
       name="notas_adicionales"
       multiline
-      rows={4}
+      rows={isMobile ? 3 : 4}
       fullWidth
+      size={isMobile ? "small" : "medium"}
       placeholder="Añade cualquier información adicional que consideres relevante para tu experiencia (alergias, mascotas, ...)"
       value={reserva.notas_adicionales}
       onChange={handleTextFieldChange}
     />
-  </>
+  </Stack>
+);
+
+// Back button component
+const BackButton = ({ onPress, isMobile }: { onPress: () => void, isMobile: boolean }) => (
+  <TouchableOpacity 
+    onPress={onPress}
+    style={{
+      alignSelf: 'flex-start',
+      marginBottom: 16
+    }}
+  >
+    <Box 
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        color: '#1976d2',
+        fontWeight: 'bold',
+        paddingY: 1,
+        paddingX: 1.5,
+        borderRadius: 0,
+        width: 'fit-content',
+        transition: '0.3s',
+        '&:hover': {
+          backgroundColor: 'rgba(25, 118, 210, 0.08)'
+        }
+      }}
+    >
+      <span style={{ marginRight: 8 }}>&#8592;</span>
+      <Typography variant={isMobile ? "body2" : "body1"} component="span">
+        Volver a Inicio
+      </Typography>
+    </Box>
+  </TouchableOpacity>
 );
 
 // Main component
 export default function RegisterBooking() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  // Get screen dimensions for responsive adjustments
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height
+  });
+  
+  // Detect if we're on a large screen
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up('md'));
+  const isExtraLargeScreen = useMediaQuery(theme.breakpoints.up('lg'));
+
+  // Update dimensions on window resize
+  useEffect(() => {
+    const updateDimensions = () => {
+      setWindowDimensions({
+        width: Dimensions.get('window').width,
+        height: Dimensions.get('window').height
+      });
+    };
+
+    const subscription = Dimensions.addEventListener('change', updateDimensions);
+    
+    return () => {
+      // Remove event listener
+      if (typeof subscription?.remove === 'function') {
+        subscription.remove();
+      }
+    };
+  }, []);
+
+  // Calculate card container height based on screen size
+  const cardContainerHeight = useMemo(() => {
+    return isMobile ? 240 : 320;
+  }, [isMobile]);
+
   // State
   const [reserva, setReserva] = useState<Reservation>({
     user: null,
@@ -333,6 +483,7 @@ export default function RegisterBooking() {
     setReserva(prev => ({ ...prev, [name]: value }));
   };
 
+  // Navigation handler
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -348,7 +499,7 @@ export default function RegisterBooking() {
         user: reserva.user,
         experience_date: date,
         location: reserva.location,
-        time_preference: reserva.horario_preferencia, // Ensure this matches the backend field
+        time_preference: reserva.horario_preferencia,
         categories: reserva.categories,
         notas_adicionales: reserva.notas_adicionales,
       };
@@ -368,7 +519,6 @@ export default function RegisterBooking() {
       console.log("BookingId:", bookingId);
 
       // Redirige a la página de detalles de la reserva pasando el bookingId
-      //navigation.navigate("BookingDetailsScreen", { bookingId });
       router.push({ pathname: "/BookingDetails", params: { bookingId } });
       
     } catch (error: any) {
@@ -378,9 +528,9 @@ export default function RegisterBooking() {
       if (error.response?.data) {
         const errorDetails = error.response.data;
         if (typeof errorDetails === "object" && errorDetails.detail) {
-          setBackendErrors(errorDetails.detail); // Extract the "detail" field
+          setBackendErrors(errorDetails.detail);
         } else if (typeof errorDetails === "string") {
-          setBackendErrors(errorDetails); // Handle string error messages
+          setBackendErrors(errorDetails);
         } else {
           setBackendErrors("Ocurrió un error desconocido.");
         }
@@ -443,100 +593,152 @@ export default function RegisterBooking() {
     <ScrollView contentContainerStyle={{ 
       flexGrow: 1,
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      paddingVertical: 24,
+      paddingHorizontal: isMobile ? 10 : 16
     }}>
-      <Box sx={{ maxWidth: 600, padding: 3, width: "100%", margin: "0 auto" }}>
+      <Box sx={{ 
+        width: "100%", 
+        maxWidth: { xs: '90%', sm: '90%', md: '90%', lg: '90%' }, 
+        padding: { xs: 2, sm: 2.5, md: 3 }, 
+        margin: "0 auto"
+      }}>
+        <BackButton onPress={() => router.push('/HomeScreen')} isMobile={isMobile} />
+        
         <form onSubmit={handleSubmit}>
-          <Stack spacing={2}>
-            <Typography variant="h6">
+          <Stack spacing={isMobile ? 2.5 : 3}>
             <Typography 
-            variant="h5" 
-            fontWeight="bold" 
-            gutterBottom 
-            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
-          >
-            Elige Ciudad
-          </Typography>
-              {reserva.location !== "" ? reserva.location : ""}
+              variant={isMobile ? "h6" : "h5"} 
+              fontWeight="bold" 
+              gutterBottom 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                color: '#1976d2',
+                fontSize: isMobile ? '1.1rem' : '1.5rem',
+                marginTop: isMobile ? 1.5 : 0,
+                marginBottom: isMobile ? 1.5 : 0.5
+              }}
+            >
+              Elige Ciudad
             </Typography>
             
-            <View style={{ height: 320 }}>
-              <HorizontalScrollable scrollViewProps={cityScrollProps}>
-                {cities.map((city) => (
-                  <CityCard 
-                    key={city.name}
-                    city={city}
-                    isSelected={reserva.location === city.name}
-                    onSelect={() => setReserva(prev => ({ ...prev, location: city.name }))}
-                  />
-                ))}
+            {reserva.location !== "" && (
+              <Typography variant="body1" fontWeight="medium">
+                {reserva.location}
+              </Typography>
+            )}
+            
+            <View style={{ height: cardContainerHeight }}>
+              <HorizontalScrollable 
+                scrollViewProps={cityScrollProps}
+                containerHeight={cardContainerHeight}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                  {cities.map((city) => (
+                    <CityCard 
+                      key={city.name}
+                      city={city}
+                      isSelected={reserva.location === city.name}
+                      onSelect={() => setReserva(prev => ({ ...prev, location: city.name }))}
+                      isMobile={isMobile}
+                    />
+                  ))}
+                </Box>
               </HorizontalScrollable>
             </View>
 
-            <Typography variant="h6">
             <Typography 
-            variant="h5" 
-            fontWeight="bold" 
-            gutterBottom 
-            sx={{ display: 'flex', alignItems: 'center', color: '#1976d2' }}
-          >
-            No te gusta algo? ¡Descártalo!
-          </Typography>
-              <Typography 
-              variant="body2" 
+              variant={isMobile ? "h6" : "h5"} 
+              fontWeight="bold" 
+              gutterBottom 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                color: '#1976d2',
+                marginTop: isMobile ? 3 : 2,
+                marginBottom: isMobile ? 1.5 : 0.5,
+                fontSize: isMobile ? '1.1rem' : '1.5rem'
+              }}
+            >
+              No te gusta algo? ¡Descártalo!
+            </Typography>
+            
+            <Typography 
+              variant={isMobile ? "caption" : "body2"} 
               color="textSecondary" 
-              sx={{ marginBottom: 1 }}
+              sx={{ marginBottom: 0.5 }}
             >
               (El primero es <strong>GRATIS</strong>, cada descarte extra cuesta <strong>5€</strong>, máximo: <strong>3 descartes permitidos</strong>)
             </Typography> 
-              {reserva.categories.length > 0 ? 
-                reserva.categories.join(", ") : 
-                ""}
-              {reserva.categories.length >= 3 && 
-                <Typography variant="caption" color="warning.main"> (Máximo alcanzado)</Typography>
-              }
-            </Typography>
+            
+            {reserva.categories.length > 0 && (
+              <Typography variant="body2" fontWeight="medium">
+                {reserva.categories.join(", ")}
+                {reserva.categories.length >= 3 && 
+                  <Typography 
+                    component="span" 
+                    variant="caption" 
+                    color="warning.main"
+                  > (Máximo alcanzado)</Typography>
+                }
+              </Typography>
+            )}
 
-            <HorizontalScrollable scrollViewProps={categoryScrollProps}>
-              {categories.map((category) => (
-                <CategoryCard 
-                  key={category.id}
-                  category={category}
-                  isSelected={reserva.categories.includes(category.id)}
-                  onSelect={() => toggleCategory(category.id)}
-                />
-              ))}
-            </HorizontalScrollable>
+            <View style={{ height: cardContainerHeight }}>
+              <HorizontalScrollable 
+                scrollViewProps={categoryScrollProps}
+                containerHeight={cardContainerHeight}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                  {categories.map((category) => (
+                    <CategoryCard 
+                      key={category.id}
+                      category={category}
+                      isSelected={reserva.categories.includes(category.id)}
+                      onSelect={() => toggleCategory(category.id)}
+                      isMobile={isMobile}
+                    />
+                  ))}
+                </Box>
+              </HorizontalScrollable>
+            </View>
 
-            <BookingFormFields 
-              reserva={reserva}
-              handleTextFieldChange={handleTextFieldChange}
-              handleSelectChange={handleSelectChange}
-              errors={errors}
-            />
+            <Box sx={{ marginTop: isMobile ? 3 : 2 }}>
+              <BookingFormFields 
+                reserva={reserva}
+                handleTextFieldChange={handleTextFieldChange}
+                handleSelectChange={handleSelectChange}
+                errors={errors}
+                isMobile={isMobile}
+              />
+            </Box>
             
             <Box 
               sx={{ 
-                padding: 2, 
+                padding: { xs: 2.5, sm: 3 },
                 border: '1px solid #e0e0e0', 
-                borderRadius: 1,
+                borderRadius: 1.5,
                 backgroundColor: '#f5f5f5',
-                marginTop: 2,
-                marginBottom: 2 
+                marginTop: { xs: 3, sm: 2 },
+                marginBottom: { xs: 3, sm: 2 } 
               }}
             >
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+              <Typography variant={isMobile ? "subtitle2" : "subtitle1"} fontWeight="bold" gutterBottom sx={{ marginBottom: isMobile ? 1.5 : 1 }}>
                 Desglose del precio:
               </Typography>
-              <Typography variant="body2">
+              <Typography variant={isMobile ? "caption" : "body2"}>
                 Precio base: {reserva.price}€ × {reserva.participants} {reserva.participants > 1 ? 'personas' : 'persona'} = {reserva.price * reserva.participants}€
               </Typography>
               {reserva.categories.length > 0 && (
-                <Typography variant="body2">
+                <Typography variant={isMobile ? "caption" : "body2"}>
                   Categorías descartadas: {reserva.categories.length} {reserva.categories.length === 1 ? '(gratis)' : `(primera gratis, +${(reserva.categories.length - 1) * 5}€)`}
                 </Typography>
               )}
-              <Typography variant="h6" sx={{ marginTop: 1, fontWeight: 'bold', color: '#1976d2' }}>
+              <Typography 
+                variant={isMobile ? "subtitle2" : "h6"} 
+                sx={{ marginTop: isMobile ? 2 : 1, fontWeight: 'bold', color: '#1976d2' }}
+              >
                 Precio Total: {totalPrice}€
               </Typography>
             </Box>
@@ -545,15 +747,15 @@ export default function RegisterBooking() {
             {backendErrors && (
               <Box 
                 sx={{ 
-                  padding: 2, 
+                  padding: { xs: 1.5, sm: 2 },
                   border: '1px solid #f44336', 
                   borderRadius: 1,
                   backgroundColor: '#ffebee',
-                  marginBottom: 2 
+                  marginBottom: { xs: 1.5, sm: 2 }
                 }}
               >
                 <Typography 
-                  variant="body2" 
+                  variant={isMobile ? "caption" : "body2"} 
                   color="error"
                   style={{ whiteSpace: 'pre-line' }}
                 >
@@ -566,7 +768,13 @@ export default function RegisterBooking() {
               variant="contained"
               type="submit"
               fullWidth
+              size={isMobile ? "medium" : "large"}
               disabled={!isFormValid()}
+              sx={{ 
+                marginTop: { xs: 2, sm: 2 },
+                padding: isMobile ? '10px 0' : undefined,
+                fontSize: isMobile ? '1rem' : undefined
+              }}
             >
               Realizar Reserva
             </Button>

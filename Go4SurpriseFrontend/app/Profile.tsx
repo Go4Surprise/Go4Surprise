@@ -322,50 +322,50 @@ export default function UserProfileScreen() {
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <Text style={styles.label}>Nombre</Text>
-            <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
-            <Text style={styles.label}>Apellidos</Text>
-            <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
-            <Text style={styles.label}>Usuario</Text>
-            <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
-            <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
-            <Text style={styles.label}>Teléfono</Text>
-            <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
-            <Text style={styles.label}>Fecha de Nacimiento</Text>
-            {Platform.OS === 'web' ? (
-              <input
-                style={styles.webDateInput}
-                type="date"
-                value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
-                onChange={(e) => setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) })}
-              />
-            ) : (
-              <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-                <Text style={styles.dateText}>
-                  {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
-                </Text>
-              </TouchableOpacity>
-            )}
+            <ScrollView contentContainerStyle={styles.modalScrollContent}>
+              <Text style={styles.modalTitle}>Editar Perfil</Text>
+              <Text style={styles.label}>Nombre</Text>
+              <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+              <Text style={styles.label}>Apellidos</Text>
+              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+              <Text style={styles.label}>Usuario</Text>
+              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+              <Text style={styles.label}>Email</Text>
+              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+              <Text style={styles.label}>Teléfono</Text>
+              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+              <Text style={styles.label}>Fecha de Nacimiento</Text>
+              {Platform.OS === 'web' ? (
+                <input
+                  style={styles.webDateInput}
+                  type="date"
+                  value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
+                  onChange={(e) => setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) })}
+                />
+              ) : (
+                <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.dateText}>
+                    {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
-
-
-            <Text style={styles.label}>Foto de Perfil</Text>
-            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-                <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
-            </TouchableOpacity>
-            {editedUser.pfp ? (
-                <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
-            ) : null}            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
-                <Text style={styles.modalButtonText}>Guardar</Text>
+              <Text style={styles.label}>Foto de Perfil</Text>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                  <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
+              {editedUser.pfp ? (
+                  <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
+              ) : null}            
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
+                  <Text style={styles.modalButtonText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -579,8 +579,12 @@ const styles = StyleSheet.create({
 modalContent: {
   width: '80%',
   backgroundColor: 'white',
-  padding: 20,
   borderRadius: 10,
+  maxHeight: '80%',
+  padding: 5,
+},
+modalScrollContent: {
+  padding: 15,
 },
 modalTitle: {
   fontSize: 20,
