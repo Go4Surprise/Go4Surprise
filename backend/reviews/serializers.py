@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from bookings.models import Booking
 from experiences.models import Experience
 from users.models import Usuario
 from .models import Reviews
@@ -36,6 +37,26 @@ class CreateReviewSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+    booking_date = serializers.SerializerMethodField()
     class Meta:
         model = Reviews
         fields = "__all__"
+
+    def get_user_name(self, obj):
+        name = obj.user.name if hasattr(obj.user, 'name') else obj.user.username
+        surname = obj.user.surname if hasattr(obj.user, 'surname') else None
+        return f"{name} {surname}" if surname else name
+    
+    def get_booking_date(self, obj):
+        try:
+            booking = Booking.objects.filter(
+                user=obj.user,
+                experience=obj.experience
+            ).first()
+            
+            if booking:
+                return booking.booking_date
+            return None
+        except Exception:
+            return None

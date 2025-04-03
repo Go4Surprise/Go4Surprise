@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView, Dimensions, Pressable } from 'react-native';
+import { 
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, 
+  SafeAreaView, Dimensions, Pressable, ActivityIndicator 
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/apiUrl';
 
-// Custom hook for handling hover state
+interface Review {
+  id: number;
+  user: string;
+  stars: string;
+  date: string;
+  content: string;
+}
+
 const useHover = () => {
   const [isHovered, setIsHovered] = useState(false);
   
@@ -12,7 +25,6 @@ const useHover = () => {
   return { isHovered, onHoverIn, onHoverOut };
 };
 
-// Review card component with hover effect
 const ReviewCard = ({ review, style }) => {
   const { isHovered, onHoverIn, onHoverOut } = useHover();
   
@@ -30,7 +42,7 @@ const ReviewCard = ({ review, style }) => {
       <Text style={styles.reviewContent}>{review.content}</Text>
       <View style={styles.reviewFooter}>
         <Text style={styles.reviewUser}>{review.user}</Text>
-        <Text style={styles.reviewDate}>{review.date}</Text>
+        {review.date !== '' && <Text style={styles.reviewDate}>{review.date}</Text>}
       </View>
     </Pressable>
   );
@@ -39,8 +51,10 @@ const ReviewCard = ({ review, style }) => {
 export default function MoreReviews() {
     const router = useRouter();
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     
-    // Handle screen dimension changes
     useEffect(() => {
         const updateLayout = () => {
             setScreenWidth(Dimensions.get('window').width);
@@ -48,19 +62,54 @@ export default function MoreReviews() {
         
         Dimensions.addEventListener('change', updateLayout);
         return () => {
-            // For newer React Native versions
             Dimensions.removeEventListener('change', updateLayout);
         };
     }, []);
     
-    // Calculate number of columns based on screen width
+    const fetchReviews = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const response = await axios.get(`${BASE_URL}/reviews/getAll/`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            const formattedReviews = response.data.map(review => ({
+                id: review.id,
+                user: review.user_name || 'Usuario anónimo',
+                stars: '★'.repeat(Math.floor(parseFloat(review.puntuacion))) + 
+                      '☆'.repeat(5 - Math.floor(parseFloat(review.puntuacion))),
+                date: review.booking_date 
+                ? new Date(review.booking_date).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })
+                : '',
+                content: review.comentario
+            }));
+            
+            setReviews(formattedReviews);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            setError('Error al cargar las opiniones');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void fetchReviews();
+    }, []);
+    
     const getColumnCount = () => {
         if (screenWidth > 768) return 3;
         if (screenWidth > 480) return 2;
         return 1;
     };
     
-    // Organize reviews into balanced columns
     const organizeReviewsInColumns = () => {
         const columnCount = getColumnCount();
         const columns = Array.from({ length: columnCount }, () => []);
@@ -93,23 +142,66 @@ export default function MoreReviews() {
         return baseHeight + (estimatedLines * 22);
     };
 
-    const reviews = [
-        { user: 'Juan Pérez', stars: '★★★★★', date: '1 de Enero, 2025', content: '¡Fue una experiencia increíble! Muy recomendable.' },
-        { user: 'María López', stars: '★★★★☆', date: '15 de Febrero, 2025', content: 'Muy divertido, aunque me hubiera gustado más variedad. Aun así, el precio valió la pena y me encantó la sorpresa. Definitivamente repetiría la experiencia.' },
-        { user: 'Carlos Gómez', stars: '★★★★★', date: '10 de Marzo, 2025', content: 'Definitivamente lo haré otra vez. ¡Muy recomendado!' },
-        { user: 'Laura Martínez', stars: '★★★★★', date: '15 de Febrero, 2025', content: 'Una experiencia única. Volveré sin duda. ¡Totalmente recomendable!' },
-        { user: 'Javier Sánchez', stars: '★★★★★', date: '5 de Enero, 2025', content: 'Increíble servicio. Todo perfecto desde el inicio hasta el final. El equipo fue muy atento y la sorpresa superó mis expectativas. La organización fue impecable y todo salió según lo planeado.' },
-        { user: 'Ana Rodríguez', stars: '★★★★★', date: '28 de Diciembre, 2024', content: '¡Un plan genial! Lo disfruté mucho, totalmente lo que buscaba.' },
-        { user: 'Pablo López', stars: '★★★★★', date: '1 de Marzo, 2025', content: 'Una experiencia inolvidable. Todo estuvo impecable. ¡Muy recomendable!' },
-        { user: 'Marta García', stars: '★★★★☆', date: '7 de Febrero, 2025', content: 'Pasamos un día increíble, sin duda repetiré. ¡Lo mejor de todo fue la atención!' },
-        { user: 'Enrique Fernández', stars: '★★★★★', date: '18 de Marzo, 2025', content: 'Perfecto en todos los aspectos. Un plan diferente y divertido. ¡Lo haré de nuevo!' },
-        { user: 'Sofía Ruiz', stars: '★★★★★', date: '5 de Abril, 2025', content: 'Superó todas mis expectativas. La organización fue perfecta y la sorpresa fue increíble. No puedo esperar a probar otra experiencia. El equipo fue muy profesional y amable.' },
-        { user: 'Daniel Torres', stars: '★★★★☆', date: '12 de Mayo, 2025', content: 'Gran experiencia, muy original.' },
-        { user: 'Carmen Navarro', stars: '★★★★★', date: '23 de Junio, 2025', content: 'Me encantó todo. Desde la atención al cliente hasta la experiencia en sí. Fue un día inolvidable y lo recomendaría a cualquiera que busque algo diferente y emocionante.' },
-        { user: 'Roberto Gil', stars: '★★★★★', date: '8 de Julio, 2025', content: 'Increíble desde el principio hasta el final. Repetiré seguro.' },
-        { user: 'Lucía Vázquez', stars: '★★★★☆', date: '17 de Agosto, 2025', content: 'Una experiencia muy bien organizada y llena de sorpresas. El equipo pensó en todos los detalles.' },
-        { user: 'Roberto Gil', stars: '★★★★★', date: '8 de Julio, 2025', content: 'Increíble desde el principio hasta el final. Repetiré seguro.' }
-    ];
+    // Loading state
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => router.push('/HomeScreen')}>
+                        <Text style={styles.backButtonText}>← Volver</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Opiniones de usuarios</Text>
+                </View>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#004AAD" />
+                    <Text style={styles.loadingText}>Cargando opiniones...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => router.push('/HomeScreen')}>
+                        <Text style={styles.backButtonText}>← Volver</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Opiniones de usuarios</Text>
+                </View>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.errorText}>{error}</Text>
+                    <TouchableOpacity style={styles.retryButton} onPress={() => void fetchReviews()}>
+                        <Text style={styles.retryButtonText}>Reintentar</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Empty reviews state
+    if (reviews.length === 0) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                    <TouchableOpacity 
+                        style={styles.backButton} 
+                        onPress={() => router.push('/HomeScreen')}>
+                        <Text style={styles.backButtonText}>← Volver</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Opiniones de usuarios</Text>
+                </View>
+                <View style={styles.loadingContainer}>
+                    <Text style={styles.emptyText}>No hay opiniones disponibles</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     const { columns, cardWidth } = organizeReviewsInColumns();
 
@@ -244,5 +336,38 @@ const styles = StyleSheet.create({
         color: '#777',
         textAlign: 'center',
         marginTop: 3,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loadingText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 10,
+    },
+    errorText: {
+        fontSize: 16,
+        color: '#e74c3c',
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+    },
+    retryButton: {
+        backgroundColor: '#004AAD',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
