@@ -61,7 +61,7 @@ const BookingDetailsScreen = () => {
       if (checkout_url) {
         if (Platform.OS === 'web') {
           // En web, abrimos en una nueva pestaña
-          window.open(checkout_url, '_blank');
+          window.location.href = checkout_url;
         } else if (WebViewComponent) {
           // En móvil con WebView disponible, usamos el WebView
           setPaymentUrl(checkout_url);
