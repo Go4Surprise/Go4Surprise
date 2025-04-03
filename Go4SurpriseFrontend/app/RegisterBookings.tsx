@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   TextField, Button, MenuItem, FormControl, InputLabel,
   Select, Box, Stack, SelectChangeEvent, Typography,
-  Alert, Slider, useMediaQuery, useTheme, Grid, IconButton
+  Alert, Slider, useMediaQuery, useTheme, Grid, IconButton,Divider,
 } from "@mui/material";
 import axios from "axios";
 import { ScrollView, Text, View, Dimensions, Platform, TouchableOpacity } from "react-native";
@@ -32,15 +32,18 @@ const CityCard = ({ city, isSelected, onSelect, isMobile }: CardProps & { isMobi
   
   return (
     <Button
-      style={{ 
-        width, 
-        height, 
-        margin,
-        padding: 0,
-        overflow: 'hidden',
-        border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
-        borderRadius: 10
-      }}
+    style={{
+      width,
+      height,
+      margin,
+      padding: 0,
+      overflow: 'hidden',
+      opacity: isSelected ? 0.8 : 1,
+      backgroundColor: isSelected ? "#d3d3d3" : "transparent", 
+      transition: "opacity 0.3s, background-color 0.3s",
+      border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
+      borderRadius: 10
+    }}
       onClick={onSelect}
       variant={isSelected ? "outlined" : "text"}
     >
@@ -92,7 +95,7 @@ const CategoryCard = ({ category, isSelected, onSelect, isMobile }: CardProps & 
         padding: 0,
         overflow: 'hidden',
         opacity: isSelected ? 0.8 : 1,
-        backgroundColor: isSelected ? "#e0e0e0" : "transparent", 
+        backgroundColor: isSelected ? "#d3d3d3" : "transparent", 
         transition: "opacity 0.3s, background-color 0.3s",
         border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0',
         borderRadius: 10
@@ -317,7 +320,6 @@ const BookingFormFields = ({
         });
       }}
     />
-
     <TextField
       label="Notas Adicionales"
       name="notas_adicionales"
@@ -328,7 +330,10 @@ const BookingFormFields = ({
       placeholder="Añade cualquier información adicional que consideres relevante para tu experiencia (alergias, mascotas, ...)"
       value={reserva.notas_adicionales}
       onChange={handleTextFieldChange}
+      InputLabelProps={{ shrink: true }} 
     />
+
+
   </Stack>
 );
 
@@ -674,7 +679,11 @@ export default function RegisterBooking() {
             
             {reserva.categories.length > 0 && (
               <Typography variant="body2" fontWeight="medium">
-                {reserva.categories.join(", ")}
+                {reserva.categories
+                  .map((categoryId) => {
+                    const category = categories.find((cat) => cat.id === categoryId);
+                    return category ? category.name : categoryId; 
+                  }).join(", ")}
                 {reserva.categories.length >= 3 && 
                   <Typography 
                     component="span" 
@@ -713,35 +722,100 @@ export default function RegisterBooking() {
                 isMobile={isMobile}
               />
             </Box>
-            
-            <Box 
-              sx={{ 
-                padding: { xs: 2.5, sm: 3 },
-                border: '1px solid #e0e0e0', 
-                borderRadius: 1.5,
-                backgroundColor: '#f5f5f5',
-                marginTop: { xs: 3, sm: 2 },
-                marginBottom: { xs: 3, sm: 2 } 
-              }}
-            >
-              <Typography variant={isMobile ? "subtitle2" : "subtitle1"} fontWeight="bold" gutterBottom sx={{ marginBottom: isMobile ? 1.5 : 1 }}>
-                Desglose del precio:
+            <Box sx={{ marginTop: isMobile ? 3 : 2 }}>
+              <Typography variant={isMobile ? "subtitle2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                TU RESERVA
               </Typography>
-              <Typography variant={isMobile ? "caption" : "body2"}>
-                Precio base: {reserva.price}€ × {reserva.participants} {reserva.participants > 1 ? 'personas' : 'persona'} = {reserva.price * reserva.participants}€
-              </Typography>
+
+             {/* Encabezado tipo tabla */}
+            <Grid container spacing={1} sx={{ marginBottom: 1 }}>
+                <Grid item xs={6}>
+                  <Typography variant="body2" fontWeight="bold">Concepto</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="right" fontWeight="bold">Precio</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="center" fontWeight="bold">Cant.</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="right" fontWeight="bold">Total</Typography>
+                </Grid>
+            </Grid>
+
+              <Divider sx={{ marginBottom: 1 }} />
+
+              {/* Fila: experiencia base */}
+              <Grid container spacing={1} sx={{ marginBottom: 0.5 }}>
+                <Grid item xs={6}>
+                  <Typography variant="body2">Experiencia sorpresa</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="right">{reserva.price}€</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="center">{reserva.participants}</Typography>
+                </Grid>
+                <Grid item xs={2}>
+                  <Typography variant="body2" align="right">{reserva.price * reserva.participants}€</Typography>
+                </Grid>
+              </Grid>
+
+              {/* Fila: descarte gratuito */}
               {reserva.categories.length > 0 && (
-                <Typography variant={isMobile ? "caption" : "body2"}>
-                  Categorías descartadas: {reserva.categories.length} {reserva.categories.length === 1 ? '(gratis)' : `(primera gratis, +${(reserva.categories.length - 1) * 5}€)`}
-                </Typography>
+                <Grid container spacing={1} sx={{ marginBottom: 0.5 }}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2">Descarte gratuito</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="right">0.00€</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="center">1</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="right">0.00€</Typography>
+                  </Grid>
+                </Grid>
               )}
-              <Typography 
-                variant={isMobile ? "subtitle2" : "h6"} 
-                sx={{ marginTop: isMobile ? 2 : 1, fontWeight: 'bold', color: '#1976d2' }}
-              >
-                Precio Total: {totalPrice}€
-              </Typography>
+
+              {/* Fila: descartes extra */}
+              {reserva.categories.length > 1 && (
+                <Grid container spacing={1} sx={{ marginBottom: 0.5 }}>
+                  <Grid item xs={6}>
+                    <Typography variant="body2">Descarte extra</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="right">5.00€</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="center">{reserva.categories.length - 1}</Typography>
+                  </Grid>
+                  <Grid item xs={2}>
+                    <Typography variant="body2" align="right">
+                      {(reserva.categories.length - 1) * 5}€
+                    </Typography>
+                  </Grid>
+                </Grid>
+              )}
+
+              <Divider sx={{ marginY: 1.5 }} />
+
+              <Grid container spacing={1}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="#1976d2">
+                    Precio Total:
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle1" align="right" fontWeight="bold" color="#1976d2">
+                    {totalPrice}€
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
+
+            
             
             {/* Display backend errors */}
             {backendErrors && (

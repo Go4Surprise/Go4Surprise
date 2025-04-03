@@ -87,8 +87,8 @@ export default function HomeScreen() {
       paddingVertical: isSmallMobile ? 10 : 15
     },
     logo: {
-      width: isSmallMobile ? 30 : isMobile ? 35 : 40,
-      height: isSmallMobile ? 30 : isMobile ? 35 : 40,
+      width: isSmallMobile ? 40 : isMobile ? 35 : 40,
+      height: isSmallMobile ? 40 : isMobile ? 35 : 40,
     },
     title: {
       fontSize: isSmallMobile ? 20 : isMobile ? 24 : 30,
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   profileIcon: {
-    width: 35,
-    height: 35,
+    width: 55,
+    height: 55,
   },
   centeredContainer: {
     alignSelf: "center",
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   surpriseButton: {
     backgroundColor: "blue",
     borderRadius: 25,
-    shadowColor: "#FF6F61",
+    shadowColor: "#000",
     shadowOpacity: 0.4,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   bookingsButton: {
     backgroundColor: "blue",
     borderRadius: 25,
-    shadowColor: "#FF6F61",
+    shadowColor: "#000",
     shadowOpacity: 0.4,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
