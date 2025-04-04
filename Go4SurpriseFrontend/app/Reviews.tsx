@@ -1,6 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from '../constants/apiUrl';
+
+interface Review {
+    id: number;
+    user: string;
+    stars: string;
+    date: string;
+    content: string;
+}
 
 export default function Reviews() {
     const router = useRouter();
@@ -8,18 +19,49 @@ export default function Reviews() {
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const reviews = [
-        { user: 'Juan Pérez', stars: '★★★★★', date: '1 de Enero, 2025', content: '¡Fue una experiencia increíble! Muy recomendable.' },
-        { user: 'María López', stars: '★★★★☆', date: '15 de Febrero, 2025', content: 'Muy divertido, aunque me hubiera gustado más variedad.' },
-        { user: 'Carlos Gómez', stars: '★★★★★', date: '10 de Marzo, 2025', content: 'Definitivamente lo haré otra vez. ¡Muy recomendado!' },
-        { user: 'Laura Martínez', stars: '★★★★★', date: '15 de Febrero, 2025', content: 'Una experiencia única. Volveré sin duda. ¡Totalmente recomendable!' },
-        { user: 'Javier Sánchez', stars: '★★★★★', date: '5 de Enero, 2025', content: 'Increíble servicio. Todo perfecto desde el inicio hasta el final.' },
-        { user: 'Ana Rodríguez', stars: '★★★★★', date: '28 de Diciembre, 2024', content: '¡Un plan genial! Lo disfruté mucho, totalmente lo que buscaba.' },
-        { user: 'Pablo López', stars: '★★★★★', date: '1 de Marzo, 2025', content: 'Una experiencia inolvidable. Todo estuvo impecable. ¡Muy recomendable!' },
-        { user: 'Marta García', stars: '★★★★★', date: '7 de Febrero, 2025', content: 'Pasamos un día increíble, sin duda repetiré. ¡Lo mejor de todo fue la atención!' },
-        { user: 'Enrique Fernández', stars: '★★★★★', date: '18 de Marzo, 2025', content: 'Perfecto en todos los aspectos. Un plan diferente y divertido. ¡Lo haré de nuevo!' }
-    ];
+    // Fetch reviews from API using the dedicated endpoint for latest 10 reviews
+    const fetchReviews = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const response = await axios.get(`${BASE_URL}/reviews/getLatestTen/`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            // Format the reviews data
+            const formattedReviews = response.data.map(review => ({
+                id: review.id,
+                user: review.user_name || 'Usuario anónimo',
+                stars: '★'.repeat(Math.floor(parseFloat(review.puntuacion))) + 
+                      '☆'.repeat(5 - Math.floor(parseFloat(review.puntuacion))),
+                date: review.booking_date 
+                    ? new Date(review.booking_date).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })
+                    : '',
+                content: review.comentario
+            }));
+            
+            setReviews(formattedReviews);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            setError('Error al cargar las opiniones');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void fetchReviews();
+    }, []);
 
     // Consolidated handlers for mouse events
     const handleInteractionStart = (x, isTouch = false) => {
@@ -45,6 +87,43 @@ export default function Reviews() {
         document.addEventListener('mouseup', handleGlobalMouseUp);
         return () => { document.removeEventListener('mouseup', handleGlobalMouseUp); };
     }, [isDragging]);
+
+    // Show loading state
+    if (loading) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#004AAD" />
+                    <Text style={styles.loadingText}>Cargando opiniones...</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>{error}</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Show empty state
+    if (reviews.length === 0) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No hay opiniones disponibles todavía</Text>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.contentBox}>
@@ -88,5 +167,35 @@ const styles = StyleSheet.create({
     reviewStars: { fontSize: 16, color: '#FFD700' },
     reviewDate: { fontSize: 14, color: '#777' },
     reviewContent: { fontSize: 14, color: '#333' },
-    linkText: { color: 'blue', fontWeight: 'bold', textAlign: 'center', borderRadius: 8, padding: 10 }
+    linkText: { color: 'blue', fontWeight: 'bold', textAlign: 'center', borderRadius: 8, padding: 10 },
+    loadingContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    loadingText: { 
+        marginTop: 10, 
+        fontSize: 14, 
+        color: '#666' 
+    },
+    errorContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    errorText: { 
+        fontSize: 14, 
+        color: '#e74c3c', 
+        textAlign: 'center' 
+    },
+    emptyContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    emptyText: { 
+        fontSize: 14, 
+        color: '#666', 
+        textAlign: 'center' 
+    }
 });
