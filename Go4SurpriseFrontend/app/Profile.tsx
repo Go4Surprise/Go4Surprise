@@ -121,13 +121,42 @@ export default function UserProfileScreen() {
       formData.append('username', editedUser.username);
       formData.append('email', editedUser.email);
       formData.append('phone', editedUser.phone);
-      formData.append('birthdate', editedUser.birthdate.toISOString().split('T')[0]); // Formato YYYY-MM-DD
+      let birthdateString = '';
+      if (editedUser.birthdate) {
+        try {
+          if (editedUser.birthdate instanceof Date) {
+            birthdateString = editedUser.birthdate.toISOString().split('T')[0];
+          } 
+          else if (typeof editedUser.birthdate === 'string') {
+            const dateObj = new Date(editedUser.birthdate);
+            birthdateString = dateObj.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          console.error('Error formatting date:', e);
+          birthdateString = new Date().toISOString().split('T')[0];
+        }
+      }
+      formData.append('birthdate', birthdateString);
   
-      if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
-        const base64Data = editedUser.pfp.split(',')[1];
-        const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
-        const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-        formData.append('pfp', pfpFile);
+      if (editedUser.pfp && editedUser.pfp !== user.pfp) {
+        if (editedUser.pfp.startsWith('data:image')) {
+          // Handle base64 encoded images from web
+          const base64Data = editedUser.pfp.split(',')[1];
+          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+          formData.append('pfp', pfpFile);
+        } else if (Platform.OS !== 'web') {
+          // Handle file URI from mobile
+          const filename = editedUser.pfp.split('/').pop();
+          const match = /\.(\w+)$/.exec(filename || 'image.jpg');
+          const type = match ? `image/${match[1]}` : 'image/jpeg';
+          
+          formData.append('pfp', {
+            uri: editedUser.pfp,
+            name: filename || 'profile.jpg',
+            type
+          } as any);
+        }
       }
   
       await axios.put(`${BASE_URL}/users/update/`, formData, {
@@ -273,7 +302,17 @@ export default function UserProfileScreen() {
       {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={user.pfp ? { uri: `${BASE_URL}${user.pfp}` } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image 
+            source={
+              user.pfp 
+                ? { uri: user.pfp.startsWith('http') 
+                    ? user.pfp // Use as is if it's a full URL (from GCS)
+                    : `${BASE_URL}${user.pfp}` // Otherwise prepend BASE_URL
+                  } 
+                : require('../assets/images/user-logo-none.png')
+            } 
+            style={styles.avatar} 
+          />
         </View>
       </ImageBackground>
 
