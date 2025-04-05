@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -11,6 +11,7 @@ interface Review {
     stars: string;
     date: string;
     content: string;
+    userPicture?: string; // Added user picture field
 }
 
 export default function Reviews({ navigation }) {
@@ -64,7 +65,8 @@ export default function Reviews({ navigation }) {
                         year: 'numeric'
                       })
                     : '',
-                content: review.comentario
+                content: review.comentario,
+                userPicture: review.user_picture || null // Extract user profile picture
             }));
             
             setReviews(formattedReviews);
@@ -201,8 +203,27 @@ export default function Reviews({ navigation }) {
                                 }
                             ]}
                         >
-                            <Text style={styles.reviewUser}>{review.user}</Text>
-                            <Text style={styles.reviewStars}>{review.stars}</Text>
+                            <View style={styles.reviewHeader}>
+                                <View style={styles.profileImageContainer}>
+                                    {review.userPicture ? (
+                                        <Image 
+                                            source={{ uri: review.userPicture }} 
+                                            style={styles.profileImage} 
+                                            resizeMode="cover"
+                                        />
+                                    ) : (
+                                        <View style={[styles.profileImage, styles.defaultProfileImage]}>
+                                            <Text style={styles.defaultProfileText}>
+                                                {review.user.charAt(0).toUpperCase()}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                                <View style={styles.reviewUserInfo}>
+                                    <Text style={styles.reviewUser}>{review.user}</Text>
+                                    <Text style={styles.reviewStars}>{review.stars}</Text>
+                                </View>
+                            </View>
                             <Text style={styles.reviewDate}>{review.date}</Text>
                             <Text style={styles.reviewContent}>{review.content}</Text>
                         </View>
@@ -319,10 +340,36 @@ const styles = StyleSheet.create({
         minHeight: 150,
         justifyContent: 'space-between'
     },
+    reviewHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    profileImageContainer: {
+        marginRight: 10,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+    defaultProfileImage: {
+        backgroundColor: '#004AAD',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    defaultProfileText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    reviewUserInfo: {
+        flex: 1,
+    },
     reviewUser: { 
         fontSize: 16, 
         fontWeight: 'bold',
-        marginBottom: 5
+        marginBottom: 2,
     },
     reviewStars: { 
         fontSize: 16, 

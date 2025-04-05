@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, ScrollView, StyleSheet, TouchableOpacity, 
-  SafeAreaView, Dimensions, Pressable, ActivityIndicator 
+  SafeAreaView, Dimensions, Pressable, ActivityIndicator, Image 
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -14,6 +14,7 @@ interface Review {
   stars: string;
   date: string;
   content: string;
+  userPicture?: string; // Added user picture field
 }
 
 const useHover = () => {
@@ -38,11 +39,28 @@ const ReviewCard = ({ review, style }) => {
         isHovered && styles.reviewCardHovered
       ]}
     >
-      <Text style={styles.reviewStars}>{review.stars}</Text>
+      <View style={styles.reviewHeader}>
+        <Text style={styles.reviewStars}>{review.stars}</Text>
+      </View>
       <Text style={styles.reviewContent}>{review.content}</Text>
       <View style={styles.reviewFooter}>
-        <Text style={styles.reviewUser}>{review.user}</Text>
-        {review.date !== '' && <Text style={styles.reviewDate}>{review.date}</Text>}
+        {review.userPicture ? (
+          <Image 
+            source={{ uri: review.userPicture }} 
+            style={styles.profileImage} 
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[styles.profileImage, styles.defaultProfileImage]}>
+            <Text style={styles.defaultProfileText}>
+              {review.user.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+        )}
+        <View style={styles.userInfoContainer}>
+          <Text style={styles.reviewUser}>{review.user}</Text>
+          {review.date !== '' && <Text style={styles.reviewDate}>{review.date}</Text>}
+        </View>
       </View>
     </Pressable>
   );
@@ -88,7 +106,8 @@ export default function MoreReviews() {
                     year: 'numeric'
                   })
                 : '',
-                content: review.comentario
+                content: review.comentario,
+                userPicture: review.user_picture || null // Extract user profile picture
             }));
             
             setReviews(formattedReviews);
@@ -305,6 +324,37 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8faff',
         borderColor: 'rgba(0,74,173,0.1)',
     },
+    reviewHeader: {
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    reviewFooter: {
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.1)',
+        paddingTop: 10,
+        marginTop: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 12,
+    },
+    defaultProfileImage: {
+        backgroundColor: '#004AAD',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    defaultProfileText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    userInfoContainer: {
+        flex: 1,
+    },
     reviewStars: {
         fontSize: 24,
         color: '#FFD700',
@@ -320,21 +370,13 @@ const styles = StyleSheet.create({
         marginBottom: 14,
         fontStyle: 'italic',
     },
-    reviewFooter: {
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.1)',
-        paddingTop: 10,
-        marginTop: 6,
-    },
     reviewUser: {
         fontSize: 16,
         fontWeight: 'bold',
-        textAlign: 'center',
     },
     reviewDate: {
         fontSize: 14,
         color: '#777',
-        textAlign: 'center',
         marginTop: 3,
     },
     loadingContainer: {

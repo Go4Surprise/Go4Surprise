@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from bookings.models import Booking
@@ -39,6 +40,7 @@ class CreateReviewSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     booking_date = serializers.SerializerMethodField()
+    user_picture = serializers.SerializerMethodField()
     class Meta:
         model = Reviews
         fields = "__all__"
@@ -60,3 +62,15 @@ class ReviewSerializer(serializers.ModelSerializer):
             return None
         except Exception:
             return None
+    
+    def get_user_picture(self, obj):
+        request = self.context.get('request')
+        if obj.user.pfp:
+            # When using GCS, the URL will be a complete URL rather than a relative path
+            if settings.USE_GCS == 'True':
+                return obj.user.pfp.url
+            # For local storage, build the absolute URI
+            elif request is not None:
+                return request.build_absolute_uri(obj.user.pfp.url)
+            return obj.user.pfp.url
+        return None
