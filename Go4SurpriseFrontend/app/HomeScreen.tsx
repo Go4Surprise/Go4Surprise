@@ -11,6 +11,10 @@ import Experiences from './Experiences';
 import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 
+// Add interface for user data
+interface User {
+  pfp?: string;
+}
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -18,7 +22,29 @@ export default function HomeScreen() {
   const isSmallScreen = width < 600;
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasBookings, setHasBookings] = useState(false);
+  const [user, setUser] = useState<User>({});
 
+  // Function to fetch user profile data
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        return;
+      }
+      
+      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      setUser({
+        pfp: response.data.pfp || '',
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -53,6 +79,7 @@ export default function HomeScreen() {
   
     fetchBookings();
     checkAdminStatus(); // ✅ Llama a la función para verificar si el usuario es administrador
+    fetchUserData(); // Add call to fetch user profile data
   }, []);
   
 
@@ -79,7 +106,18 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => router.push("/Profile")}>
-            <Image source={require("../assets/images/user-logo-none.png")} style={styles.profileIcon} />
+            <Image 
+              source={
+                user.pfp 
+                  ? { uri: user.pfp.startsWith('http') 
+                      ? user.pfp 
+                      : `${BASE_URL}${user.pfp}` 
+                    }
+                  : require("../assets/images/user-logo-none.png")
+              } 
+              style={styles.profileIcon}
+              onError={() => setUser(prev => ({...prev, pfp: ''}))}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -162,6 +200,7 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: 35,
     height: 35,
+    borderRadius: 17.5, // Make it circular for profile pictures
   },
   navText: {
     fontSize: 14,

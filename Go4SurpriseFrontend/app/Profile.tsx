@@ -165,12 +165,10 @@ export default function UserProfileScreen() {
           'Content-Type': 'multipart/form-data'
         }
       });
-  
-      setUser(prevState => ({
-        ...prevState,
-        ...editedUser
-      }));
-  
+      
+      // Fetch fresh user data from the server instead of just updating local state
+      await fetchUserData();
+      
       setModalVisible(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
@@ -311,7 +309,11 @@ export default function UserProfileScreen() {
                   } 
                 : require('../assets/images/user-logo-none.png')
             } 
-            style={styles.avatar} 
+            style={styles.avatar}
+            onError={() => {
+              // If image fails to load, set user.pfp to empty string so default image is shown
+              setUser(prevUser => ({...prevUser, pfp: ''}))
+            }}
           />
         </View>
       </ImageBackground>
@@ -394,9 +396,18 @@ export default function UserProfileScreen() {
             <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
                 <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
             </TouchableOpacity>
-            {editedUser.pfp ? (
-                <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
-            ) : null}            
+            {/* Update image preview to show default image if editedUser.pfp is empty or fails to load */}
+            <Image 
+              source={
+                editedUser.pfp 
+                  ? { uri: editedUser.pfp } 
+                  : require('../assets/images/user-logo-none.png')
+              }
+              style={styles.profileImagePreview}
+              onError={() => {
+                setEditedUser(prev => ({...prev, pfp: ''}))
+              }}
+            />
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
                 <Text style={styles.modalButtonText}>Guardar</Text>
