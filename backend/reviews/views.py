@@ -10,6 +10,7 @@ from .serializers import CreateReviewSerializer, ReviewSerializer
 from .models import Reviews
 from users.models import Usuario
 from experiences.models import Experience
+from bookings.models import Booking
 
 
 @swagger_auto_schema(
@@ -134,6 +135,36 @@ def getByExperience(request, experience_id):
             {"error": f"No se encontró ninguna experiencia con este ID"},
             status=status.HTTP_404_NOT_FOUND,
         )
+    except Exception as e:
+        return Response(
+            {"error": f"Error del servidor: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+@swagger_auto_schema(
+    method='get',
+    responses={
+        200: openapi.Response(
+            description="Lista de las últimas 10 reseñas",
+            schema=openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(type=openapi.TYPE_OBJECT)
+            )
+        ),
+        500: openapi.Response(description="Error del servidor")
+    }
+)
+@api_view(["GET"])
+def getLatestTen(request):
+    try:
+        reviews = Reviews.objects.filter(
+            experience__reservas__booking_date__isnull=False
+        ).order_by(
+            '-experience__reservas__booking_date'
+        ).distinct()[:10]
+        
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data)
     except Exception as e:
         return Response(
             {"error": f"Error del servidor: {str(e)}"},

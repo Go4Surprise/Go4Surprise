@@ -1,4 +1,5 @@
 # serializers.py
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
@@ -122,7 +123,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_pfp(self, obj):
         request = self.context.get('request')
         if obj.pfp:
-            return request.build_absolute_uri(obj.pfp.url) if request else obj.pfp.url
+            # When using GCS, the URL will be a complete URL rather than a relative path
+            if settings.USE_GCS == 'True':
+                return obj.pfp.url
+            # For local storage, build the absolute URI
+            elif request is not None:
+                return request.build_absolute_uri(obj.pfp.url)
+            return obj.pfp.url
         return None
     
     def get_preferences(self, obj):
@@ -142,13 +149,25 @@ class UserSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     birthdate = serializers.DateField()  # allow updating birthdate
+    pfp = serializers.ImageField(required=False)
     
     class Meta:
         model = Usuario
-        fields = ['username', 'email', 'name', 'surname', 'phone', 'birthdate']
+        fields = ['username', 'email', 'name', 'surname', 'phone', 'birthdate', 'pfp']
     
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user', None)
+
+        pfp = validated_data.pop('pfp', None)
+        if pfp:
+            if instance.pfp:
+                # Delete old profile picture if using cloud storage
+                try:
+                    instance.pfp.delete(save=False)
+                except Exception as e:
+                    print(f"Error deleting old profile picture: {e}")
+            instance.pfp = pfp
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -187,6 +206,15 @@ class SocialLoginResponseSerializer(serializers.Serializer):
                 preferences.music, preferences.culture, preferences.sports,
                 preferences.gastronomy, preferences.nightlife, preferences.adventure
             ])
+
+        # Handle profile picture URL based on storage backend
+        pfp_url = None
+        if instance.pfp:
+            if settings.USE_GCS == 'True':
+                pfp_url = instance.pfp.url
+            else:
+                pfp_url = self.context.get('request').build_absolute_uri(instance.pfp.url)
+                
         data = {
             "id": instance.id,
             "user_id": instance.user.id,
@@ -196,7 +224,7 @@ class SocialLoginResponseSerializer(serializers.Serializer):
             "email": instance.email,
             "phone": instance.phone,
             "birthdate": instance.birthdate,
-            "pfp": self.context.get('request').build_absolute_uri(instance.pfp.url) if instance.pfp else None,
+            "pfp": pfp_url,
             "access": str(tokens.access_token),
             "refresh": str(tokens),
             "preferences_set": preferences_set,
@@ -228,6 +256,10 @@ class AdminUserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         try:
             if obj.usuario and obj.usuario.pfp:
+# When using GCS, return the complete URL directly
+                if settings.USE_GCS == 'True':
+                    return obj.usuario.pfp.url
+                # For local storage, build the absolute URI
                 return request.build_absolute_uri(obj.usuario.pfp.url) if request else obj.usuario.pfp.url
         except Usuario.DoesNotExist:
             pass

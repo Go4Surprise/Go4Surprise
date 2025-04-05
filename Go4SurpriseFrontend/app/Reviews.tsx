@@ -1,13 +1,30 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { BASE_URL } from '../constants/apiUrl';
+
+interface Review {
+    id: number;
+    user: string;
+    stars: string;
+    date: string;
+    content: string;
+    userPicture?: string; // Added user picture field
+}
 
 export default function Reviews({ navigation }) {
+    const router = useRouter();
     const scrollViewRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
     const [activePage, setActivePage] = useState(0);
     const [width, setWidth] = useState(Dimensions.get('window').width);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // Actualizar ancho cuando la orientación cambia
     useEffect(() => {
@@ -24,17 +41,46 @@ export default function Reviews({ navigation }) {
         };
     }, []);
 
-    const reviews = [
-        { user: 'Juan Pérez', stars: '★★★★★', date: '1 de Enero, 2025', content: '¡Fue una experiencia increíble! Muy recomendable.' },
-        { user: 'María López', stars: '★★★★☆', date: '15 de Febrero, 2025', content: 'Muy divertido, aunque me hubiera gustado más variedad.' },
-        { user: 'Carlos Gómez', stars: '★★★★★', date: '10 de Marzo, 2025', content: 'Definitivamente lo haré otra vez. ¡Muy recomendado!' },
-        { user: 'Laura Martínez', stars: '★★★★★', date: '15 de Febrero, 2025', content: 'Una experiencia única. Volveré sin duda. ¡Totalmente recomendable!' },
-        { user: 'Javier Sánchez', stars: '★★★★★', date: '5 de Enero, 2025', content: 'Increíble servicio. Todo perfecto desde el inicio hasta el final.' },
-        { user: 'Ana Rodríguez', stars: '★★★★★', date: '28 de Diciembre, 2024', content: '¡Un plan genial! Lo disfruté mucho, totalmente lo que buscaba.' },
-        { user: 'Pablo López', stars: '★★★★★', date: '1 de Marzo, 2025', content: 'Una experiencia inolvidable. Todo estuvo impecable. ¡Muy recomendable!' },
-        { user: 'Marta García', stars: '★★★★★', date: '7 de Febrero, 2025', content: 'Pasamos un día increíble, sin duda repetiré. ¡Lo mejor de todo fue la atención!' },
-        { user: 'Enrique Fernández', stars: '★★★★★', date: '18 de Marzo, 2025', content: 'Perfecto en todos los aspectos. Un plan diferente y divertido. ¡Lo haré de nuevo!' }
-    ];
+    // Fetch reviews from API using the dedicated endpoint for latest 10 reviews
+    const fetchReviews = async () => {
+        try {
+            const token = await AsyncStorage.getItem('accessToken');
+            const response = await axios.get(`${BASE_URL}/reviews/getLatestTen/`, {
+                headers: {
+                    Authorization: token ? `Bearer ${token}` : '',
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            // Format the reviews data
+            const formattedReviews = response.data.map(review => ({
+                id: review.id,
+                user: review.user_name || 'Usuario anónimo',
+                stars: '★'.repeat(Math.floor(parseFloat(review.puntuacion))) + 
+                      '☆'.repeat(5 - Math.floor(parseFloat(review.puntuacion))),
+                date: review.booking_date 
+                    ? new Date(review.booking_date).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })
+                    : '',
+                content: review.comentario,
+                userPicture: review.user_picture || null // Extract user profile picture
+            }));
+            
+            setReviews(formattedReviews);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            setError('Error al cargar las opiniones');
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void fetchReviews();
+    }, []);
 
     // Calcular el ancho de cada tarjeta de reseña
     const getCardWidth = () => {
@@ -75,6 +121,43 @@ export default function Reviews({ navigation }) {
             setActivePage(newPage);
         }
     };
+
+    // Show loading state
+    if (loading) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#004AAD" />
+                    <Text style={styles.loadingText}>Cargando opiniones...</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.errorContainer}>
+                    <Text style={styles.errorText}>{error}</Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Show empty state
+    if (reviews.length === 0) {
+        return (
+            <View style={styles.contentBox}>
+                <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
+                <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>No hay opiniones disponibles todavía</Text>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.contentBox}>
@@ -120,8 +203,27 @@ export default function Reviews({ navigation }) {
                                 }
                             ]}
                         >
-                            <Text style={styles.reviewUser}>{review.user}</Text>
-                            <Text style={styles.reviewStars}>{review.stars}</Text>
+                            <View style={styles.reviewHeader}>
+                                <View style={styles.profileImageContainer}>
+                                    {review.userPicture ? (
+                                        <Image 
+                                            source={{ uri: review.userPicture }} 
+                                            style={styles.profileImage} 
+                                            resizeMode="cover"
+                                        />
+                                    ) : (
+                                        <View style={[styles.profileImage, styles.defaultProfileImage]}>
+                                            <Text style={styles.defaultProfileText}>
+                                                {review.user.charAt(0).toUpperCase()}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                                <View style={styles.reviewUserInfo}>
+                                    <Text style={styles.reviewUser}>{review.user}</Text>
+                                    <Text style={styles.reviewStars}>{review.stars}</Text>
+                                </View>
+                            </View>
                             <Text style={styles.reviewDate}>{review.date}</Text>
                             <Text style={styles.reviewContent}>{review.content}</Text>
                         </View>
@@ -238,10 +340,36 @@ const styles = StyleSheet.create({
         minHeight: 150,
         justifyContent: 'space-between'
     },
+    reviewHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    profileImageContainer: {
+        marginRight: 10,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+    defaultProfileImage: {
+        backgroundColor: '#004AAD',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    defaultProfileText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    reviewUserInfo: {
+        flex: 1,
+    },
     reviewUser: { 
         fontSize: 16, 
         fontWeight: 'bold',
-        marginBottom: 5
+        marginBottom: 2,
     },
     reviewStars: { 
         fontSize: 16, 
@@ -277,6 +405,36 @@ const styles = StyleSheet.create({
         width: 10,
         height: 10,
         borderRadius: 5
+    },
+    loadingContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    loadingText: { 
+        marginTop: 10, 
+        fontSize: 14, 
+        color: '#666' 
+    },
+    errorContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    errorText: { 
+        fontSize: 14, 
+        color: '#e74c3c', 
+        textAlign: 'center' 
+    },
+    emptyContainer: { 
+        height: 200, 
+        justifyContent: 'center', 
+        alignItems: 'center' 
+    },
+    emptyText: { 
+        fontSize: 14, 
+        color: '#666', 
+        textAlign: 'center' 
     },
     linkButton: {
         alignItems: 'center',
