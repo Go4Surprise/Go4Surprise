@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
 
 interface Review {
@@ -13,15 +13,32 @@ interface Review {
     content: string;
 }
 
-export default function Reviews() {
+export default function Reviews({ navigation }) {
     const router = useRouter();
-    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollViewRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
+    const [activePage, setActivePage] = useState(0);
+    const [width, setWidth] = useState(Dimensions.get('window').width);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Actualizar ancho cuando la orientación cambia
+    useEffect(() => {
+        const updateLayout = () => {
+            setWidth(Dimensions.get('window').width);
+        };
+
+        Dimensions.addEventListener('change', updateLayout);
+        return () => {
+            // Limpieza para versiones más antiguas de React Native
+            if (Dimensions.removeEventListener) {
+                Dimensions.removeEventListener('change', updateLayout);
+            }
+        };
+    }, []);
 
     // Fetch reviews from API using the dedicated endpoint for latest 10 reviews
     const fetchReviews = async () => {
@@ -63,30 +80,45 @@ export default function Reviews() {
         void fetchReviews();
     }, []);
 
-    // Consolidated handlers for mouse events
-    const handleInteractionStart = (x, isTouch = false) => {
-        setIsDragging(true);
-        setStartX(x);
-        if (scrollViewRef.current) {
-            setScrollLeft(scrollViewRef.current.getScrollableNode().scrollLeft);
-        }
-        if (!isTouch) event.preventDefault();
-    };
-
-    const handleInteractionMove = (x) => {
-        if (!isDragging) return;
-        const distance = startX - x;
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({ x: scrollLeft + distance, animated: false });
+    // Calcular el ancho de cada tarjeta de reseña
+    const getCardWidth = () => {
+        if (width < 600) {
+            return width * 0.7; // Móvil: 70% de la pantalla
+        } else if (width < 1024) {
+            return width * 0.4; // Tablet: 40% de la pantalla
+        } else {
+            return width * 0.25; // Desktop: 25% de la pantalla
         }
     };
 
-    // Effect for handling document-level mouse up
-    useEffect(() => {
-        const handleGlobalMouseUp = () => isDragging && setIsDragging(false);
-        document.addEventListener('mouseup', handleGlobalMouseUp);
-        return () => { document.removeEventListener('mouseup', handleGlobalMouseUp); };
-    }, [isDragging]);
+    const cardWidth = getCardWidth();
+
+    // Función para manejar el scroll y actualizar la página activa
+    const handleScroll = (event) => {
+        const contentOffset = event.nativeEvent.contentOffset.x;
+        const newPage = Math.round(contentOffset / cardWidth);
+        if (newPage >= 0 && newPage < reviews.length) {
+            setActivePage(newPage);
+        }
+    };
+
+    // Función para desplazarse a la tarjeta anterior
+    const scrollToPrevious = () => {
+        if (activePage > 0 && scrollViewRef.current) {
+            const newPage = activePage - 1;
+            scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
+            setActivePage(newPage);
+        }
+    };
+
+    // Función para desplazarse a la tarjeta siguiente
+    const scrollToNext = () => {
+        if (activePage < reviews.length - 1 && scrollViewRef.current) {
+            const newPage = activePage + 1;
+            scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
+            setActivePage(newPage);
+        }
+    };
 
     // Show loading state
     if (loading) {
@@ -127,47 +159,206 @@ export default function Reviews() {
 
     return (
         <View style={styles.contentBox}>
-            <Text style={styles.sectionTitle}>¿No te lo crees? Mira la opinión de otras personas</Text>
-            <ScrollView
-                ref={scrollViewRef}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ cursor: isDragging ? 'grabbing' : 'grab', marginBottom: 5 }}
-                onMouseDown={(e) => { handleInteractionStart(e.pageX); }}
-                onMouseMove={(e) => { handleInteractionMove(e.pageX); }}
-                onMouseUp={() => { setIsDragging(false); }}
-                onMouseLeave={() => { setIsDragging(false); }}
-                onTouchStart={(e) => { handleInteractionStart(e.touches[0].pageX, true); }}
-                onTouchMove={(e) => { handleInteractionMove(e.touches[0].pageX); }}
-                onTouchEnd={() => { setIsDragging(false); }}
-                scrollEventThrottle={16}
-                decelerationRate="normal"
-            >
-                {reviews.map((review, index) => (
-                    <View key={index} style={styles.reviewCard}>
-                        <Text style={styles.reviewUser}>{review.user}</Text>
-                        <Text style={styles.reviewStars}>{review.stars}</Text>
-                        <Text style={styles.reviewDate}>{review.date}</Text>
-                        <Text style={styles.reviewContent}>{review.content}</Text>
-                    </View>
-                ))}
-            </ScrollView>
-            <Text style={styles.linkText} onPress={() => router.push("/MoreReviews")}>
-                Más opiniones
+            <Text style={[
+                styles.sectionTitle,
+                width >= 768 && { fontSize: 24, marginBottom: 20 }
+            ]}>
+                ¿No te lo crees? Mira la opinión de otras personas
             </Text>
+            
+            <View style={styles.scrollContainer}>
+                {/* Botón de scroll izquierdo - solo en desktop */}
+                {width >= 768 && (
+                    <TouchableOpacity 
+                        style={[styles.scrollButton, styles.scrollButtonLeft]}
+                        onPress={scrollToPrevious}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={[styles.scrollButtonText, { transform: [{ rotate: '180deg' }] }]}>▸</Text>
+                    </TouchableOpacity>
+                )}
+                
+                <ScrollView
+                    ref={scrollViewRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollViewContent}
+                    snapToInterval={cardWidth}
+                    decelerationRate="fast"
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                >
+                    {reviews.map((review, index) => (
+                        <View 
+                            key={index} 
+                            style={[
+                                styles.reviewCard,
+                                { 
+                                    width: cardWidth - 20,
+                                    opacity: activePage === index ? 1 : 0.85,
+                                    transform: [{ scale: activePage === index ? 1 : 0.95 }] 
+                                }
+                            ]}
+                        >
+                            <Text style={styles.reviewUser}>{review.user}</Text>
+                            <Text style={styles.reviewStars}>{review.stars}</Text>
+                            <Text style={styles.reviewDate}>{review.date}</Text>
+                            <Text style={styles.reviewContent}>{review.content}</Text>
+                        </View>
+                    ))}
+                </ScrollView>
+                
+                {/* Botón de scroll derecho - solo en desktop */}
+                {width >= 768 && (
+                    <TouchableOpacity 
+                        style={[styles.scrollButton, styles.scrollButtonRight]}
+                        onPress={scrollToNext}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.scrollButtonText}>▸</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+            
+            {/* Indicadores de paginación - solo en móvil y tablet */}
+            {width < 768 && (
+                <View style={styles.paginationContainer}>
+                    {reviews.map((_, index) => (
+                        <View 
+                            key={index} 
+                            style={[
+                                styles.paginationDot,
+                                activePage === index && styles.paginationDotActive
+                            ]} 
+                        />
+                    ))}
+                </View>
+            )}
+            
+            <TouchableOpacity 
+                style={[
+                    styles.linkButton,
+                    width < 600 ? styles.linkButtonMobile : styles.linkButtonDesktop
+                ]} 
+                onPress={() => navigation.navigate('MoreReviews')}
+            >
+                <Text style={width < 600 ? styles.linkTextMobile : styles.linkTextDesktop}>
+                    Ver más opiniones
+                </Text>
+            </TouchableOpacity>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    contentBox: { padding: 20, marginBottom: 30 },
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#004AAD' },
-    reviewCard: { backgroundColor: '#f9f9f9', padding: 15, borderRadius: 8, marginRight: 15, width: 200 },
-    reviewUser: { fontSize: 16, fontWeight: 'bold' },
-    reviewStars: { fontSize: 16, color: '#FFD700' },
-    reviewDate: { fontSize: 14, color: '#777' },
-    reviewContent: { fontSize: 14, color: '#333' },
-    linkText: { color: 'blue', fontWeight: 'bold', textAlign: 'center', borderRadius: 8, padding: 10 },
+    contentBox: { 
+        padding: 20, 
+        marginBottom: 30,
+        width: '100%'
+    },
+    sectionTitle: { 
+        fontSize: 20, 
+        fontWeight: 'bold', 
+        marginBottom: 15, 
+        color: '#004AAD',
+        textAlign: 'center'
+    },
+    scrollContainer: {
+        position: 'relative',
+        marginBottom: 15,
+        marginHorizontal: 20 // Espacio extra para los botones que ahora están fuera
+    },
+    scrollButton: {
+        position: 'absolute',
+        top: '50%',
+        width: 40,
+        height: 40,
+        borderRadius: 8,
+        backgroundColor: 'rgba(0, 74, 173, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+        transform: [{ translateY: -20 }],
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5
+    },
+    scrollButtonLeft: {
+        left: -20
+    },
+    scrollButtonRight: {
+        right: -20
+    },
+    scrollButtonText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        transform: [{ rotate: width => width === styles.scrollButtonLeft ? '180deg' : '0deg' }]
+    },
+    scrollView: {
+        overflow: 'visible'
+    },
+    scrollViewContent: {
+        paddingHorizontal: 10,
+        paddingBottom: 5,
+        paddingRight: 20
+    },
+    reviewCard: { 
+        backgroundColor: '#f9f9f9', 
+        padding: 15, 
+        borderRadius: 12, 
+        marginHorizontal: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        minHeight: 150,
+        justifyContent: 'space-between'
+    },
+    reviewUser: { 
+        fontSize: 16, 
+        fontWeight: 'bold',
+        marginBottom: 5
+    },
+    reviewStars: { 
+        fontSize: 16, 
+        color: '#FFD700',
+        marginBottom: 5
+    },
+    reviewDate: { 
+        fontSize: 14, 
+        color: '#777',
+        marginBottom: 8
+    },
+    reviewContent: { 
+        fontSize: 14, 
+        color: '#333',
+        flexGrow: 1
+    },
+    paginationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 15,
+        marginTop: 5
+    },
+    paginationDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#ccc',
+        marginHorizontal: 4
+    },
+    paginationDotActive: {
+        backgroundColor: '#004AAD',
+        width: 10,
+        height: 10,
+        borderRadius: 5
+    },
     loadingContainer: { 
         height: 200, 
         justifyContent: 'center', 
@@ -197,5 +388,30 @@ const styles = StyleSheet.create({
         fontSize: 14, 
         color: '#666', 
         textAlign: 'center' 
+    },
+    linkButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        borderRadius: 8
+    },
+    linkButtonDesktop: {
+        alignSelf: 'center'
+    },
+    linkButtonMobile: {
+        backgroundColor: '#004AAD',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 25,
+        alignSelf: 'stretch'
+    },
+    linkTextDesktop: {
+        color: '#004AAD',
+        fontWeight: 'bold',
+        textDecorationLine: 'underline'
+    },
+    linkTextMobile: {
+        color: 'white',
+        fontWeight: 'bold'
     }
 });

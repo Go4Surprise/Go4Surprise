@@ -244,10 +244,11 @@ const renderItem = ({ item }: { item: Reserva }) => {
   const hasReviewed = reviewedExperiences.includes(item.experience.id);
 
   return (
+    
     <View
       style={[
         styles.card,
-        isCancelled && styles.cancelledCard, // Apply gray tone and reduced opacity for canceled bookings
+        isCancelled && styles.cancelledCard, // Apply red tone and reduced opacity for canceled bookings
         isConfirmed && styles.confirmedCard, // Apply green tone and reduced opacity for confirmed bookings
       ]}
     >
@@ -264,7 +265,7 @@ const renderItem = ({ item }: { item: Reserva }) => {
 
       <Text style={styles.label}>
         <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
+        <Text style={styles.bold}>Precio Total:</Text> {item.total_price}€
       </Text>
 
       <Text style={styles.label}>
@@ -459,14 +460,15 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginVertical: 8,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     borderWidth: 1,
     borderColor: "#ddd",
+   
   },
   label: {
     fontSize: 16,
@@ -523,11 +525,13 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   cancelledCard: {
-    backgroundColor: "#d3d3d3", // Light gray background
-    opacity: 0.6, // Reduced opacity
+    backgroundColor: "#f8d7da",
+    borderColor: "#f5c6cb", 
+    opacity: 0.8, 
   },
   confirmedCard: {
     backgroundColor: "#d4edda", // Light green background
+    borderColor: "#c3e6cb", 
   },
   modalOverlay: {
     flex: 1,
