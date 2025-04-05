@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, Text, ScrollView, StyleSheet, TouchableOpacity, 
   SafeAreaView, Dimensions, Pressable, ActivityIndicator, Image 
@@ -7,6 +7,14 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
+import { Video } from 'expo-av';
+import { Ionicons } from '@expo/vector-icons';
+
+interface ReviewMedia {
+  id: number;
+  file_url: string;
+  file_type: string;
+}
 
 interface Review {
   id: number;
@@ -14,7 +22,8 @@ interface Review {
   stars: string;
   date: string;
   content: string;
-  userPicture?: string; // Added user picture field
+  userPicture?: string;
+  media?: ReviewMedia[]; // Added media array to store associated files
 }
 
 const useHover = () => {
@@ -28,6 +37,8 @@ const useHover = () => {
 
 const ReviewCard = ({ review, style }) => {
   const { isHovered, onHoverIn, onHoverOut } = useHover();
+  // Add refs for videos
+  const videoRefs = useRef({});
   
   return (
     <Pressable 
@@ -43,6 +54,49 @@ const ReviewCard = ({ review, style }) => {
         <Text style={styles.reviewStars}>{review.stars}</Text>
       </View>
       <Text style={styles.reviewContent}>{review.content}</Text>
+      
+      {/* Display media files if available */}
+      {review.media && review.media.length > 0 && (
+        <View style={styles.mediaContainer}>
+          {review.media.map((mediaItem) => (
+            <View key={mediaItem.id} style={styles.mediaItem}>
+              {mediaItem.file_type === 'image' ? (
+                <Image 
+                  source={{ uri: mediaItem.file_url }} 
+                  style={styles.mediaImage} 
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.videoWrapper}>
+                  <Video
+                    ref={ref => { videoRefs.current[mediaItem.id] = ref; }}
+                    source={{ uri: mediaItem.file_url }}
+                    style={styles.video}
+                    useNativeControls
+                    resizeMode="cover"
+                    isLooping={false}
+                    shouldPlay={false}
+                    posterSource={{ uri: 'https://img.icons8.com/color/96/000000/video.png' }}
+                    posterStyle={styles.videoPoster}
+                  />
+                  <TouchableOpacity 
+                    style={styles.playButton}
+                    onPress={() => {
+                      const videoRef = videoRefs.current[mediaItem.id];
+                      if (videoRef) {
+                        videoRef.presentFullscreenPlayer();
+                      }
+                    }}
+                  >
+                    <Ionicons name="play-circle" size={40} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+      
       <View style={styles.reviewFooter}>
         {review.userPicture ? (
           <Image 
@@ -107,7 +161,8 @@ export default function MoreReviews() {
                   })
                 : '',
                 content: review.comentario,
-                userPicture: review.user_picture || null // Extract user profile picture
+                userPicture: review.user_picture || null,
+                media: review.media || [] // Extract media information from API response
             }));
             
             setReviews(formattedReviews);
@@ -412,4 +467,66 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    // Add styles for media display
+    mediaContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginBottom: 14,
+        gap: 8,
+    },
+    mediaItem: {
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    mediaImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    videoWrapper: {
+        width: 100,
+        height: 100,
+        borderRadius: 8,
+        position: 'relative',
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    video: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 8,
+    },
+    videoPoster: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    playButton: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    videoPlaceholder: {
+        width: 100,
+        height: 100,
+        backgroundColor: 'rgba(0,74,173,0.1)',
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    videoPlaceholderText: {
+        color: '#004AAD',
+        fontWeight: 'bold',
+    }
 });

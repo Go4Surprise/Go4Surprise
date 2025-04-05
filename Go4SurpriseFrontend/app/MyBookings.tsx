@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Image,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,6 +19,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { format, isBefore, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { BASE_URL } from '../constants/apiUrl';
+import * as ImagePicker from 'expo-image-picker';
+import { Platform } from 'react-native';
 
 interface Reserva {
   id: string;
@@ -52,6 +55,7 @@ const MyBookings = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<Array<{uri: string, type: string}>>([]);
 
   useEffect(() => {
     void fetchReservas();
@@ -176,6 +180,32 @@ const openReviewModal = (experienceId: string) => {
   setReviewModalVisible(true);
 };
 
+const pickMedia = async () => {
+  if (selectedMedia.length >= 5) {
+    Alert.alert('Límite alcanzado', 'Solo puedes añadir hasta 5 archivos multimedia.');
+    return;
+  }
+
+  const options = {
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: true,
+    quality: 1,
+  };
+
+  let result = await ImagePicker.launchImageLibraryAsync(options);
+
+  if (!result.canceled) {
+    const selectedAsset = result.assets[0];
+    const type = selectedAsset.uri.endsWith('.mp4') ? 'video' : 'image';
+    
+    setSelectedMedia(prev => [...prev, { uri: selectedAsset.uri, type }]);
+  }
+};
+
+const removeMedia = (index: number) => {
+  setSelectedMedia(prev => prev.filter((_, i) => i !== index));
+};
+
 const submitReview = async () => {
   if (!selectedExperienceId) return;
 
@@ -190,15 +220,55 @@ const submitReview = async () => {
       return;
     }
 
-    const reviewData = {
-      puntuacion: reviewRating,
-      comentario: reviewComment,
-      user: userId,
-      experience: selectedExperienceId
-    };
+    const formData = new FormData();
 
-        const response = await axios.post(`${BASE_URL}/reviews/create/`, reviewData, {
-      headers: { Authorization: `Bearer ${token}` }
+    formData.append('puntuacion', reviewRating.toString());
+    formData.append('comentario', reviewComment);
+    formData.append('experience', selectedExperienceId);
+    formData.append('user', userId);
+
+    // Process media files
+    for (let i = 0; i < selectedMedia.length; i++) {
+      const media = selectedMedia[i];
+      
+      if (Platform.OS === 'web') {
+        try {
+          // For web: Convert data URI to blob synchronously before sending
+          const response = await fetch(media.uri);
+          const blob = await response.blob();
+          const filename = `file${i}.${media.uri.split(';')[0].split('/')[1] || 'jpg'}`;
+          formData.append('media_files', blob, filename);
+        } catch (err) {
+          console.error('Error processing web file:', err);
+        }
+      } else {
+        // For mobile: Make sure we're creating the file object correctly
+        const filename = media.uri.split('/').pop() || `file${i}`;
+        const match = /\.(\w+)$/.exec(filename);
+        const fileType = match ? match[1] : (media.type === 'video' ? 'mp4' : 'jpg');
+        const mimeType = media.type === 'video' ? `video/${fileType}` : `image/${fileType}`;
+        
+        // Explicitly define the file structure as expected by the backend
+        formData.append('media_files', {
+          uri: media.uri,
+          type: mimeType,
+          name: filename
+        } as any);
+      }
+    }
+
+    // Log the FormData contents for debugging
+    console.log('FormData contents:');
+    for (let [key, value] of (formData as any).entries()) {
+      console.log(`${key}: ${typeof value === 'object' ? 'File object' : value}`);
+    }
+
+    const response = await axios.post(`${BASE_URL}/reviews/create/`, formData, {
+      headers: { 
+        Authorization: `Bearer ${token}`, 
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json'
+      }
     });
 
     if (response.status === 201) {
@@ -402,6 +472,36 @@ const renderItem = ({ item }: { item: Reserva }) => {
               onChangeText={setReviewComment}
             />
             
+            <Text style={styles.modalLabel}>Añadir fotos o videos (máx. 5)</Text>
+            <TouchableOpacity style={styles.uploadButton} onPress={pickMedia}>
+              <Text style={styles.uploadButtonText}>Seleccionar archivo</Text>
+            </TouchableOpacity>
+
+            {selectedMedia.length > 0 && (
+              <FlatList
+                horizontal
+                data={selectedMedia}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <View style={styles.mediaPreviewContainer}>
+                    {item.type === 'image' ? (
+                      <Image source={{ uri: item.uri }} style={styles.mediaPreview} />
+                    ) : (
+                      <View style={styles.videoPreview}>
+                        <Ionicons name="videocam" size={24} color="#004AAD" />
+                      </View>
+                    )}
+                    <TouchableOpacity 
+                      style={styles.removeMediaButton} 
+                      onPress={() => removeMedia(index)}
+                    >
+                      <Ionicons name="close-circle" size={20} color="red" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              />
+            )}
+
             <View style={[styles.modalButtons, styles.reviewModalButtons]}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
@@ -651,6 +751,41 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     marginLeft: 5,
     fontWeight: "500",
+  },
+  uploadButton: {
+    backgroundColor: '#004AAD',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  uploadButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  mediaPreviewContainer: {
+    position: 'relative',
+    margin: 5,
+  },
+  mediaPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 5,
+  },
+  videoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 5,
+    backgroundColor: '#e1e1e1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeMediaButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'white',
+    borderRadius: 10,
   },
 });
 

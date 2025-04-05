@@ -4,20 +4,60 @@ from rest_framework import serializers
 from bookings.models import Booking
 from experiences.models import Experience
 from users.models import Usuario
-from .models import Reviews
+from .models import Reviews, ReviewMedia
+
+
+class ReviewMediaSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ReviewMedia
+        fields = ['id', 'file_url', 'file_type']
+        
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file:
+            # When using GCS, the URL will be a complete URL rather than a relative path
+            if settings.USE_GCS == 'True':
+                return obj.file.url
+            # For local storage, build the absolute URI
+            elif request is not None:
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
 
 
 class CreateReviewSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(read_only=True)  # 👈 Agregar explícitamente el campo id
+    id = serializers.IntegerField(read_only=True)
+    media_files = serializers.ListField(
+        child=serializers.FileField(max_length=100000, allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Reviews
-        fields = ["id","puntuacion", "comentario", "user", "experience"]
+        fields = ["id", "puntuacion", "comentario", "user", "experience", "media_files"]
 
     def create(self, validated_data):
-        """Método para asegurarse de que se devuelve la instancia con el ID"""
+        media_files = validated_data.pop('media_files', [])
         review = Reviews.objects.create(**validated_data)
-        return review  # 👈 Devolver la instancia guardada
+        
+        # Limit to 5 media files
+        for file in media_files[:5]:
+            # Determine file type based on content type
+            file_type = 'image' 
+            if hasattr(file, 'content_type') and file.content_type:
+                if 'video' in file.content_type:
+                    file_type = 'video'
+            # Fallback to checking file extension
+            elif hasattr(file, 'name'):
+                if file.name.lower().endswith(('.mp4', '.mov', '.avi', '.wmv')):
+                    file_type = 'video'
+                
+            ReviewMedia.objects.create(review=review, file=file, file_type=file_type)
+        
+        return review
     
     def validate_puntuacion(self, value):
         if value < 0 or value > 5:
@@ -41,6 +81,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField()
     booking_date = serializers.SerializerMethodField()
     user_picture = serializers.SerializerMethodField()
+    media = ReviewMediaSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Reviews
         fields = "__all__"
