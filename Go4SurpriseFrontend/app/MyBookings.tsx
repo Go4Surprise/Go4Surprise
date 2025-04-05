@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  TextInput,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -30,6 +31,11 @@ interface Reserva {
   time_preference: string;
   city: string;
   experience_hint: string;
+  experience: {
+    id: string;
+    time_preference: string;
+    location: string;
+  };
 }
 
 const MyBookings = () => {
@@ -39,16 +45,46 @@ const MyBookings = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  
+  const [reviewedExperiences, setReviewedExperiences] = useState<string[]>([]);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
     void fetchReservas();
+    void fetchUserReviews();
     fadeIn();
   }, []);
+
+
+  const fetchUserReviews = async () => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const userId = await AsyncStorage.getItem("id");
+
+      if (!token || !userId) return;
+      
+      const response = await axios.get(`${BASE_URL}/reviews/getByUser/${userId}/`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (Array.isArray(response.data)) {
+        // Extract experience IDs that the user has already reviewed
+        const experienceIds = response.data.map(review => review.experience);
+        setReviewedExperiences(experienceIds);
+      }
+    } catch (error) {
+      console.error("Error fetching user reviews:", error);
+    }
+  };
 
   const fetchReservas = async () => {
     try {
       const token = await AsyncStorage.getItem("accessToken");
-      const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
+      const usuarioId = await AsyncStorage.getItem("id");
 
       if (!token) {
         Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
@@ -62,24 +98,30 @@ const MyBookings = () => {
         },
       });
 
-      console.log("Datos de la API:", response.data); // Agregado para depuración
+      console.log("Datos de la API:", response.data);
 
       if (Array.isArray(response.data)) {
-        const sorted = response.data
-          .map(item => ({
-            ...item,
-            experience_date: new Date(item.experience_date),
-            time_preference: item.experience.time_preference,
-            city: item.experience.location,
-          }))
+        const processedData = response.data.map(item => ({
+          ...item,
+          experience_date: new Date(item.experience_date),
+          time_preference: item.experience.time_preference,
+          city: item.experience.location,
+        }));
+        
+        const futureBookings = processedData
           .filter(item => item.experience_date >= new Date())
           .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
-        setReservas(sorted);
+          
+        const pastBookings = processedData
+          .filter(item => item.experience_date < new Date())
+          .sort((a, b) => b.experience_date.getTime() - a.experience_date.getTime());
+          
+        setReservas([...futureBookings, ...pastBookings]);
       } else {
         throw new Error("Formato de datos incorrecto");
       }
     } catch (error) {
-      console.error("Error al obtener las reservas:", error); // Agregado para depuración
+      console.error("Error al obtener las reservas:", error);
       setError("Error al obtener las reservas");
     } finally {
       setLoading(false);
@@ -127,23 +169,79 @@ const MyBookings = () => {
     }
 };
 
+const openReviewModal = (experienceId: string) => {
+  setSelectedExperienceId(experienceId);
+  setReviewRating(5);
+  setReviewComment("");
+  setReviewModalVisible(true);
+};
+
+const submitReview = async () => {
+  if (!selectedExperienceId) return;
+
+  try {
+    setSubmittingReview(true);
+    const token = await AsyncStorage.getItem("accessToken");
+    const userId = await AsyncStorage.getItem("id");
+
+    if (!token || !userId) {
+      Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+      router.push("/LoginScreen");
+      return;
+    }
+
+    const reviewData = {
+      puntuacion: reviewRating,
+      comentario: reviewComment,
+      user: userId,
+      experience: selectedExperienceId
+    };
+
+        const response = await axios.post(`${BASE_URL}/reviews/create/`, reviewData, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (response.status === 201) {
+      // Add experience to reviewed list to prevent additional reviews
+      setReviewedExperiences(prev => [...prev, selectedExperienceId]);
+      Alert.alert("Éxito", "Tu reseña ha sido enviada. ¡Gracias por tu opinión!");
+      setReviewModalVisible(false);
+    }
+  } catch (error: any) {
+    console.error("Error al enviar la reseña:", error);
+    
+    // Handle case where user already reviewed this experience
+    if (error.response?.status === 400 && 
+        error.response?.data?.error?.includes("Ya has dejado una reseña")) {
+      Alert.alert("Error", "Ya has dejado una reseña para esta experiencia.");
+      setReviewedExperiences(prev => 
+        prev.includes(selectedExperienceId as string) 
+          ? prev 
+          : [...prev, selectedExperienceId as string]
+      );
+    } else {
+      Alert.alert("Error", "No se pudo enviar la reseña. Inténtalo de nuevo.");
+    }
+  } finally {
+    setSubmittingReview(false);
+  }
+};
+
 const renderItem = ({ item }: { item: Reserva }) => {
   const timePreferenceMap: { [key: string]: string } = {
     MORNING: "Mañana",
     AFTERNOON: "Tarde",
-    EVENING: "Noche",
+    NIGHT: "Noche",
   };
-
-      {item.experience_hint && (  // Solo mostramos la pista si existe
-        <Text style={styles.label}>
-          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
-          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
-        </Text>
-      
-      )}
 
   const isCancelled = item.status === "cancelled";
   const isConfirmed = item.status === "CONFIRMED";
+  const isPastDate = isBefore(
+    item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
+    new Date()
+  );
+  
+  const hasReviewed = reviewedExperiences.includes(item.experience.id);
 
   return (
     <View
@@ -180,7 +278,14 @@ const renderItem = ({ item }: { item: Reserva }) => {
         <Text style={styles.bold}>Ciudad:</Text> {item.city}
       </Text>
 
-      {!isCancelled && item.cancellable && (
+      {item.experience_hint && (
+        <Text style={styles.label}>
+          <Ionicons name="bulb" size={16} color="#FF9900" />{" "}
+          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
+        </Text>
+      )}
+
+      {!isCancelled && !isPastDate && item.cancellable && (
         <TouchableOpacity
           style={styles.cancelButton}
           onPress={() => {
@@ -193,19 +298,21 @@ const renderItem = ({ item }: { item: Reserva }) => {
         </TouchableOpacity>
       )}
 
-      {isBefore(
-        item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
-        new Date()
-      ) && (
+      {isConfirmed && isPastDate && !hasReviewed && (
         <TouchableOpacity
           style={styles.reviewButton}
-          onPress={() => {
-            console.log("Dejar reseña", item.id);
-          }}
+          onPress={() => openReviewModal(item.experience.id)}
         >
           <Ionicons name="star" size={16} color="white" />
           <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
         </TouchableOpacity>
+      )}
+
+      {isConfirmed && isPastDate && hasReviewed && (
+        <View style={styles.alreadyReviewedContainer}>
+          <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+          <Text style={styles.alreadyReviewedText}>Reseña enviada</Text>
+        </View>
       )}
     </View>
   );
@@ -251,6 +358,66 @@ const renderItem = ({ item }: { item: Reserva }) => {
                 onPress={cancelarReserva}
               >
                 <Text style={styles.modalConfirmButtonText}>Sí</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={reviewModalVisible}
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.reviewModalContent}>
+            <Text style={styles.modalTitle}>Dejar una Reseña</Text>
+            
+            <Text style={styles.ratingLabel}>Puntuación:</Text>
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity 
+                  key={star}
+                  onPress={() => setReviewRating(star)}
+                >
+                  <Ionicons 
+                    name={reviewRating >= star ? "star" : "star-outline"} 
+                    size={32} 
+                    color={reviewRating >= star ? "#FFD700" : "#ccc"} 
+                    style={styles.starIcon}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <Text style={styles.commentLabel}>Comentario:</Text>
+            <TextInput
+              style={styles.commentInput}
+              multiline={true}
+              numberOfLines={4}
+              placeholder="Comparte tu experiencia..."
+              value={reviewComment}
+              onChangeText={setReviewComment}
+            />
+            
+            <View style={[styles.modalButtons, styles.reviewModalButtons]}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setReviewModalVisible(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitReviewButton, { opacity: submittingReview ? 0.7 : 1 }]}
+                onPress={submitReview}
+                disabled={submittingReview}
+              >
+                {submittingReview ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.submitReviewButtonText}>Enviar</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -413,6 +580,73 @@ const styles = StyleSheet.create({
   modalConfirmButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  reviewModalContent: {
+    width: "90%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+    maxHeight: "80%",
+  },
+  starsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 15,
+  },
+  starIcon: {
+    marginHorizontal: 5,
+  },
+  ratingLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    alignSelf: "flex-start",
+    marginTop: 10,
+  },
+  commentLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    alignSelf: "flex-start",
+    marginTop: 10,
+  },
+  commentInput: {
+    width: "100%",
+    height: 100,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 5,
+    marginTop: 5,
+    padding: 10,
+    textAlignVertical: "top",
+  },
+  submitReviewButton: {
+    flex: 1,
+    backgroundColor: "#1877F2",
+    padding: 10,
+    borderRadius: 5,
+    marginLeft: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 44,
+  },
+  submitReviewButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  reviewModalButtons: {
+    marginTop: 20,
+  },
+  alreadyReviewedContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 8,
+    marginTop: 10,
+  },
+  alreadyReviewedText: {
+    color: "#4CAF50",
+    marginLeft: 5,
+    fontWeight: "500",
   },
 });
 
