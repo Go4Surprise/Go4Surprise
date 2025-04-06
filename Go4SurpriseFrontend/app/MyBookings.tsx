@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -9,19 +9,20 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  SafeAreaView,
 } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { format, isBefore, parseISO } from "date-fns";
+import { format, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
-import { BASE_URL } from '../constants/apiUrl';
+import { BASE_URL } from "../constants/apiUrl";
 
 interface Reserva {
   id: string;
   booking_date: string;
-  experience_date: string;
+  experience_date: Date;
   participants: number;
   price: number;
   status: string;
@@ -29,79 +30,30 @@ interface Reserva {
   cancellable: boolean;
   time_preference: string;
   city: string;
-  experience_hint: string;
+  experience_hint?: string;
+}
+
+interface ItemWithHeader {
+  type: "header" | "item";
+  title?: string;
+  data?: Reserva;
 }
 
 const MyBookings = () => {
-  const [reservas, setReservas] = useState<Reserva[]>([]);
-  const [pastReservas, setPastReservas] = useState<Reserva[]>([]);
+  const [allItems, setAllItems] = useState<ItemWithHeader[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const scrollRef = useRef<FlatList<ItemWithHeader>>(null);
+  const [pastSectionIndex, setPastSectionIndex] = useState<number | null>(null);
+  const [futureSectionIndex, setFutureSectionIndex] = useState<number | null>(null);
 
   useEffect(() => {
     void fetchReservas();
     fadeIn();
   }, []);
-
-  const fetchReservas = async () => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
-
-      if (!token) {
-        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
-        router.push("/LoginScreen");
-        return;
-      }
-      
-      const [response, pastBookings] = await Promise.all([
-        axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-      console.log("Datos de la API:", response.data); // Agregado para depuración
-
-      if (Array.isArray(response.data)) {
-        const sorted = response.data
-          .map(item => ({
-            ...item,
-            experience_date: new Date(item.experience_date),
-            time_preference: item.experience.time_preference,
-            city: item.experience.location,
-          }))
-          .filter(item => item.experience_date >= new Date())
-          .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
-        setReservas(sorted);
-      } else {
-        throw new Error("Formato de datos incorrecto");
-      }
-
-      if (Array.isArray(pastBookings.data)) {
-        const sortedPast = pastBookings.data
-          .map(item => ({
-            ...item,
-            experience_date: new Date(item.experience_date),
-            time_preference: item.experience.time_preference,
-            city: item.experience.location,
-            hint: item.experience.hint,
-          }))
-          .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
-        setPastReservas(sortedPast);
-      }
-    } catch (error) {
-      console.error("Error al obtener las reservas:", error); // Agregado para depuración
-      setError("Error al obtener las reservas");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fadeIn = () => {
     Animated.timing(fadeAnim, {
@@ -111,203 +63,225 @@ const MyBookings = () => {
     }).start();
   };
 
+  const fetchReservas = async () => {
+    try {
+      const token = await AsyncStorage.getItem("accessToken");
+      const usuarioId = await AsyncStorage.getItem("id");
+
+      if (!token) {
+        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+        router.push("/LoginScreen");
+        return;
+      }
+
+      const [response, pastBookings] = await Promise.all([
+        axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const futuras = Array.isArray(response.data)
+        ? response.data
+            .map((item) => ({
+              ...item,
+              experience_date: new Date(item.experience_date),
+              time_preference: item.experience.time_preference,
+              city: item.experience.location,
+              experience_hint: item.experience.hint,
+            }))
+            .filter((item) => item.experience_date >= new Date())
+            .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime())
+        : [];
+
+      const pasadas = Array.isArray(pastBookings.data)
+        ? pastBookings.data
+            .map((item) => ({
+              ...item,
+              experience_date: new Date(item.experience_date),
+              time_preference: item.experience.time_preference,
+              city: item.experience.location,
+              experience_hint: item.experience.hint,
+            }))
+            .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime())
+        : [];
+
+      const items: ItemWithHeader[] = [];
+
+      const futureIndex = 0;
+      items.push({ type: "header", title: "Próximas Reservas" });
+      futuras.forEach((item) => items.push({ type: "item", data: item }));
+
+      const pastStartIndex = items.length;
+      items.push({ type: "header", title: "Reservas Pasadas" });
+      pasadas.forEach((item) => items.push({ type: "item", data: item }));
+
+      setFutureSectionIndex(futureIndex);
+      setPastSectionIndex(pastStartIndex);
+      setAllItems(items);
+    } catch (error) {
+      console.error("Error al obtener las reservas:", error);
+      setError("Error al obtener las reservas");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const cancelarReserva = async () => {
     if (!selectedBookingId) return;
 
     try {
-        const token = await AsyncStorage.getItem("accessToken");
-        if (!token) {
-            Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
-            router.push("/LoginScreen");
-            return;
-        }
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+        router.push("/LoginScreen");
+        return;
+      }
 
-        console.log(`Sending request to update booking with ID: ${selectedBookingId}`); // Debugging log
-        const response = await axios.put(`${BASE_URL}/bookings/cancel/${selectedBookingId}/`, {}, {
-          headers: { Authorization: `Bearer ${token}` }
+      const response = await axios.put(`${BASE_URL}/bookings/cancel/${selectedBookingId}/`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-        if (response.status === 200) {
-            console.log("Booking updated successfully:", response.data); // Debugging log
-            Alert.alert("Reserva cancelada", "La reserva ha sido cancelada exitosamente.");
-            setReservas((prevReservas) =>
-                prevReservas.map((reserva) =>
-                    reserva.id === selectedBookingId ? { ...reserva, status: "cancelled" } : reserva
-                )
-            );
-        }
+      if (response.status === 200) {
+        Alert.alert("Reserva cancelada", "La reserva ha sido cancelada exitosamente.");
+        setAllItems((prevItems) =>
+          prevItems.map((item) =>
+            item.type === "item" && item.data?.id === selectedBookingId
+              ? { ...item, data: { ...item.data, status: "cancelled" } }
+              : item
+          )
+        );
+      }
     } catch (error) {
-        console.error("Error al actualizar la reserva:", error); // Debugging log
-        Alert.alert("Error", "No se pudo cancelar la reserva. Inténtalo de nuevo.");
+      console.error("Error al cancelar la reserva:", error);
+      Alert.alert("Error", "No se pudo cancelar la reserva. Inténtalo de nuevo.");
     } finally {
-        setModalVisible(false);
+      setModalVisible(false);
     }
-};
-
-const renderItem = ({ item }: { item: Reserva }) => {
-  const timePreferenceMap: { [key: string]: string } = {
-    MORNING: "Mañana",
-    AFTERNOON: "Tarde",
-    EVENING: "Noche",
   };
 
-      {item.experience_hint && (  // Solo mostramos la pista si existe
+  const renderItem = ({ item }: { item: ItemWithHeader }) => {
+    if (item.type === "header") {
+      return (
+        <Text style={styles.sectionHeader}>{item.title}</Text>
+      );
+    }
+
+    const reserva = item.data!;
+    const isCancelled = reserva.status === "cancelled";
+    const isConfirmed = reserva.status === "CONFIRMED";
+    const timePreferenceMap: { [key: string]: string } = {
+      MORNING: "Mañana",
+      AFTERNOON: "Tarde",
+      EVENING: "Noche",
+    };
+
+    return (
+      <View
+        style={[
+          styles.card,
+          isCancelled && styles.cancelledCard,
+          isConfirmed && styles.confirmedCard,
+        ]}
+      >
         <Text style={styles.label}>
-          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
-          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
+          <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
+          <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
+          {format(new Date(reserva.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
         </Text>
-      
-      )}
 
-  const isCancelled = item.status === "cancelled";
-  const isConfirmed = item.status === "CONFIRMED";
+        <Text style={styles.label}>
+          <Ionicons name="people" size={16} color="#1877F2" />{" "}
+          <Text style={styles.bold}>Participantes:</Text> {reserva.participants}
+        </Text>
 
-  return (
-    <View
-      style={[
-        styles.card,
-        isCancelled && styles.cancelledCard, // Apply gray tone and reduced opacity for canceled bookings
-        isConfirmed && styles.confirmedCard, // Apply green tone and reduced opacity for confirmed bookings
-      ]}
-    >
-      <Text style={styles.label}>
-        <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
-        {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
-      </Text>
+        <Text style={styles.label}>
+          <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
+          <Text style={styles.bold}>Precio Total:</Text> ${reserva.total_price}
+        </Text>
 
-      <Text style={styles.label}>
-        <Ionicons name="people" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Participantes:</Text> {item.participants}
-      </Text>
+        <Text style={styles.label}>
+          <Ionicons name="time" size={16} color="#1877F2" />{" "}
+          <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
+          {timePreferenceMap[reserva.time_preference] || reserva.time_preference}
+        </Text>
 
-      <Text style={styles.label}>
-        <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
-      </Text>
+        <Text style={styles.label}>
+          <Ionicons name="location" size={16} color="#1877F2" />{" "}
+          <Text style={styles.bold}>Ciudad:</Text> {reserva.city}
+        </Text>
 
-      <Text style={styles.label}>
-        <Ionicons name="time" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
-        {timePreferenceMap[item.time_preference] || item.time_preference}
-      </Text>
+        {reserva.experience_hint && (
+          <Text style={styles.label}>
+            <Ionicons name="bulb" size={16} color="#FF9900" />{" "}
+            <Text style={styles.bold}>Pista de la experiencia:</Text> {reserva.experience_hint}
+          </Text>
+        )}
 
-      <Text style={styles.label}>
-        <Ionicons name="location" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Ciudad:</Text> {item.city}
-      </Text>
+        {!isCancelled && reserva.cancellable && (
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => {
+              setSelectedBookingId(reserva.id);
+              setModalVisible(true);
+            }}
+          >
+            <Ionicons name="close-circle" size={16} color="white" />
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+        )}
 
-      {!isCancelled && item.cancellable && (
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => {
-            setSelectedBookingId(item.id);
-            setModalVisible(true);
-          }}
-        >
-          <Ionicons name="close-circle" size={16} color="white" />
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-      )}
-
-      {isBefore(
-        item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
-        new Date()
-      ) && (
-        <TouchableOpacity
-          style={styles.reviewButton}
-          onPress={() => {
-            console.log("Dejar reseña", item.id);
-          }}
-        >
-          <Ionicons name="star" size={16} color="white" />
-          <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
-
-
-const renderPastItem = ({ item }: { item: Reserva }) => {
-  const timePreferenceMap: { [key: string]: string } = {
-    MORNING: "Mañana",
-    AFTERNOON: "Tarde",
-    EVENING: "Noche",
+        {isBefore(reserva.experience_date, new Date()) && (
+          <TouchableOpacity
+            style={styles.reviewButton}
+            onPress={() => {
+              console.log("Dejar reseña", reserva.id);
+            }}
+          >
+            <Ionicons name="star" size={16} color="white" />
+            <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
   };
-
-      {item.experience_hint && (  // Solo mostramos la pista si existe
-        <Text style={styles.label}>
-          <Ionicons name="bulb" size={16} color="#FF9900" /> {" "}
-          <Text style={styles.bold}>Pista de la experiencia:</Text> {item.experience_hint}
-        </Text>
-      
-      )}
-
-  return (
-    <View style={[styles.card]}>
-      <Text style={styles.label}>
-        <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
-        {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
-      </Text>
-
-      <Text style={styles.label}>
-        <Ionicons name="people" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Participantes:</Text> {item.participants}
-      </Text>
-
-      <Text style={styles.label}>
-        <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Precio Total:</Text> ${item.total_price}
-      </Text>
-
-      <Text style={styles.label}>
-        <Ionicons name="time" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Preferencia Horaria:</Text>{" "}
-        {timePreferenceMap[item.time_preference] || item.time_preference}
-      </Text>
-
-      <Text style={styles.label}>
-        <Ionicons name="location" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Ciudad:</Text> {item.city}
-      </Text>
-
-      {isBefore(
-        item.experience_date instanceof Date ? item.experience_date : parseISO(item.experience_date),
-        new Date()
-      ) && (
-        <TouchableOpacity
-          style={styles.reviewButton}
-          onPress={() => {
-            console.log("Dejar reseña", item.id);
-          }}
-        >
-          <Ionicons name="star" size={16} color="white" />
-          <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
 
   if (loading) return <ActivityIndicator style={styles.loader} size="large" color="#1877F2" />;
   if (error) return <Text style={styles.errorText}>{error}</Text>;
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/HomeScreen")}>
-        <Ionicons name="arrow-back" size={24} color="#333" />
-      </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.fixedHeader}>
+        <TouchableOpacity onPress={() => router.push("/HomeScreen")}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => futureSectionIndex !== null && scrollRef.current?.scrollToIndex({ index: futureSectionIndex, animated: true })}
+          >
+            <Text style={styles.navButtonText}>Próximas Reservas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => pastSectionIndex !== null && scrollRef.current?.scrollToIndex({ index: pastSectionIndex, animated: true })}
+          >
+            <Text style={styles.navButtonText}>Reservas Pasadas</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-      <Text style={styles.title}>Mis Reservas</Text>
-
-      <FlatList
-        data={reservas}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ListEmptyComponent={<Text style={styles.noReservationsText}>Todavía no tienes ninguna reserva.</Text>}
-      />
+      <Animated.View style={[styles.container, { opacity: fadeAnim, paddingTop: 70 }]}>
+        <FlatList
+          ref={scrollRef}
+          data={allItems}
+          keyExtractor={(item, index) => `${item.type}-${item.title || item.data?.id}-${index}`}
+          renderItem={renderItem}
+          ListEmptyComponent={<Text style={styles.noReservationsText}>No tienes reservas.</Text>}
+        />
+      </Animated.View>
 
       <Modal
         animationType="slide"
@@ -336,32 +310,43 @@ const renderPastItem = ({ item }: { item: Reserva }) => {
           </View>
         </View>
       </Modal>
-
-      <br/>
-
-      <Text style={styles.title}>Reservas Pasadas</Text>
-      <FlatList
-        data={pastReservas}
-        keyExtractor={(item) => item.id}
-        renderItem={renderPastItem}
-        ListEmptyComponent={<Text style={styles.noReservationsText}>No tienes ninguna reserva en el pasado.</Text>}
-      />
-    </Animated.View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
     backgroundColor: "#f9f9f9",
   },
-  title: {
-    fontSize: 24,
+  fixedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    zIndex: 10,
+  },
+  headerButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  navButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "#1877F2",
+    borderRadius: 6,
+  },
+  navButtonText: {
+    color: "white",
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#1877F2",
   },
   loader: {
     flex: 1,
@@ -379,6 +364,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: "#777",
   },
+  sectionHeader: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1877F2",
+    marginBottom: 10,
+    marginTop: 20,
+  },
   card: {
     backgroundColor: "white",
     padding: 16,
@@ -391,6 +383,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
+  cancelledCard: {
+    backgroundColor: "#d3d3d3",
+    opacity: 0.6,
+  },
+  confirmedCard: {
+    backgroundColor: "#d4edda",
+  },
   label: {
     fontSize: 16,
     marginBottom: 6,
@@ -398,20 +397,6 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: "bold",
-  },
-  status: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    textAlign: "center",
-    color: "white",
-    marginTop: 8,
-  },
-  statusConfirmed: {
-    backgroundColor: "#28a745",
-  },
-  statusCancelled: {
-    backgroundColor: "#dc3545",
   },
   cancelButton: {
     backgroundColor: "#dc3545",
@@ -438,19 +423,6 @@ const styles = StyleSheet.create({
   reviewButtonText: {
     color: "white",
     marginLeft: 5,
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 16,
-    zIndex: 1,
-  },
-  cancelledCard: {
-    backgroundColor: "#d3d3d3", // Light gray background
-    opacity: 0.6, // Reduced opacity
-  },
-  confirmedCard: {
-    backgroundColor: "#d4edda", // Light green background
   },
   modalOverlay: {
     flex: 1,
