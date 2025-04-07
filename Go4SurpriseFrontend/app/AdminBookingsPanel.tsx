@@ -129,12 +129,12 @@ const AdminBookings = () => {
         const cardStyle = [
             styles.card,
             isPastDate ? styles.cardPastDate : null,
-            item.status === 'CANCELLED' ? styles.cardCancelled : null,
+            item.status === 'cancelled' ? styles.cardCancelled : null,
             item.status === 'CONFIRMED' ? styles.cardConfirmed : null,
         ];
         const statusTextStyle = [
             styles.statusText,
-            item.status === 'CANCELLED' ? styles.statusCancelled : null,
+            item.status === 'cancelled' ? styles.statusCancelled : null,
             item.status === 'CONFIRMED' ? styles.statusConfirmed : null,
         ];
 
