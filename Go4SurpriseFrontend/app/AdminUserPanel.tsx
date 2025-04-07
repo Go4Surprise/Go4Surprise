@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
+import { Ionicons } from '@expo/vector-icons';
 
 interface User {
     id: number;
@@ -54,7 +55,7 @@ export default function AdminPanel() {
         } catch (error) {
             setError('Error al cargar los usuarios');
             setLoading(false);
-            console.error('Error fetching users:', error);
+            console.error('Error al cargar los usuarios:', error);
         }
     };
 
@@ -94,14 +95,15 @@ export default function AdminPanel() {
         <View style={styles.container}>
             <View style={[styles.content, isMobile ? styles.contentMobile : styles.contentDesktop]}>
                 <View style={styles.header}>
-                    <TouchableOpacity onPress={() => router.push('/AdminPanel')} style={styles.backButton}>
-                        <Text style={styles.backButtonText}>← Volver a Administración</Text>
+                    <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push('/AdminPanel')}>
+                        <Ionicons name="grid-outline" size={24} color="#1877F2" />
                     </TouchableOpacity>
-                    <Text style={styles.title}>Gestión de Usuarios</Text>
+
                     <TouchableOpacity style={styles.logoutButton} onPress={() => void handleLogout()}>
                         <Text style={styles.buttonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>
+                    <Text style={styles.title}>Gestión de Usuarios</Text>
 
                 <View style={styles.card}>
                     <Text style={styles.subtitle}>Lista de usuarios</Text>
@@ -144,8 +146,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F2F5',
-        paddingTop: 50,
-        paddingHorizontal: 20,
+        padding: 16,
     },
     centerContainer: {
         flex: 1,
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
         width: '100%',
-        maxWidth: 1100,
+        alignSelf: 'center',
     },
     contentDesktop: {
         alignSelf: 'center',
@@ -167,28 +168,31 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 8,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#1877F2',
     },
     subtitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 10,
+        marginBottom: 5,
     },
     card: {
         flex: 1,
         backgroundColor: 'white',
         borderRadius: 10,
-        padding: 20,
+        padding: 15,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 5,
+        marginBottom: 10,
     },
     listContainer: {
         flex: 1,
@@ -197,10 +201,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 8,
     },
     userInfo: {
         flex: 1,
+        paddingRight: 10,
     },
     userStatus: {
         flexDirection: 'row',
@@ -212,19 +217,19 @@ const styles = StyleSheet.create({
     adminBadge: {
         backgroundColor: '#1877F2',
         color: 'white',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
         borderRadius: 4,
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     staffBadge: {
         backgroundColor: '#42B72A',
         color: 'white',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 3,
         borderRadius: 4,
-        fontSize: 12,
+        fontSize: 16,
         fontWeight: 'bold',
     },
     separator: {
@@ -233,17 +238,17 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#1877F2',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 6,
         alignItems: 'center',
-        marginTop: 10,
+        marginTop: 8,
     },
     logoutButton: {
         backgroundColor: '#E4144C',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 8,
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        borderRadius: 6,
     },
     buttonText: {
         color: '#fff',
@@ -255,16 +260,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: 10,
     },
-    backButton: {
+    dashboardButton: {
         padding: 8,
-        paddingHorizontal: 12,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#1877F2',
-    },
-    backButtonText: {
-        color: '#1877F2',
-        fontSize: 15,
-        fontWeight: 'bold',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });

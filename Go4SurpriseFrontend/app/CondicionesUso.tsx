@@ -1,17 +1,25 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
-
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 const CondicionesUso = () => {
   const router = useRouter();
+  const { from } = useLocalSearchParams();
+
+  const handleBack = () => {
+    if (from === 'register') {
+      router.push('/RegisterScreen'); 
+    } else {
+      router.push('/');
+    }
+  };
     return (
       <>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push('/')}>
-        <Ionicons name="arrow-back" size={24} color="#4f46e5" />
-      </TouchableOpacity>
+       <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+             <Ionicons name="arrow-back" size={24} color="#4f46e5" />
+        </TouchableOpacity>
+     
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Condiciones de Uso</Text>
 

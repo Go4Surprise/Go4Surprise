@@ -5,19 +5,10 @@ import { router, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { Platform } from 'react-native';
 
-interface Reservation {
-  id: string;
-  booking_date: string;
-  experience_date: string;
-  participants: number;
-  price: number;
-  status: string;
-  total_price: number;
-  experience: {
-    title: string;
-  };
-}
 
 interface User {
   id: string;
@@ -26,6 +17,8 @@ interface User {
   username: string;
   surname: string;
   phone: string;
+  pfp: string;
+  birthdate: Date;
 }
 
 export default function UserProfileScreen() {
@@ -35,39 +28,47 @@ export default function UserProfileScreen() {
     email: '',
     username: '',
     surname: '',
-    phone: ''
+    phone: '',
+    pfp: '',
+    birthdate: new Date(),
   });
   
   const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '' });
+  const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' , birthdate: new Date() });
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [reservationsModalVisible, setReservationsModalVisible] = useState(false);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
 
   // Fetch user data from API
   const fetchUserData = async () => {
     try {
-      const accessToken = await AsyncStorage.getItem('accessToken');
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        router.replace('/LoginScreen'); // Redirige si no hay token
+        return;
+      }
       const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-  
-      const data = response.data;
-  
-      setUser({
-        id: data.id || '',
-        name: data.name || '',
-        surname: data.surname || '',
-        username: data.username || '',
-        email: data.email || '',
-        phone: data.phone || '',
-      });
+    
+       // Asegura que el ID está incluido antes de actualizar el estado
+       setUser(prevState => ({
+        ...prevState,
+        id: response.data.id || '',  
+        name: response.data.name,
+        email: response.data.email,
+        username: response.data.username,
+        surname: response.data.surname,
+        phone: response.data.phone,
+        pfp: response.data.pfp,
+        birthdate: response.data.birthdate,
+    }));
     } catch (error) {
       console.error("Error al cargar perfil:", error);
     }
@@ -81,41 +82,101 @@ export default function UserProfileScreen() {
 
   // Open edit profile modal with current user data
   const handleEditProfile = () => {
-    setEditedUser({
-      name: user.name || '',
-      surname: user.surname || '',
-      username: user.username || '',
-      email: user.email || '',
-      phone: user.phone || ''
-    });
-    setModalVisible(true);
+    if (user) {
+        setEditedUser({
+            name: user.name || '',
+            surname: user.surname || '', 
+            username: user.username || '',  
+            email: user.email || '',
+            phone: user.phone || '',
+            pfp: user.pfp || '',
+            birthdate: user.birthdate || new Date(),
+        });
+        setModalVisible(true);
+    }
   };
 
-  // Save profile changes to API
+  const pickImage = async () => {
+
+    // Seleccionar una imagen de la galería
+    let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images',],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+    });
+    console.log("Imagen detectada:", result);
+    if (!result.canceled) {
+          setEditedUser(prevState => ({ ...prevState, pfp: result.assets[0].uri })); // Actualiza el estado con la URI de la imagen seleccionada   
+    }
+  };
+
+
   const handleSaveChanges = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      if (!token) {
-        Alert.alert('Error', 'Session expired. Please login again.');
-        return;
+      const formData = new FormData();
+      formData.append('name', editedUser.name);
+      formData.append('surname', editedUser.surname);
+      formData.append('username', editedUser.username);
+      formData.append('email', editedUser.email);
+      formData.append('phone', editedUser.phone);
+      let birthdateString = '';
+      if (editedUser.birthdate) {
+        try {
+          if (editedUser.birthdate instanceof Date) {
+            birthdateString = editedUser.birthdate.toISOString().split('T')[0];
+          } 
+          else if (typeof editedUser.birthdate === 'string') {
+            const dateObj = new Date(editedUser.birthdate);
+            birthdateString = dateObj.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          console.error('Error formatting date:', e);
+          birthdateString = new Date().toISOString().split('T')[0];
+        }
       }
-      
-      await axios.put(`${BASE_URL}/users/update/`, editedUser, {
-        headers: { Authorization: `Bearer ${token}` }
+      formData.append('birthdate', birthdateString);
+  
+      if (editedUser.pfp && editedUser.pfp !== user.pfp) {
+        if (editedUser.pfp.startsWith('data:image')) {
+          // Handle base64 encoded images from web
+          const base64Data = editedUser.pfp.split(',')[1];
+          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+          formData.append('pfp', pfpFile);
+        } else if (Platform.OS !== 'web') {
+          // Handle file URI from mobile
+          const filename = editedUser.pfp.split('/').pop();
+          const match = /\.(\w+)$/.exec(filename || 'image.jpg');
+          const type = match ? `image/${match[1]}` : 'image/jpeg';
+          
+          formData.append('pfp', {
+            uri: editedUser.pfp,
+            name: filename || 'profile.jpg',
+            type
+          } as any);
+        }
+      }
+  
+      await axios.put(`${BASE_URL}/users/update/`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
-      setUser(prevState => ({
-        ...prevState,
-        ...editedUser
-      }));
+      // Fetch fresh user data from the server instead of just updating local state
+      await fetchUserData();
       
       setModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully.');
+      Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
-      console.error('Error updating profile', error);
-      Alert.alert('Error', 'Could not update profile.');
+      console.error('Error al actualizar el perfil', error);
+      Alert.alert('Error', 'No se pudo actualizar el perfil.');
     }
   };
+  
 
   // Change password through API
   const handleChangePassword = async () => {
@@ -124,7 +185,7 @@ export default function UserProfileScreen() {
 
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
-        setPasswordError("No active session found.");
+        setPasswordError("No se encontró ninguna sesión activa.");
         return;
       }
 
@@ -137,16 +198,16 @@ export default function UserProfileScreen() {
       setPasswordModalVisible(false);
       setCurrentPassword('');
       setNewPassword('');
-      Alert.alert("Success", "Password updated successfully.");
+      Alert.alert("Success", "Contraseña actualizada exitosamente.");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
-          setPasswordError("❌ Current password is incorrect.");
+          setPasswordError("❌La contraseña actual es incorrecta.");
         } else {
-          setPasswordError("⚠️ Could not change password. Please try again.");
+          setPasswordError("⚠️ No se pudo cambiar la contraseña. Inténtalo de nuevo.");
         }
       } else {
-        setPasswordError("🚫 Could not connect to server.");
+        setPasswordError("🚫 No se pudo conectar al servidor.");
       }
     }
   };
@@ -158,12 +219,12 @@ export default function UserProfileScreen() {
       const userId = await AsyncStorage.getItem("userId");
 
       if (!token || !userId) {
-        Alert.alert("Error", "No active session found.");
+        Alert.alert("Error", "No se encontró ninguna sesión activa.");
         return null;
       }
       return userId;
     } catch (error) {
-      console.error("Error getting userId:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
@@ -177,66 +238,17 @@ export default function UserProfileScreen() {
       });
       return usuarioResponse.data.usuario_id;
     } catch (error) {
-      console.error("Error getting usuario_id:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
 
-  // Fetch user bookings from API
-  const fetchUserBookings = async (usuarioId: string, token: string): Promise<Reservation[]> => {
-    const response = await axios.get<Reservation[]>(`${BASE_URL}/bookings/user_past_bookings/${usuarioId}/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
 
-    if (Array.isArray(response.data)) {
-      return response.data;
-    } else {
-      throw new Error("Incorrect data format");
-    }
-  };
-
-  // Handle reservation errors
-  const handleReservationError = (error: unknown) => {
-    if (axios.isAxiosError(error)) {
-      console.error('Error getting reservation history:', error.response?.data || error.message);
-      Alert.alert("Error", error.response?.data?.message || "Could not get reservation history.");
-    } else {
-      console.error("Unexpected error:", error);
-      Alert.alert("Error", "An unexpected error occurred.");
-    }
-  };
-  
   // Validate authentication data
   const validateAuthData = async () => {
     const token = await AsyncStorage.getItem("accessToken");
     const userId = await getUserIdFromToken();
     return { token, userId, isValid: !!userId && !!token };
-  };
-  
-  // Get booking data
-  const getBookingData = async (userId: string, token: string) => {
-    const usuarioId = await getUsuarioId(userId, token);
-    if (!usuarioId) {
-      Alert.alert("Error", "Could not get user information.");
-      return null;
-    }
-    return await fetchUserBookings(usuarioId, token);
-  };
-  
-  // Fetch past reservations
-  const fetchPastReservations = async () => {
-    try {
-      const auth = await validateAuthData();
-      if (!auth.isValid) return;
-  
-      const bookings = await getBookingData(auth.userId!, auth.token!);
-      if (bookings) {
-        setReservations(bookings);
-        setReservationsModalVisible(true);
-      }
-    } catch (error: unknown) {
-      handleReservationError(error);
-    }
   };
 
   // Handle user logout
@@ -246,8 +258,8 @@ export default function UserProfileScreen() {
       await AsyncStorage.removeItem('refreshToken');
       router.replace('/LoginScreen');
     } catch (error) {
-      console.error("Error logging out", error);
-      Alert.alert("Error", "Could not complete logout.");
+      console.error("Error al cerrar sesión", error);
+      Alert.alert("Error", "No se pudo completar el cierre de sesión.");
     }
   };
   
@@ -279,18 +291,40 @@ export default function UserProfileScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       
-      {/* Header with background image */}
+
+       {/* Botón para ir a HomeScreen */}
+       <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
+        <Ionicons name="home" size={30} color="#fff" />
+      </TouchableOpacity>
+      
+      {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image 
+            source={
+              user.pfp 
+                ? { uri: user.pfp.startsWith('http') 
+                    ? user.pfp // Use as is if it's a full URL (from GCS)
+                    : `${BASE_URL}${user.pfp}` // Otherwise prepend BASE_URL
+                  } 
+                : require('../assets/images/user-logo-none.png')
+            } 
+            style={styles.avatar}
+            onError={() => {
+              // If image fails to load, set user.pfp to empty string so default image is shown
+              setUser(prevUser => ({...prevUser, pfp: ''}))
+            }}
+          />
         </View>
       </ImageBackground>
-      
-      {/* Profile card */}
-      <View style={styles.profileCard}>
-        <Text style={styles.username}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
-      </View>
+
+      {/* Tarjeta del perfil */}
+      {user && (
+                <View style={styles.profileCard}>
+                  <Text style={styles.username}>{user.name} {user.surname}</Text>
+                  <Text style={styles.email}>{user.email}</Text>
+                </View>
+        )}
 
       {/* Profile options */}
       <View style={styles.optionsContainer}>
@@ -303,10 +337,10 @@ export default function UserProfileScreen() {
           <Ionicons name="lock-closed" size={20} color="#004AAD" style={styles.icon} />
           <Text style={styles.optionText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.optionButton} onPress={() => void fetchPastReservations()}>
+
+        <TouchableOpacity style={styles.optionButton} onPress={() => router.push('/MyBookings')}>
           <Ionicons name="time" size={20} color="#004AAD" style={styles.icon} />
-          <Text style={styles.optionText}>Historial de reservas</Text>
+          <Text style={styles.optionText}>Reservas</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.optionButton, styles.logoutButton]} onPress={() => void handleLogout()}>
@@ -319,13 +353,8 @@ export default function UserProfileScreen() {
           <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Home button */}
-      <TouchableOpacity style={styles.homeButton} onPress={() => router.push('/HomeScreen')}>
-        <Ionicons name="home" size={30} color="#fff" />
-      </TouchableOpacity>
       
-      {/* Footer */}
+      {/* Footer con logo pequeño y nombre de la app en línea */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Go4Surprise</Text>
       </View>
@@ -334,47 +363,58 @@ export default function UserProfileScreen() {
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Editar Perfil</Text>
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.name} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} 
-              placeholder="Name" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.surname} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} 
-              placeholder="Surname" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.username} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} 
-              placeholder="Username" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.email} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, email: text }); }} 
-              placeholder="Email" 
-              keyboardType="email-address" 
-            />
-            <TextInput 
-              style={styles.input} 
-              value={editedUser.phone} 
-              onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} 
-              placeholder="Phone" 
-              keyboardType="phone-pad" 
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
-                <Text style={styles.modalButtonText}>Guardar</Text>
+            <ScrollView contentContainerStyle={styles.modalScrollContent}>
+              <Text style={styles.modalTitle}>Editar Perfil</Text>
+              <Text style={styles.label}>Nombre</Text>
+              <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+              <Text style={styles.label}>Apellidos</Text>
+              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+              <Text style={styles.label}>Usuario</Text>
+              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+              <Text style={styles.label}>Email</Text>
+              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+              <Text style={styles.label}>Teléfono</Text>
+              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+              <Text style={styles.label}>Fecha de Nacimiento</Text>
+              {Platform.OS === 'web' ? (
+                <input
+                  style={styles.webDateInput}
+                  type="date"
+                  value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
+                  onChange={(e) => setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) })}
+                />
+              ) : (
+                <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                  <Text style={styles.dateText}>
+                    {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              <Text style={styles.label}>Foto de Perfil</Text>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+                  <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
+              <Image 
+                source={
+                  editedUser.pfp 
+                    ? { uri: editedUser.pfp } 
+                    : require('../assets/images/user-logo-none.png')
+                }
+                style={styles.profileImagePreview}
+                onError={() => {
+                  setEditedUser(prev => ({...prev, pfp: ''}))
+                }}
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
+                  <Text style={styles.modalButtonText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -391,7 +431,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={currentPassword}
               onChangeText={setCurrentPassword}
-              placeholder="Current password"
+              placeholder="Contraseña actual"
               secureTextEntry
             />
 
@@ -399,7 +439,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder="New password"
+              placeholder="Nueva contraseña"
               secureTextEntry
             />
 
@@ -414,41 +454,54 @@ export default function UserProfileScreen() {
           </View>
         </View>
       </Modal>
-      
-      {/* Reservation history modal */}
-      <Modal visible={reservationsModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Historial de reservas</Text>
 
-            {reservations.length > 0 ? (
-              <ScrollView style={{ maxHeight: 300 }}>
-                {reservations.map((res, index) => (
-                  <View key={index} style={styles.reservationItem}>
-                    <Text style={styles.reservationText}>📅 Fecha: {res.experience_date}</Text>
-                    <Text style={styles.reservationText}>🏠 Experiencia: {res.experience.title}</Text>
-                    <Text style={styles.reservationText}>💰 Total: {res.total_price}€</Text>
-                  </View>
-                ))}
-              </ScrollView>
-            ) : (
-              <Text style={styles.noReservations}>No existen reservas pasadas</Text>
-            )}
-
-            <TouchableOpacity 
-              style={[styles.modalButton, styles.cancelButton]} 
-              onPress={() => { setReservationsModalVisible(false); }}
-            >
-              <Text style={styles.modalButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
+  webDateInput: {
+    width: '100%',
+    padding: 12,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#fff',
+    boxSizing: 'border-box',
+  },
+  
+  dateButton: {
+    backgroundColor: '#F0F0F0',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 10,
+    marginBottom: 4,
+    color: '#333',
+  },  
+  deleteButton: {
+    backgroundColor: '#d9534f',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  }, 
   container: {
     flexGrow: 1,
     alignItems: 'center',
@@ -535,34 +588,26 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  deleteButton: {
-    backgroundColor: '#d9534f',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deleteText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
   homeButton: {
     position: 'absolute',
-    bottom: 20,
+    top: 40,           // Ajusta según altura de status bar
     left: 20,
     backgroundColor: '#004AAD',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
+    borderRadius: 20,
+    zIndex: 10,
+    elevation: 10,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    width: 65,  
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },  
   footer: {
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 30,
     padding: 5,
   },
   footerText: {
@@ -571,78 +616,82 @@ const styles = StyleSheet.create({
     color: '#777',
     marginTop: 5,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
-    paddingVertical: 5,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  modalButton: {
-    backgroundColor: '#004AAD',
-    padding: 10,
-    borderRadius: 5,
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#d9534f',
-  },
-  modalButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  backgroundLogo: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  position: 'absolute',
+  width: '100%',
+  height: '100%',
+},modalContainer: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+},
+modalContent: {
+  width: '90%',
+  backgroundColor: 'white',
+  borderRadius: 10,
+  padding: 20,
+  justifyContent: 'center',
+},
+modalScrollContent: {
+  padding: 15,
+},
+modalTitle: {
+  fontSize: 20,
+  fontWeight: 'bold',
+  marginBottom: 10,
+},
+input: {
+  borderBottomWidth: 1,
+  borderColor: '#ccc',
+  marginBottom: 10,
+  paddingVertical: 5,
+},
+modalButtons: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  marginTop: 10,
+},
+modalButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  flex: 1,
+  alignItems: 'center',
+  marginHorizontal: 5,
+},
+cancelButton: {
+  backgroundColor: '#d9534f',
+},
+modalButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
+imagePickerButton: {
+  backgroundColor: '#004AAD',
+  padding: 10,
+  borderRadius: 5,
+  alignItems: 'center',
+  marginVertical: 10,
+},
+imagePickerButtonText: {
+  color: 'white',
+  fontWeight: 'bold',
+},
+profileImagePreview: {
+  width: 100,
+  height: 100,
+  borderRadius: 50,
+  marginVertical: 10,
+},
   errorText: {
     color: 'red',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
-  },
-  reservationItem: {
-    backgroundColor: '#ffffff',
-    padding: 15,
-    marginVertical: 8,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    width: '90%',
-    alignSelf: 'center',
-    alignItems: 'center',
-  },
-  reservationText: {
-    fontSize: 16,
-    color: '#333',
-    marginVertical: 2,
-  },
-  noReservations: {
-    textAlign: 'center',
-    fontSize: 22,
-    color: 'gray',
-    marginTop: 10,
   },
 });

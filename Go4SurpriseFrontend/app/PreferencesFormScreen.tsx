@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View } from 'react-native';
+import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View, SafeAreaView, StatusBar, Dimensions, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,7 +17,6 @@ interface CategorySelections {
   [key: string]: string[]; 
 }
 
-
 const questions: Question[] = [
   { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
   { id: 2, question: 'Si descubres una nueva ciudad, ¿qué te atrae más?', category: 'Cultura y Arte', options: ['🏛️ Las calles históricas', '🖼️ Un museo impresionante', '🎭 Una obra de teatro o espectáculos en vivo', '🧑‍🎨 Talleres creativos', '🚫 Nada en especial'] },
@@ -32,12 +31,14 @@ const QuestionOption = ({
   option,
   index,
   isSelected,
-  onOptionSelect
+  onOptionSelect,
+  isLargeScreen
 }: {
   option: string;
   index: number;
   isSelected: boolean;
   onOptionSelect: (option: string) => void;
+  isLargeScreen?: boolean;
 }) => (
   <TouchableOpacity
     key={index}
@@ -45,9 +46,23 @@ const QuestionOption = ({
       styles.optionButton, 
       isSelected ? styles.selectedOption : null
     ]}
+    activeOpacity={0.7}
     onPress={() => {onOptionSelect(option)}}
   >
-    <Text style={styles.optionText}>{option}</Text>
+    <Text 
+      style={[
+        styles.optionText, 
+        isSelected ? styles.selectedOptionText : null,
+        isLargeScreen && { fontSize: 18 }
+      ]}
+    >
+      {option}
+    </Text>
+    {isSelected && (
+      <View style={styles.checkmark}>
+        <Text style={styles.checkmarkText}>✓</Text>
+      </View>
+    )}
   </TouchableOpacity>
 );
 
@@ -57,7 +72,26 @@ export default function PreferencesFormScreen(): React.ReactElement {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [selectedOptions, setSelectedOptions] = useState<CategorySelections>({});
   const [error, setError] = useState<string>('');
-  const fadeAnim = useState(new Animated.Value(0))[0];
+  const fadeAnim = useState(new Animated.Value(1))[0];
+  const slideAnim = useState(new Animated.Value(0))[0];
+  const cardOpacity = useState(new Animated.Value(1))[0];
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const [isLargeScreen, setIsLargeScreen] = useState(screenWidth > 768);
+
+  // Handle screen dimension changes
+  useEffect(() => {
+    const handleDimensionChange = ({ window }) => {
+      setIsLargeScreen(window.width > 768);
+    };
+
+    const subscription = Dimensions.addEventListener('change', handleDimensionChange);
+    
+    return () => {
+      if (subscription?.remove) {
+        subscription.remove();
+      }
+    };
+  }, []);
 
   // Helper function to get the current question safely
   const getCurrentQuestion = (index: number): Question => {
@@ -155,7 +189,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
       try {
         const storedToken = await AsyncStorage.getItem('accessToken');
         if (!storedToken) {
-          Alert.alert('Error', 'No token found. Please log in again.');
+          Alert.alert('Error', 'No se encontró ningún token. Inicie sesión de nuevo.');
           router.push('/LoginScreen');
         } else {
           setToken(storedToken);
@@ -168,15 +202,41 @@ export default function PreferencesFormScreen(): React.ReactElement {
     };
     
     void fetchToken();
-    fadeIn();
-  }, [currentQuestionIndex, router]);
+  }, [router]);
 
-  const fadeIn = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+  // Animation when question changes
+  useEffect(() => {
+    animateTransition();
+  }, [currentQuestionIndex]);
+
+  const animateTransition = () => {
+    // Fade out current card
+    Animated.sequence([
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      // Reset position while invisible
+      Animated.timing(slideAnim, {
+        toValue: -20,
+        duration: 0,
+        useNativeDriver: true,
+      }),
+      // Fade in and slide to position
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ])
+    ]).start();
   };
 
   const isCategorySelected = (): boolean => {
@@ -207,7 +267,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
     const currentQuestion = getCurrentQuestion(currentQuestionIndex);
     const category = currentQuestion.category;
 
-    if (!selectedOptions[category].length) {
+    if (!selectedOptions[category]?.length) {
       setError('Debes seleccionar al menos una opción.');
       return;
     }
@@ -300,151 +360,374 @@ export default function PreferencesFormScreen(): React.ReactElement {
     }
   };
   
-  const backgroundScale = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(backgroundScale, {
-          toValue: 1.05,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(backgroundScale, {
-          toValue: 1,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, []);  
-  
+  // Calculate progress percentage
+  const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
   
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}> 
-      {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
-        <>
-          <Animated.Image
-            source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
-            style={[
-              styles.backgroundImage,
-              { transform: [{ scale: backgroundScale }] }
-            ]}
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <ScrollView 
+        contentContainerStyle={[
+          isLargeScreen ? styles.scrollViewLarge : styles.scrollViewMobile
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View style={[
+          styles.container, 
+          { opacity: fadeAnim },
+          isLargeScreen && styles.containerLarge
+        ]}>
+          {/* Progress bar */}
+          <View style={[
+            styles.progressContainer,
+            isLargeScreen && styles.progressContainerLarge
+          ]}>
+            <View style={styles.progressBackground}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${progressPercentage}%` }
+                ]}
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {currentQuestionIndex + 1}/{questions.length}
+            </Text>
+          </View>
+          
+          {/* Card for question */}
+          {currentQuestionIndex >= 0 && currentQuestionIndex < questions.length ? (
+            <Animated.View 
+              style={[
+                styles.card,
+                {
+                  opacity: cardOpacity,
+                  transform: [{ translateY: slideAnim }]
+                },
+                isLargeScreen && styles.cardLarge
+              ]}
+            >
+              <Animated.Image
+                source={getImageForCategory(getCurrentQuestion(currentQuestionIndex).category)}
+                style={[
+                  styles.categoryIcon,
+                  isLargeScreen && styles.categoryIconLarge
+                ]}
+              />
 
+              <Text style={styles.categoryTag}>
+                {getCurrentQuestion(currentQuestionIndex).category}
+              </Text>
 
-          <Text style={styles.question}>{getQuestionText()}</Text>
-          <Text style={styles.helperText}>Puedes marcar una o varias opciones según tus preferencias.</Text>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          {renderOptions()}
-        </>
-      ) : null}
+              <Text style={[
+                styles.question,
+                isLargeScreen && styles.questionLarge
+              ]}>
+                {getQuestionText()}
+              </Text>
+              
+              <Text style={styles.helperText}>
+                Selecciona las opciones que te interesen
+              </Text>
+              
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              
+              <View style={[
+                styles.optionsContainer,
+                isLargeScreen && styles.optionsContainerLarge
+              ]}>
+                {renderOptions()}
+              </View>
+            </Animated.View>
+          ) : null}
 
-      <View style={styles.buttonRow}>
-        {currentQuestionIndex > 0 && (
-          <TouchableOpacity style={styles.backButton} onPress={prevQuestion}>
-            <Text style={styles.buttonText}>Atrás</Text>
-          </TouchableOpacity>
-        )}
+          {/* Navigation buttons */}
+          <View style={[
+            styles.buttonRow,
+            isLargeScreen && styles.buttonRowLarge
+          ]}>
+            {currentQuestionIndex > 0 ? (
+              <TouchableOpacity 
+                style={[
+                  styles.backButton,
+                  isLargeScreen && styles.backButtonLarge
+                ]} 
+                onPress={prevQuestion}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.backButtonText}>Atrás</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.buttonSpacer} />
+            )}
 
-        <TouchableOpacity 
-          style={[styles.nextButton, !isCategorySelected() && styles.disabledButton]} 
-          onPress={nextQuestion}
-          disabled={!isCategorySelected()}
-        >
-          <Text style={styles.buttonText}>
-            {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-    </Animated.View>
+            <TouchableOpacity 
+              style={[
+                styles.nextButton, 
+                !isCategorySelected() && styles.disabledButton,
+                isLargeScreen && styles.nextButtonLarge
+              ]} 
+              onPress={nextQuestion}
+              disabled={!isCategorySelected()}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.nextButtonText}>
+                {currentQuestionIndex < questions.length - 1 ? 'Siguiente' : 'Finalizar'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
   
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  scrollViewMobile: {
+    flexGrow: 1,
+  },
+  scrollViewLarge: {
+    flexGrow: 1,
+    minHeight: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#FFF5FC',
+    width: '100%',
+  },
+  containerLarge: {
+    maxWidth: 800,
+    width: '90%',
+    alignSelf: 'center',
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  progressContainerLarge: {
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  progressBackground: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#EEEEEE',
+    borderRadius: 2,
+    marginRight: 10,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#FF385C', // Tinder red
+    borderRadius: 2,
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555555',
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 5,
+    flex: 1,
+  },
+  cardLarge: {
+    maxWidth: 700,
+    alignSelf: 'center',
+    width: '100%',
+    padding: 32,
+    minHeight: 450,
+  },
+  categoryIcon: {
+    width: 60,
+    height: 60,
+    alignSelf: 'center',
+    marginBottom: 16,
+    opacity: 0.8,
+  },
+  categoryIconLarge: {
+    width: 80,
+    height: 80,
+  },
+  categoryTag: {
+    alignSelf: 'center',
+    fontSize: 14,
+    color: '#555555',
+    backgroundColor: '#F5F8FA', // Twitter light blue bg
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    fontWeight: '600',
   },
   question: {
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+    color: '#000000',
+    lineHeight: 30,
+  },
+  questionLarge: {
+    fontSize: 28,
+    lineHeight: 36,
+    marginBottom: 24,
+  },
+  helperText: {
+    fontSize: 15,
+    color: '#657786', // Twitter secondary text
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  optionsContainer: {
+    marginTop: 10,
+    width: '100%',
+  },
+  optionsContainerLarge: {
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   optionButton: {
-    backgroundColor: '#4098F5',
-    padding: 14,
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
     marginVertical: 8,
-    width: '85%',
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#B3D9FF',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#E1E8ED', // Twitter border color
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      ':hover': {
+        borderColor: '#1DA1F2',
+        transform: [{scale: 1.02}],
+      }
+    }),
   },
   selectedOption: {
-    backgroundColor: '#E91E63',
-    borderColor: '#FFEAF4',
-  },  
+    backgroundColor: '#F5F8FA',
+    borderColor: '#1DA1F2', // Twitter blue
+  },
   optionText: {
-    color: '#fff',
+    color: '#14171A', // Twitter primary text
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '500',
+    flex: 1,
   },
-  nextButton: {
-    backgroundColor: '#333',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 20,
+  selectedOptionText: {
+    color: '#1DA1F2', // Twitter blue
+    fontWeight: '600',
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
+  checkmark: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#1DA1F2', // Twitter blue
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkmarkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   errorText: {  
-    color: 'red',
-    fontSize: 16,
+    color: '#E0245E', // Twitter red
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 10,
-  },
-  helperText: {
-    fontSize: 18,
-    color: '#555',
     marginBottom: 10,
-    fontStyle: 'italic',
-    textAlign: 'center',
-    paddingHorizontal: 20,
- },
- backgroundImage: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  resizeMode: 'cover',
-  opacity: 0.09,
-  zIndex: -1,
- },
- backButton: {
-  backgroundColor: '#333',
-    padding: 12,
-    borderRadius: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginTop: 20,
-},
-buttonRow: {
-  flexDirection: 'row',
-  justifyContent: 'center',
-  gap: 12,
-  marginTop: 20,
-},
-disabledButton: {
-  backgroundColor: '#999',
-  opacity: 0.7,
-},
-
+    paddingBottom: Platform.OS === 'web' ? 40 : 20,
+  },
+  buttonRowLarge: {
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  backButton: {
+    padding: 16,
+    borderRadius: 30,
+    width: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      ':hover': {
+        backgroundColor: '#F5F8FA',
+      }
+    }),
+  },
+  backButtonLarge: {
+    width: 120,
+  },
+  buttonSpacer: {
+    width: 100,
+  },
+  backButtonText: {
+    color: '#1DA1F2', // Twitter blue
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  nextButton: {
+    backgroundColor: '#FF385C', // Tinder red
+    padding: 16,
+    borderRadius: 30,
+    width: 120,
+    alignItems: 'center',
+    shadowColor: '#FF385C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    ...(Platform.OS === 'web' && {
+      cursor: 'pointer',
+      transition: 'all 0.2s ease-in-out',
+      ':hover': {
+        backgroundColor: '#FF1443',
+        transform: [{scale: 1.03}],
+      }
+    }),
+  },
+  nextButtonLarge: {
+    width: 150,
+    padding: 18,
+  },
+  nextButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: '#CCCCCC',
+    shadowOpacity: 0,
+    ...(Platform.OS === 'web' && {
+      cursor: 'not-allowed',
+    }),
+  },
 });

@@ -106,7 +106,6 @@ export default function IntroPreferencesScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={[styles.wrapper, { minHeight: screenHeight }]}>
-        {/* 🎉 Tres capas de confeti animado con diferentes desfases */}
         <Animated.Image
           source={require('../assets/images/confeti.png')}
           style={[

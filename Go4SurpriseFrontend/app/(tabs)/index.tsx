@@ -90,11 +90,11 @@ export default function IndexScreen() {
 
         {/* FOOTER CON ENLACES LEGALES */}
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => router.push('/PoliticaPrivacidad')}>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/PoliticaPrivacidad', params: { from: 'home' } })}>
             <Text style={styles.footerLink}>Política de Privacidad</Text>
           </TouchableOpacity>
           <Text style={styles.footerSeparator}>|</Text>
-          <TouchableOpacity onPress={() => router.push('/CondicionesUso')}>
+          <TouchableOpacity onPress={() =>router.push({ pathname: '/CondicionesUso', params: { from: 'home' } })}>
             <Text style={styles.footerLink}>Condiciones de Uso</Text>
           </TouchableOpacity>
         </View>
@@ -170,11 +170,12 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 40,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
+    textAlign: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
   },
   headerLogo: {
     width: 60,
@@ -183,23 +184,23 @@ const styles = StyleSheet.create({
   },
   navLinks: {
     flexDirection: 'row',
-    gap: 15,
   },
   navItem: {
     color: '#333',
     fontWeight: '500',
     marginHorizontal: 10,
-    fontSize: 16,
+    fontSize: 18,
   },
   getStartedBtn: {
     backgroundColor: '#4f46e5',
     paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     borderRadius: 20,
   },
   getStartedText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   content: {
     flex: 1,
