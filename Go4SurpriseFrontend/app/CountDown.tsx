@@ -12,12 +12,12 @@ interface BookingResponse {
     // Add other booking properties here
     id: number;
     // Add any other fields your booking object has
-  }
-  
-  // Define a type for the processed booking with Date object
-  interface Booking extends Omit<BookingResponse, 'experience_date'> {
+}
+
+// Define a type for the processed booking with Date object
+interface Booking extends Omit<BookingResponse, 'experience_date'> {
     experience_date: Date;
-  }
+}
 
 export default function CountDown() {
     const [daysLeft, setDaysLeft] = useState<number | null>(null);
@@ -38,30 +38,30 @@ export default function CountDown() {
             }
 
             const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-                headers: { 
-                    Authorization: `Bearer ${token}` 
+                headers: {
+                    Authorization: `Bearer ${token}`
                 },
             });
 
             if (Array.isArray(response.data)) {
                 const upcomingBookings = response.data
-                  .map((booking: BookingResponse) => ({
-                    ...booking,
-                    experience_date: parseISO(booking.experience_date),
-                    status: booking.status.toUpperCase(),
-                  }))
-                  .filter((booking: Booking) => booking.status !== "cancelled")
-                  .filter((booking: Booking) => booking.experience_date > new Date())
-                  .sort((a: Booking, b: Booking) => a.experience_date.getTime() - b.experience_date.getTime());
-                
+                    .map((booking: BookingResponse) => ({
+                        ...booking,
+                        experience_date: parseISO(booking.experience_date),
+                        status: booking.status.toUpperCase(),
+                    }))
+                    .filter((booking: Booking) => booking.status !== "CANCELLED")
+                    .filter((booking: Booking) => booking.experience_date > new Date())
+                    .sort((a: Booking, b: Booking) => a.experience_date.getTime() - b.experience_date.getTime());
+
                 if (upcomingBookings.length > 0) {
-                  const nextBooking = upcomingBookings[0];
-                  const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
-                  setDaysLeft(daysRemaining);
+                    const nextBooking = upcomingBookings[0];
+                    const daysRemaining = differenceInDays(nextBooking.experience_date, new Date());
+                    setDaysLeft(daysRemaining);
                 } else {
-                  setDaysLeft(null);
+                    setDaysLeft(null);
                 }
-              }
+            }
         } catch (error) {
             console.error("Error al obtener la próxima reserva:", error);
         }

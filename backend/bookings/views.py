@@ -346,10 +346,10 @@ def cancelar_reserva(request, id):
         print(f"Received request to cancel booking with ID: {id}")  # Debugging log
         reserva = get_object_or_404(Booking, id=id)
 
-        if reserva.status != "cancelled":
-            reserva.status = "cancelled"
+        if reserva.status != "CANCELLED":
+            reserva.status = "CANCELLED"
             reserva.save()
-            print(f"Booking {id} status updated to 'cancelled'")
+            print(f"Booking {id} status updated to 'CANCELLED'")
             print(reserva.payment_intent_id)  # Debugging log
 
             # Realizar el reembolso si hay un pago asociado
@@ -374,7 +374,7 @@ def cancelar_reserva(request, id):
                     print(f"❌ Error al procesar el reembolso: {e}")
 
             usuario = reserva.user
-            subject = "Verifica tu correo electrónico - Go4Surprise"
+            subject = "Confirmación de cancelación y reembolso - Go4Surprise"
             message = f"""
             Hola {usuario.name},
         
@@ -396,7 +396,7 @@ def cancelar_reserva(request, id):
                 recipient_list=[usuario.email],
                 )
             except Exception as e:
-                logger.error(f"Error al enviar email de verificación: {str(e)}")
+                logger.error(f"Error al enviar email de cancelación: {str(e)}")
 
 
             return Response({"message": "Reserva cancelada exitosamente"}, status=status.HTTP_200_OK)    
@@ -414,4 +414,3 @@ def cancelar_reserva(request, id):
         return Response(
     {"error": f"Error del servidor: {str(e)}"},
     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
