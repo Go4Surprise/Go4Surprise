@@ -388,12 +388,12 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "white",
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     marginVertical: 8,
     shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
     borderWidth: 1,
     borderColor: "#ddd",
   },
@@ -437,6 +437,21 @@ const styles = StyleSheet.create({
   reviewButtonText: {
     color: "white",
     marginLeft: 5,
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 16,
+    zIndex: 1,
+  },
+  cancelledCard: {
+    backgroundColor: "#f8d7da",
+    borderColor: "#f5c6cb", 
+    opacity: 0.8, 
+  },
+  confirmedCard: {
+    backgroundColor: "#d4edda", // Light green background
+    borderColor: "#c3e6cb", 
   },
   modalOverlay: {
     flex: 1,

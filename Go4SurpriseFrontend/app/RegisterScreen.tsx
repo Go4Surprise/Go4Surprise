@@ -33,7 +33,8 @@ export default function RegisterScreen() {
         name?: string; 
         surname?: string; 
         email?: string; 
-        phone?: string; 
+        phone?: string;
+        terms?: string; 
     }>({});
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -54,6 +55,11 @@ export default function RegisterScreen() {
                 Object.assign(newErrors, { [field]: message });
             }
         });
+
+        // Check terms acceptance
+        if (!acceptedTerms) {
+            newErrors.terms = "Debes aceptar la política de privacidad y condiciones de uso";
+        }
 
         const nameRegex = /^[A-Za-z]+$/;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -105,10 +111,6 @@ export default function RegisterScreen() {
     };
 
     const handleRegister = async () => {
-        if (!acceptedTerms) {
-            Alert.alert("Atención", "Debes aceptar la política de privacidad y condiciones de uso para continuar.");
-            return;
-          }          
         const fieldsValid = validateFields();
         if (!fieldsValid) return;
     
@@ -309,7 +311,7 @@ export default function RegisterScreen() {
                         <Text style={styles.link} onPress={() => router.push({ pathname: '/CondicionesUso', params: { from: 'register' } })}>Condiciones de Uso</Text>.
                     </Text>
                 </View>
-
+                {errors.terms && <Text style={[styles.errorText, {width: '100%', marginTop: 5}]}>{errors.terms}</Text>}
 
                 <TouchableOpacity style={styles.button} onPress={() => void handleRegister()}>
                     <Text style={styles.buttonText}>Registrarse</Text>
