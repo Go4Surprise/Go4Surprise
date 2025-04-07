@@ -105,7 +105,7 @@ const MyBookings = () => {
             return;
         }
 
-        console.log(`Sending request to update booking with ID: ${selectedBookingId}`); // Debugging log
+        console.log(`Enviando solicitud para actualizar reserva con ID: ${selectedBookingId}`); // Debugging log
         const response = await axios.put(`${BASE_URL}/bookings/cancel/${selectedBookingId}/`, {}, {
           headers: { Authorization: `Bearer ${token}` }
       });
@@ -131,7 +131,7 @@ const renderItem = ({ item }: { item: Reserva }) => {
   const timePreferenceMap: { [key: string]: string } = {
     MORNING: "Mañana",
     AFTERNOON: "Tarde",
-    EVENING: "Noche",
+    NIGHT: "Noche",
   };
 
       {item.experience_hint && (  // Solo mostramos la pista si existe

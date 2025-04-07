@@ -54,7 +54,7 @@ export default function AdminPanel() {
         } catch (error) {
             setError('Error al cargar los usuarios');
             setLoading(false);
-            console.error('Error fetching users:', error);
+            console.error('Error al cargar los usuarios:', error);
         }
     };
 

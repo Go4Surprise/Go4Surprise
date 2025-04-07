@@ -158,7 +158,7 @@ export default function UserProfileScreen() {
 
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
-        setPasswordError("No active session found.");
+        setPasswordError("No se encontró ninguna sesión activa.");
         return;
       }
 
@@ -171,16 +171,16 @@ export default function UserProfileScreen() {
       setPasswordModalVisible(false);
       setCurrentPassword('');
       setNewPassword('');
-      Alert.alert("Success", "Password updated successfully.");
+      Alert.alert("Success", "Contraseña actualizada exitosamente.");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
-          setPasswordError("❌ Current password is incorrect.");
+          setPasswordError("❌La contraseña actual es incorrecta.");
         } else {
-          setPasswordError("⚠️ Could not change password. Please try again.");
+          setPasswordError("⚠️ No se pudo cambiar la contraseña. Inténtalo de nuevo.");
         }
       } else {
-        setPasswordError("🚫 Could not connect to server.");
+        setPasswordError("🚫 No se pudo conectar al servidor.");
       }
     }
   };
@@ -192,12 +192,12 @@ export default function UserProfileScreen() {
       const userId = await AsyncStorage.getItem("userId");
 
       if (!token || !userId) {
-        Alert.alert("Error", "No active session found.");
+        Alert.alert("Error", "No se encontró ninguna sesión activa.");
         return null;
       }
       return userId;
     } catch (error) {
-      console.error("Error getting userId:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
@@ -211,7 +211,7 @@ export default function UserProfileScreen() {
       });
       return usuarioResponse.data.usuario_id;
     } catch (error) {
-      console.error("Error getting usuario_id:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
@@ -231,8 +231,8 @@ export default function UserProfileScreen() {
       await AsyncStorage.removeItem('refreshToken');
       router.replace('/LoginScreen');
     } catch (error) {
-      console.error("Error logging out", error);
-      Alert.alert("Error", "Could not complete logout.");
+      console.error("Error al cerrar sesión", error);
+      Alert.alert("Error", "No se pudo completar el cierre de sesión.");
     }
   };
   

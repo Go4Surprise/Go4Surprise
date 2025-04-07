@@ -7,6 +7,30 @@ import { BASE_URL } from '../constants/apiUrl';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 
+type HorarioPreferencia = "MORNING" | "AFTERNOON" | "NIGHT";
+type Categoria = "ADVENTURE" | "CULTURE" | "SPORTS" | "GASTRONOMY" | "NIGHTLIFE" | "MUSIC";
+
+const horarioPreferenciaMap: Record<HorarioPreferencia, string> = {
+    MORNING: "Mañana",
+    AFTERNOON: "Tarde",
+    NIGHT: "Noche",
+};
+
+const categoriasMap: Record<Categoria, string> = {
+    ADVENTURE: "Aventura",
+    CULTURE: "Cultura",
+    SPORTS: "Deporte",
+    GASTRONOMY: "Gastronomía",
+    NIGHTLIFE: "Ocio nocturno",
+    MUSIC: "Música",
+};
+
+const translateHorario = (horario: HorarioPreferencia | null): string => 
+    horario ? horarioPreferenciaMap[horario] || horario : "Sin preferencia";
+
+const translateCategoria = (categoria: Categoria | null): string => 
+    categoria ? categoriasMap[categoria] || categoria : "Sin categoría";
+
 type BookingDetail = {
     id: string;
     experience_date: string;
@@ -37,6 +61,7 @@ const AdminBookingsDetail = () => {
     const [experienceCategories, setExperienceCategories] = useState<string[]>([]);
     const [experiencePrice, setExperiencePrice] = useState<number | null>(null);
     const [hint, setHint] = useState<string | null>(null);
+    
     type Experience = {
         id: string;
         title: string;
@@ -154,7 +179,7 @@ const AdminBookingsDetail = () => {
             } else {
                 Alert.alert('Error', 'No se pudo actualizar la reserva.');
             }
-            console.error('Error updating booking:', error);
+            console.error('Error al actualizar la reserva:', error);
         }
     };
 
@@ -223,8 +248,15 @@ const AdminBookingsDetail = () => {
 
                     <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
-                    <Text style={styles.label}><Ionicons name="time" size={16} color="#1877F2" /> Horario Preferencia: {experienceHorario} </Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Categorías descartadas: {experienceCategories.join(', ')}</Text>
+                    <Text style={styles.label}>
+                        <Ionicons name="time" size={16} color="#1877F2" /> 
+                        Horario Preferencia: {experienceHorario ? translateHorario(experienceHorario as HorarioPreferencia) : "Sin preferencia"}
+                    </Text>
+                    <Text style={styles.label}>
+                        <Ionicons name="pricetag" size={16} color="#1877F2" /> 
+                        Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
+                    </Text>
+
                     <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
                     <TextInput
                         style={styles.input}
