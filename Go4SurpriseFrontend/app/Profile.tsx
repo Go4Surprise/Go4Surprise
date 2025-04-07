@@ -382,7 +382,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={currentPassword}
               onChangeText={setCurrentPassword}
-              placeholder="Current password"
+              placeholder="Contraseña actual"
               secureTextEntry
             />
 
@@ -390,7 +390,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder="New password"
+              placeholder="Nueva contraseña"
               secureTextEntry
             />
 
