@@ -406,3 +406,49 @@ def notify_users_about_hint():
         else:
             print(f"Reserva {booking.id} no cumple con los requisitos para enviar el correo.")
 
+def notify_users_about_experience_details():
+    """
+    Notifica a los usuarios con todos los detalles de la experiencia y la pista 24 horas antes de la fecha de la experiencia.
+    """
+    from bookings.models import Booking  # Importar aquí para evitar importaciones circulares
+
+    # Obtener reservas donde la experiencia está a 24 horas de distancia
+    threshold_date = now().date() + timedelta(days=1)
+    bookings = Booking.objects.filter(experience_date=threshold_date, status="CONFIRMED")
+
+    for booking in bookings:
+        # Verificar que la pista esté rellena, que la reserva esté confirmada y que el correo esté verificado
+        if booking.experience and booking.experience.hint and booking.user.email_verified:
+            subject = f"✨ Detalles de tu experiencia Go4Surprise ✨"
+            message = f"""
+            Hola {booking.user.name},
+
+            ¡Tu experiencia con Go4Surprise está a solo 24 horas de distancia! 🎉 Aquí tienes todos los detalles que necesitas:
+
+            🕵️‍♂️ Pista: "{booking.experience.hint}"
+
+            Detalles de tu experiencia:
+            📅 Fecha: {booking.experience_date}
+            ⏰ Horario preferido: {booking.experience.time_preference}
+            📍 Ubicación: {booking.experience.location}
+            💰 Precio total: {booking.total_price}€
+            👥 Participantes: {booking.participants}
+
+            ¡Prepárate para disfrutar de una experiencia inolvidable llena de sorpresas y emociones! Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos.
+
+            🌟 Nos vemos pronto,
+            El equipo de Go4Surprise
+            """
+            try:
+                send_mail(
+                    subject=subject,
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[booking.user.email],
+                )
+                print(f"Email enviado a {booking.user.email} para la reserva {booking.id}")
+            except Exception as e:
+                print(f"Error al enviar el email para la reserva {booking.id}: {str(e)}")
+        else:
+            print(f"Reserva {booking.id} no cumple con los requisitos para enviar el correo.")
+
