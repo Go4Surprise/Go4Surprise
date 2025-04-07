@@ -112,11 +112,19 @@ const MyBookings = () => {
 
       const futureIndex = 0;
       items.push({ type: "header", title: "Próximas Reservas" });
-      futuras.forEach((item) => items.push({ type: "item", data: item }));
+      if (futuras.length === 0) {
+        items.push({ type: "item", data: undefined, title: "No tienes próximas reservas." });
+      } else {
+        futuras.forEach((item) => items.push({ type: "item", data: item }));
+      }      
 
       const pastStartIndex = items.length;
       items.push({ type: "header", title: "Reservas Pasadas" });
-      pasadas.forEach((item) => items.push({ type: "item", data: item }));
+      if (pasadas.length === 0) {
+        items.push({ type: "item", data: undefined, title: "No tienes reservas pasadas." });
+      } else {
+        pasadas.forEach((item) => items.push({ type: "item", data: item }));
+      }
 
       setFutureSectionIndex(futureIndex);
       setPastSectionIndex(pastStartIndex);
@@ -169,6 +177,12 @@ const MyBookings = () => {
       );
     }
 
+    if (!item.data) {
+      return (
+        <Text style={styles.emptySectionText}>{item.title}</Text>
+      );
+    }    
+
     const reserva = item.data!;
     const isCancelled = reserva.status === "cancelled";
     const isConfirmed = reserva.status === "CONFIRMED";
@@ -220,7 +234,7 @@ const MyBookings = () => {
           </Text>
         )}
 
-        {!isCancelled && reserva.cancellable && (
+        {!isCancelled && reserva.cancellable && !isBefore(reserva.experience_date, new Date()) && (
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={() => {
@@ -475,6 +489,13 @@ const styles = StyleSheet.create({
   modalConfirmButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  emptySectionText: {
+    fontSize: 16,
+    color: "#777",
+    fontStyle: "italic",
+    textAlign: "center",
+    marginBottom: 10,
   },
 });
 
