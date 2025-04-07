@@ -9,6 +9,10 @@ from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
+from django.core.mail import send_mail
+from django.utils.timezone import now
+from datetime import timedelta
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -414,3 +418,96 @@ def cancelar_reserva(request, id):
         return Response(
     {"error": f"Error del servidor: {str(e)}"},
     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def notify_users_about_hint():
+     """
+     Notifica a los usuarios sobre la pista que se vuelve visible para sus reservas.
+     """
+     from bookings.models import Booking  # Importar aquí para evitar importaciones circulares
+ 
+     # Obtener reservas donde la pista se vuelve visible (48 horas antes de la fecha de la experiencia)
+     threshold_date = now().date() + timedelta(days=2)
+     bookings = Booking.objects.filter(experience_date=threshold_date, status="CONFIRMED")
+ 
+     for booking in bookings:
+         # Verificar que la pista esté rellena, que la reserva esté confirmada y que el correo esté verificado
+         if booking.experience and booking.experience.hint and booking.user.email_verified:
+             subject = f"✨ ¡Tu pista para la experiencia Go4Surprise está lista! ✨"
+             message = f"""
+             Hola {booking.user.name},
+ 
+             ¡Estamos emocionados de que tu experiencia con Go4Surprise esté a solo 48 horas de distancia! 🎉
+ 
+             Aquí tienes una pista exclusiva para tu aventura sorpresa:
+             🕵️‍♂️ "{booking.experience.hint}" 🕵️‍♀️
+ 
+             Detalles de tu reserva:
+             📅 Fecha de la experiencia: {booking.experience_date}
+             👥 Participantes: {booking.participants}
+             📍 Ubicación: {booking.experience.location}
+ 
+             Prepárate para vivir una experiencia inolvidable llena de sorpresas y emociones. Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos.
+ 
+             ¡Gracias por confiar en Go4Surprise para tus aventuras!
+ 
+             🌟 Nos vemos pronto,
+             El equipo de Go4Surprise
+             """
+             try:
+                 send_mail(
+                     subject=subject,
+                     message=message,
+                     from_email=settings.DEFAULT_FROM_EMAIL,
+                     recipient_list=[booking.user.email],
+                 )
+                 print(f"Email enviado a {booking.user.email} para la reserva {booking.id}")
+             except Exception as e:
+                 print(f"Error al enviar el email para la reserva {booking.id}: {str(e)}")
+         else:
+             print(f"Reserva {booking.id} no cumple con los requisitos para enviar el correo.")
+
+def notify_users_about_experience_details():
+     """
+     Notifica a los usuarios con todos los detalles de la experiencia y la pista 24 horas antes de la fecha de la experiencia.
+     """
+     from bookings.models import Booking  # Importar aquí para evitar importaciones circulares
+ 
+     # Obtener reservas donde la experiencia está a 24 horas de distancia
+     threshold_date = now().date() + timedelta(days=1)
+     bookings = Booking.objects.filter(experience_date=threshold_date, status="CONFIRMED")
+ 
+     for booking in bookings:
+         # Verificar que la pista esté rellena, que la reserva esté confirmada y que el correo esté verificado
+         if booking.experience and booking.experience.hint and booking.user.email_verified:
+             subject = f"✨ Detalles de tu experiencia Go4Surprise ✨"
+             message = f"""
+             Hola {booking.user.name},
+ 
+             ¡Tu experiencia con Go4Surprise está a solo 24 horas de distancia! 🎉 Aquí tienes todos los detalles que necesitas:
+ 
+             🕵️‍♂️ Pista: "{booking.experience.hint}"
+ 
+             Detalles de tu experiencia:
+             📅 Fecha: {booking.experience_date}
+             ⏰ Horario preferido: {booking.experience.time_preference}
+             📍 Ubicación: {booking.experience.location}
+             💰 Precio total: {booking.total_price}€
+             👥 Participantes: {booking.participants}
+ 
+             ¡Prepárate para disfrutar de una experiencia inolvidable llena de sorpresas y emociones! Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos.
+ 
+             🌟 Nos vemos pronto,
+             El equipo de Go4Surprise
+             """
+             try:
+                 send_mail(
+                     subject=subject,
+                     message=message,
+                     from_email=settings.DEFAULT_FROM_EMAIL,
+                     recipient_list=[booking.user.email],
+                 )
+                 print(f"Email enviado a {booking.user.email} para la reserva {booking.id}")
+             except Exception as e:
+                 print(f"Error al enviar el email para la reserva {booking.id}: {str(e)}")
+         else:
+             print(f"Reserva {booking.id} no cumple con los requisitos para enviar el correo.")

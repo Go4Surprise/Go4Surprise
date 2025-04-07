@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 from urllib.parse import urlparse
 from decouple import config
 from google.oauth2 import service_account
+import json
+from decimal import Decimal
 
 load_dotenv()
 
@@ -93,7 +95,13 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
 }
 
 SITE_ID = 1
@@ -279,6 +287,8 @@ STRIPE_PUBLIC_KEY = 'pk_test_51QPNbqFSJFG8C7sO5n4Ooe1Uc2sA827AuPqhc70kYNxiUhW9KW
 STRIPE_ENDPOINT_SECRET = 'whsec_l7kVoTXrfWpVC0ZLT30FCdnXJEcy2sjL'
 
 # Config Almacenamiento de Archivos en Google Cloud Storage
+GS_PUNTERO = os.getenv('GS_PUNTERO', 'dev')  # Default value for GS_PUNTERO
+
 USE_GCS = os.getenv('USE_GCS', 'False')
 if USE_GCS == 'True':
     STORAGES = {
@@ -290,5 +300,13 @@ if USE_GCS == 'True':
     GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
         os.path.join(BASE_DIR, 'gcloud-service-account.json')
     )
-    GS_PUNTERO = os.getenv('GS_PUNTERO', 'dev')
-    print("Using Google Cloud Storage for file storage.")
+
+# Add a custom JSON encoder for Decimal serialization
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super().default(obj)
+
+# Patch the JSON encoder globally
+json._default_encoder = DecimalEncoder()
