@@ -283,6 +283,8 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
         backgroundColor: '#f9f9f9',
+        alignItems: 'center', 
+        justifyContent: 'center',
     },
     title: {
         fontSize: 24,
@@ -302,6 +304,8 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     card: {
+        width: '100%', 
+        maxWidth: 1200,
         backgroundColor: 'white',
         padding: 16,
         borderRadius: 12,
@@ -326,7 +330,7 @@ const styles = StyleSheet.create({
     },
     updateButton: {
         backgroundColor: '#1877F2',
-        padding: 10,
+        padding: 8,
         borderRadius: 6,
         alignItems: 'center',
     },
@@ -354,9 +358,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 10,
         backgroundColor: 'white',
+        width: '100%',
     },
     updateButtonSpacing: {
-        marginTop: 20, // Agregar espacio adicional entre el botón y las propiedades
+        marginTop: 8, // Agregar espacio adicional entre el botón y las propiedades
     },
     transparentPicker: {
         height: 40,

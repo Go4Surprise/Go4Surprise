@@ -57,18 +57,23 @@ const AdminDashboard = ({ router }: AdminDashboardProps) => {
 
 const styles = StyleSheet.create({
     dashboardContainer: {
-        marginBottom: 30,
+        marginBottom: 20,
+        alignItems: 'center',
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 20,
         color: '#333',
-        marginBottom: 15,
     },
     cardsContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between',
+        justifyContent: 'center',  
+        alignItems: 'center',       
+        alignSelf: 'center',      
+        gap: 10,    
     },
 });
 
