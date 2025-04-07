@@ -16,10 +16,16 @@ from users.models import Usuario
 from bookings.models import Booking, Experience
 from bookings.serializers import CrearReservaSerializer, ReservaSerializer, AdminBookingUpdateSerializer, AdminBookingSerializer
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from decouple import config
+import logging
 import stripe
 from django.core.mail import send_mail
 from django.utils.timezone import now
 from datetime import timedelta
+
+
+logger = logging.getLogger(__name__)
 
 @swagger_auto_schema(
     method='post',
@@ -256,7 +262,7 @@ def iniciar_pago(request, booking_id):
         base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         
         session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
+            payment_method_types=['card', 'paypal'],
             line_items=[{
                 'price_data': {
                     'currency': 'eur',
@@ -275,7 +281,7 @@ def iniciar_pago(request, booking_id):
             },
         )
 
-        return Response({'checkout_url': session.url}, status=status.HTTP_200_OK)
+        return Response({'checkout_url': session.url, 'booking.payment_intent_id': booking.payment_intent_id}, status=status.HTTP_200_OK)
 
     except Booking.DoesNotExist:
         return Response({'error': 'Reserva no encontrada'}, status=status.HTTP_404_NOT_FOUND)
@@ -296,10 +302,12 @@ def stripe_webhook(request):
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
             booking_id = session.get('metadata', {}).get('booking_id')
+            payment_intent_id = session.get('payment_intent')
 
             if booking_id:
                 booking = Booking.objects.get(id=booking_id)
                 booking.status = "CONFIRMED"
+                booking.payment_intent_id = payment_intent_id
                 booking.save()
 
     except stripe.error.SignatureVerificationError:
@@ -340,11 +348,62 @@ def cancelar_reserva(request, id):
     try:
         print(f"Received request to cancel booking with ID: {id}")  # Debugging log
         reserva = get_object_or_404(Booking, id=id)
-        if reserva.status != "cancelled":
-            reserva.status = "cancelled"
+
+        if reserva.status != "CANCELLED":
+            reserva.status = "CANCELLED"
             reserva.save()
-            print(f"Booking {id} status updated to 'cancelled'")  # Debugging log
-            return Response({"message": "Reserva cancelada exitosamente"}, status=status.HTTP_200_OK)
+            print(f"Booking {id} status updated to 'CANCELLED'")
+            print(reserva.payment_intent_id)  # Debugging log
+
+            # Realizar el reembolso si hay un pago asociado
+            if reserva.payment_intent_id:
+                try:
+                    payment_intent = stripe.PaymentIntent.retrieve(
+                    reserva.payment_intent_id,
+                    expand=["charges"]  # 👈 ¡IMPORTANTE!
+                    )
+                    charges = payment_intent['charges']['data']
+
+                    if charges:
+                        charge_id = charges[0]['id']
+                        refund = stripe.Refund.create(charge=charge_id)
+                        print(f"✅ Reembolso creado: {refund.id}")
+                    else:
+                        print("❌ No se encontraron cargos asociados para el reembolso")
+
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    print(f"❌ Error al procesar el reembolso: {e}")
+
+            usuario = reserva.user
+            subject = "Confirmación de cancelación y reembolso - Go4Surprise"
+            message = f"""
+            Hola {usuario.name},
+        
+            Hemos recibido tu solicitud de cancelación para la experiencia sorpresa. Lamentamos que no puedas disfrutarla esta vez. Te confirmamos que procederemos con el reembolso de tu pago de inmediato.
+
+            Si tienes alguna pregunta, no dudes en contactarnos.
+
+            ¡Gracias por elegirnos y esperamos sorprenderte pronto!
+        
+            Atentamente,
+            El equipo de Go4Surprise
+            """
+        
+            try:
+                send_mail(
+                subject=subject,
+                message=message,
+                from_email=config('DEFAULT_FROM_EMAIL'),
+                recipient_list=[usuario.email],
+                )
+            except Exception as e:
+                logger.error(f"Error al enviar email de cancelación: {str(e)}")
+
+
+            return Response({"message": "Reserva cancelada exitosamente"}, status=status.HTTP_200_OK)    
+        
         print(f"Booking {id} is already cancelled")  # Debugging log
         return Response({"message": "La reserva ya está cancelada"}, status=status.HTTP_400_BAD_REQUEST)
     except Http404:

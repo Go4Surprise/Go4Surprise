@@ -109,8 +109,8 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     user=usuario,
                     status="PENDING",
                     cancellable=True,
-                    booking_date=booking_date,
                     experience_date=validated_data['experience_date'],
+                    booking_date=booking_date,
                     total_price=total_price,
                     price=validated_data['price'],
                     participants=validated_data['participants']
@@ -130,7 +130,7 @@ class ReservaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            'id', 'participants', 'total_price', 'experience_date', 'cancellable', 
+            'id', 'participants', 'total_price', 'experience_date', 'booking_date', 'cancellable', 
             'status', 'user', 'experience', 'experience_hint'
         ]
 
