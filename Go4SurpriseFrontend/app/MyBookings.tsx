@@ -398,11 +398,13 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   cancelledCard: {
-    backgroundColor: "#d3d3d3",
-    opacity: 0.6,
+    backgroundColor: "#f8d7da",
+    borderColor: "#f5c6cb", 
+    opacity: 0.8, 
   },
   confirmedCard: {
-    backgroundColor: "#d4edda",
+    backgroundColor: "#d4edda", // Light green background
+    borderColor: "#c3e6cb", 
   },
   label: {
     fontSize: 16,
