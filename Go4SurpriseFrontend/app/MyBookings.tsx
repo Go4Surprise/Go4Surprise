@@ -156,7 +156,7 @@ const renderItem = ({ item }: { item: Reserva }) => {
     >
       <Text style={styles.label}>
         <Ionicons name="calendar" size={16} color="#1877F2" />{" "}
-        <Text style={styles.bold}>Fecha de Experiencia:</Text>{" "}
+        <Text style={styles.bold}>Fecha Experiencia:</Text>{" "}
         {format(new Date(item.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
       </Text>
 
@@ -271,8 +271,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 30,
     color: "#1877F2",
+    marginTop: 20,
   },
   loader: {
     flex: 1,

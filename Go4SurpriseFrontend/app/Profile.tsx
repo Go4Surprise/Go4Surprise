@@ -551,10 +551,14 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    width: 65,  
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center',
   },  
   footer: {
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 30,
     padding: 5,
   },
   footerText: {
@@ -577,11 +581,11 @@ const styles = StyleSheet.create({
   backgroundColor: 'rgba(0,0,0,0.5)',
 },
 modalContent: {
-  width: '80%',
+  width: '90%',
   backgroundColor: 'white',
   borderRadius: 10,
-  maxHeight: '80%',
-  padding: 5,
+  padding: 20,
+  justifyContent: 'center',
 },
 modalScrollContent: {
   padding: 15,

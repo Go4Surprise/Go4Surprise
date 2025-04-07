@@ -228,9 +228,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
+    paddingTop: 40,
+    paddingHorizontal: 20, 
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: 'nowrap',
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOpacity: 0.05,
@@ -244,7 +247,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    marginRight: 8,
+    marginRight: 3,
   },
   title: {
     fontWeight: "bold",
@@ -257,7 +260,7 @@ const styles = StyleSheet.create({
   adminButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 8,
     marginLeft: 15,
     paddingVertical: 5,
     paddingHorizontal: 10,
@@ -275,8 +278,9 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   profileIcon: {
-    width: 55,
-    height: 55,
+    width: 52,  
+    height: 52,
+    borderRadius: 20,
   },
   centeredContainer: {
     alignSelf: "center",
