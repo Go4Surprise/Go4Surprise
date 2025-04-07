@@ -63,6 +63,7 @@ const MyBookings = () => {
 
   useEffect(() => {
     void fetchReservas();
+    void fetchUserReviews();
     fadeIn();
   }, []);
 
