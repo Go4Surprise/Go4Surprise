@@ -80,7 +80,7 @@ def register_user(request):
         verification_token = usuario.email_verification_token
         
         # Construir el enlace de verificación
-        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         verification_link = f"{base_url}/VerifyEmail?token={verification_token}&user_id={usuario.id}"
         
         # Enviar email de verificación
@@ -162,7 +162,7 @@ def login_user(request):
                     if request.data.get('resend_verification'):
                         usuario.refresh_verification_token()
                         
-                        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+                        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
                         verification_link = f"{base_url}/VerifyEmail?token={usuario.email_verification_token}&user_id={usuario.id}"
                         
                         send_mail(
@@ -449,7 +449,7 @@ def password_reset(request):
     # Generar enlace con el UUID de Usuario y token
     uidb64 = urlsafe_base64_encode(force_bytes(str(usuario.id)))  
     token = custom_token_generator.make_token(user)
-    base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+    base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
     reset_link = f"{base_url}/PasswordResetConfirm?uidb64={uidb64}&token={token}"
 
     # Enviar email

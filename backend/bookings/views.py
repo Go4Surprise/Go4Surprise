@@ -253,7 +253,7 @@ def iniciar_pago(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id)
 
-        base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         
         session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -376,7 +376,7 @@ def notify_users_about_hint():
             message = f"""
             Hola {booking.user.name},
 
-            ¡Estamos emocionados de que tu experiencia con Go4Surprise esté a solo 48 horas de distancia! 🎉
+            ¡Estamos emocionados de que tu experiencia con Go4Surprise esté a menos de 48 horas de distancia! 🎉
 
             Aquí tienes una pista exclusiva para tu aventura sorpresa:
             🕵️‍♂️ "{booking.experience.hint}" 🕵️‍♀️
@@ -417,17 +417,20 @@ def notify_users_about_experience_details():
     bookings = Booking.objects.filter(experience_date=threshold_date, status="CONFIRMED")
 
     for booking in bookings:
-        # Verificar que la pista esté rellena, que la reserva esté confirmada y que el correo esté verificado
-        if booking.experience and booking.experience.hint and booking.user.email_verified:
+        # Verificar todos los detalles necesarios para enviar el correo
+        if booking.experience.title and booking.experience.description and booking.experience.link and booking.experience and booking.experience.hint and booking.user.email_verified:
             subject = f"✨ Detalles de tu experiencia Go4Surprise ✨"
             message = f"""
             Hola {booking.user.name},
 
-            ¡Tu experiencia con Go4Surprise está a solo 24 horas de distancia! 🎉 Aquí tienes todos los detalles que necesitas:
+            ¡Tu experiencia con Go4Surprise está a menos de 24 horas de distancia! 🎉 Aquí tienes todos los detalles que necesitas:
 
-            🕵️‍♂️ Pista: "{booking.experience.hint}"
+            Título: {booking.experience.title}
+            Descripción: {booking.experience.description}
+            Enlace: {booking.experience.link}
 
             Detalles de tu experiencia:
+            🕵️‍♂️ Pista: "{booking.experience.hint}"
             📅 Fecha: {booking.experience_date}
             ⏰ Horario preferido: {booking.experience.time_preference}
             📍 Ubicación: {booking.experience.location}
@@ -452,3 +455,35 @@ def notify_users_about_experience_details():
         else:
             print(f"Reserva {booking.id} no cumple con los requisitos para enviar el correo.")
 
+
+@swagger_auto_schema(
+    method='get',
+    operation_id="send_scheduled_notifications",
+    operation_description="Enviar notificaciones programadas",
+    responses={
+        200: "Notifications processed successfully",
+        401: "Unauthorized - Invalid token",
+        500: "Internal Server Error"
+    },
+    tags=['Notifications']
+)
+@api_view(['GET'])
+@csrf_exempt
+def send_scheduled_notifications(request):
+    """
+    Endpoint to be called by Google Cloud Scheduler to trigger sending all scheduled notifications.
+    Calls both notify_users_about_hint() and notify_users_about_experience_details().
+    """
+    try:
+        notify_users_about_hint()
+        notify_users_about_experience_details()
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "All scheduled notifications have been processed"
+        })
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Error processing notifications: {str(e)}"
+        }, status=500)

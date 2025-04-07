@@ -157,10 +157,11 @@ CORS_ALLOW_HEADERS = [
     'base_url',  # Add this line to allow the custom header
 ]
 
+GS_PUNTERO = os.getenv('GS_PUNTERO', 'dev')
 
 if APPENGINE_URL:
     CORS_ALLOWED_ORIGINS.append(APPENGINE_URL)
-    frontend_url = "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+    frontend_url = f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
     CORS_ALLOWED_ORIGINS.append(frontend_url)
 
 ROOT_URLCONF = 'go4surprise.urls'
@@ -287,7 +288,7 @@ STRIPE_PUBLIC_KEY = 'pk_test_51QPNbqFSJFG8C7sO5n4Ooe1Uc2sA827AuPqhc70kYNxiUhW9KW
 STRIPE_ENDPOINT_SECRET = 'whsec_l7kVoTXrfWpVC0ZLT30FCdnXJEcy2sjL'
 
 # Config Almacenamiento de Archivos en Google Cloud Storage
-GS_PUNTERO = os.getenv('GS_PUNTERO', 'dev')  # Default value for GS_PUNTERO
+# Default value for GS_PUNTERO
 
 USE_GCS = os.getenv('USE_GCS', 'False')
 if USE_GCS == 'True':
