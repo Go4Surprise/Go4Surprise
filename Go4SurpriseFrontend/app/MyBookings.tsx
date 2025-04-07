@@ -213,7 +213,7 @@ const MyBookings = () => {
 
         <Text style={styles.label}>
           <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
-          <Text style={styles.bold}>Precio Total:</Text> ${reserva.total_price}
+          <Text style={styles.bold}>Precio Total:</Text> {reserva.total_price} €
         </Text>
 
         <Text style={styles.label}>
