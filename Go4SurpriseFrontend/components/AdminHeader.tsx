@@ -21,12 +21,13 @@ const AdminHeader = ({ router, adminName, onLogout }: AdminHeaderProps) => {
                         <Ionicons name="home-outline" size={22} color="#1877F2" />
                         <Text style={styles.homeButtonText}>Inicio</Text>
                     </TouchableOpacity>
-                    <Text style={styles.title}>Panel de Administración</Text>
                 </View>
+    
                 <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
                     <Text style={styles.buttonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
+            <Text style={styles.title}>Panel de Administración</Text>
             <Text style={styles.welcomeText}>Bienvenido, {adminName}</Text>
         </>
     );
@@ -56,11 +57,15 @@ const styles = StyleSheet.create({
         marginLeft: 5,
         color: '#1877F2',
         fontWeight: 'bold',
+        fontSize: 16,
+        paddingLeft: 15,
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        textAlign: 'center',
+        marginBottom: 20,
+        color: '#1877F2',
     },
     logoutButton: {
         backgroundColor: '#E4144C',
@@ -77,6 +82,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#555',
         marginBottom: 30,
+        textAlign: 'center',
     },
 });
 

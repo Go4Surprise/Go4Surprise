@@ -62,7 +62,7 @@ export default function LoginScreen() {
       const token = authentication?.accessToken;
       
       if (!token) {
-        throw new Error("Authentication token is null or undefined.");
+        throw new Error("El token de autenticación es nulo o no está definido.");
       }
       
       const result = await axios.post(

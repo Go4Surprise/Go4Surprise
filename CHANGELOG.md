@@ -5,10 +5,18 @@
 - feat: future and past bookings available in the same page
 - feat: Scroll edit profile y validación de condiciones en registro
 - feat: past bookings details first version
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Scroll edit profile y validación de condiciones en registro
+- feat: Obtención de reviews desde backend
 - feat: Enhance prefrences forms
 - feat: Mejorar la UI de reserva (falta probar en movil el stripe)
 - feat: mejorada la UI de realizar una reserva
 - feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
 - feat: mejorada la interfaz de Login Screen
 - feat: Edit birthdate.
 - feat: update requirements.txt
@@ -72,6 +80,13 @@
 - fix: currency error
 - fix: past bookings order
 - fix: merge error
+- fix: improve visualization
+- fix: improve the display in the admin panel
+- fix: fix canceled status
+- fix: improve UI for cancelled bookings with red card and text
+- fix: keep the same language
+- fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
 - fix: redirección stripe
 - fix: Fix passwords
 - Merge pull request #81 from Go4Surprise/fix/arreglar-errores
@@ -214,6 +229,7 @@
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs: requirements update
 - docs(changelog): actualizar CHANGELOG.md para PR a main
 - docs(changelog): actualizar CHANGELOG.md para PR a main
@@ -295,10 +311,21 @@
 - feat: future and past bookings available in the same page
 - feat: Scroll edit profile y validación de condiciones en registro
 - feat: past bookings details first version
+
+## Cambios en PR (2025-04-05)
+
+### 🚀 Nuevas funcionalidades
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Obtención de reviews desde backend
 - feat: Enhance prefrences forms
 - feat: Mejorar la UI de reserva (falta probar en movil el stripe)
 - feat: mejorada la UI de realizar una reserva
 - feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
 - feat: mejorada la interfaz de Login Screen
 - feat: Edit birthdate.
 - feat: update requirements.txt
@@ -361,6 +388,13 @@
 ### 🐛 Correcciones
 - fix: past bookings order
 - fix: merge error
+- fix: improve visualization
+- fix: improve the display in the admin panel
+- fix: fix canceled status
+- fix: improve UI for cancelled bookings with red card and text
+- fix: keep the same language
+- fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
 - fix: redirección stripe
 - fix: Fix passwords
 - Merge pull request #81 from Go4Surprise/fix/arreglar-errores

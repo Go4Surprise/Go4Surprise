@@ -9,6 +9,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../constants/apiUrl';
 import { Ionicons } from '@expo/vector-icons';
 
+const estadoMap: Record<string, string> = {
+    PENDING: "Pendiente",
+    CONFIRMED: "Confirmada",
+    cancelled: "Cancelada",
+};
+
+const translateEstado = (estado: string): string => estadoMap[estado] || estado;
+
 type Booking = {
     id: string;
     experience_date: string;
@@ -74,7 +82,7 @@ const AdminBookings = () => {
             } else {
                 setError('Error al cargar las reservas. Por favor, inténtalo de nuevo.');
             }
-            console.error('Error fetching bookings:', error);
+            console.error('Error al obtener las reservas:', error);
         } finally {
             setLoading(false);
         }
@@ -107,7 +115,7 @@ const AdminBookings = () => {
             return true;
         } catch (error) {
             Alert.alert('Error', 'No se pudo eliminar la reserva.');
-            console.error('Error deleting booking:', error); // Log the error for debugging
+            console.error('Error al eliminar la reserva:', error); // Log the error for debugging
             return false;
         }
     };
@@ -121,12 +129,12 @@ const AdminBookings = () => {
         const cardStyle = [
             styles.card,
             isPastDate ? styles.cardPastDate : null,
-            item.status === 'CANCELLED' ? styles.cardCancelled : null,
+            item.status === 'cancelled' ? styles.cardCancelled : null,
             item.status === 'CONFIRMED' ? styles.cardConfirmed : null,
         ];
         const statusTextStyle = [
             styles.statusText,
-            item.status === 'CANCELLED' ? styles.statusCancelled : null,
+            item.status === 'cancelled' ? styles.statusCancelled : null,
             item.status === 'CONFIRMED' ? styles.statusConfirmed : null,
         ];
 
@@ -135,8 +143,8 @@ const AdminBookings = () => {
                 <View style={cardStyle}>
                     <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
                     <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: ${item.total_price}</Text>
-                    <Text style={statusTextStyle}>Estado: {item.status}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {item.total_price}€</Text>
+                    <Text style={statusTextStyle}>Estado: {translateEstado(item.status)}</Text>
                     <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
                         <Ionicons name="trash" size={16} color="white" />
                         <Text style={styles.deleteButtonText}>Eliminar</Text>
