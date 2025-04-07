@@ -6,11 +6,13 @@ export interface Reservation {
   user: string | null;
   location: string;
   experience_date: Date;
+  booking_date: Date;
   price: number;
   participants: number;
   categories: string[];
   notas_adicionales: string;
   horario_preferencia: "mañana" | "tarde" | "noche";
+  duration: number;
 }
 
 // Card props interfaces

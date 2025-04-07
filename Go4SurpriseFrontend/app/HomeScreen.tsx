@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  Image, 
-  ImageBackground, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Image,
+  ImageBackground,
   Alert,
   SafeAreaView,
   Platform,
@@ -27,7 +27,7 @@ import { useFocusEffect } from '@react-navigation/native';
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
-  
+
   // Definiciones de tamaños de pantalla más detalladas
   const isSmallMobile = width < 375;
   const isMobile = width >= 375 && width < 768;
@@ -35,36 +35,6 @@ export default function HomeScreen() {
   const isDesktop = width >= 1024;
 
   const [isAdmin, setIsAdmin] = useState(false);
-  const [hasBookings, setHasBookings] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  // Función para verificar estado de reservas
-  const fetchBookings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const usuarioId = await AsyncStorage.getItem("id");
-      const token = await AsyncStorage.getItem("accessToken");
-      
-      if (!token) {
-        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
-        router.push("/LoginScreen");
-        return;
-      }
-
-      const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setHasBookings(Array.isArray(response.data) && response.data.length > 0);
-    } catch (error) {
-      console.error("Error al comprobar reservas:", error);
-      setHasBookings(false);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
@@ -75,9 +45,8 @@ export default function HomeScreen() {
   // Cargar datos cuando la pantalla obtiene foco
   useFocusEffect(
     useCallback(() => {
-      fetchBookings();
       checkAdminStatus();
-    }, [fetchBookings, checkAdminStatus])
+    }, [checkAdminStatus])
   );
 
   // Estilos dinámicos basados en el tamaño de la pantalla
@@ -117,7 +86,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -125,16 +94,16 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={[styles.header, dynamicStyles.header]}>
           <View style={styles.logoContainer}>
-            <Image 
-              source={require("../assets/images/logo.png")} 
-              style={[styles.logo, dynamicStyles.logo]} 
+            <Image
+              source={require("../assets/images/logo.png")}
+              style={[styles.logo, dynamicStyles.logo]}
               resizeMode="contain"
             />
             <Text style={[styles.title, dynamicStyles.title]}>Go4Surprise</Text>
           </View>
           <View style={styles.headerRightContainer}>
             {isAdmin && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.adminButton}
                 onPress={() => router.push("/AdminPanel")}
                 activeOpacity={0.7}
@@ -143,14 +112,14 @@ export default function HomeScreen() {
                 <Text style={styles.adminText}>Admin</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => router.push("/Profile")}
               style={styles.profileButton}
               activeOpacity={0.7}
             >
-              <Image 
-                source={require("../assets/images/user-logo-none.png")} 
-                style={styles.profileIcon} 
+              <Image
+                source={require("../assets/images/user-logo-none.png")}
+                style={styles.profileIcon}
                 resizeMode="contain"
               />
             </TouchableOpacity>
@@ -164,7 +133,7 @@ export default function HomeScreen() {
         <View style={styles.centeredContainer}>
           <ImageBackground
             source={require("../assets/images/LittleBackground.jpg")}
-            style={[styles.background, { 
+            style={[styles.background, {
               height: isSmallMobile ? 200 : isMobile ? 250 : isTablet ? 300 : 400,
               width: isDesktop ? 1024 : isTablet ? "100%" : "100%"
             }]}
@@ -189,16 +158,6 @@ export default function HomeScreen() {
                 >
                   <Text style={[styles.surpriseButtonText, dynamicStyles.buttonText]}>¡Sorpréndeme!</Text>
                 </TouchableOpacity>
-
-                {hasBookings && (
-                  <TouchableOpacity
-                    style={[styles.bookingsButton, dynamicStyles.buttons]}
-                    activeOpacity={0.8}
-                    onPress={() => router.push("/MyBookings")}
-                  >
-                    <Text style={[styles.bookingsButtonText, dynamicStyles.buttonText]}>Mis reservas</Text>
-                  </TouchableOpacity>
-                )}
               </View>
             </View>
           </ImageBackground>
