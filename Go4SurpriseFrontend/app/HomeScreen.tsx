@@ -40,6 +40,7 @@ export default function HomeScreen() {
   const isDesktop = width >= 1024;
 
   const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<User>({});
 
 
   // Verificar estado de administrador
