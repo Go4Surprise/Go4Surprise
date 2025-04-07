@@ -169,7 +169,7 @@ const MyBookings = () => {
         Alert.alert("Reserva cancelada", "La reserva ha sido cancelada exitosamente.");
         setReservas((prevReservas) =>
           prevReservas.map((reserva) =>
-            reserva.id === selectedBookingId ? { ...reserva, status: "cancelled" } : reserva
+            reserva.id === selectedBookingId ? { ...reserva, status: "CANCELLED" } : reserva
           )
         );
       }
@@ -187,11 +187,11 @@ const MyBookings = () => {
     const ahora = new Date();
 
     if (selectedTab === "activas") {
-      return item.status !== "cancelled" && fecha >= ahora;
+      return item.status !== "CANCELLED" && fecha >= ahora;
     } else if (selectedTab === "pasadas") {
-      return item.status !== "cancelled" && fecha < ahora;
+      return item.status !== "CANCELLED" && fecha < ahora;
     } else if (selectedTab === "canceladas") {
-      return item.status === "cancelled";
+      return item.status === "CANCELLED";
     }
 
     return false;
@@ -353,7 +353,7 @@ const MyBookings = () => {
 
 
     const hasReviewed = reviewedExperiences.includes(item.experience.id);
-    const isCancelled = item.status === "cancelled";
+    const isCancelled = item.status === "CANCELLED";
     const isConfirmed = item.status === "CONFIRMED";
 
     return (
