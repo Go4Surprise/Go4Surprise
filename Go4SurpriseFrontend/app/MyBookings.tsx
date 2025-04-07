@@ -105,7 +105,7 @@ const MyBookings = () => {
               city: item.experience.location,
               experience_hint: item.experience.hint,
             }))
-            .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime())
+            .sort((a, b) => b.experience_date.getTime() - a.experience_date.getTime())
         : [];
 
       const items: ItemWithHeader[] = [];
@@ -445,15 +445,6 @@ const styles = StyleSheet.create({
     top: 40,
     left: 16,
     zIndex: 1,
-  },
-  cancelledCard: {
-    backgroundColor: "#f8d7da",
-    borderColor: "#f5c6cb", 
-    opacity: 0.8, 
-  },
-  confirmedCard: {
-    backgroundColor: "#d4edda", // Light green background
-    borderColor: "#c3e6cb", 
   },
   modalOverlay: {
     flex: 1,
