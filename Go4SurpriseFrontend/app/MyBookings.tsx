@@ -377,6 +377,20 @@ const renderItem = ({ item }: { item: ItemWithHeader }) => {
           {format(new Date(reserva.experience_date), "d 'de' MMMM 'de' yyyy", { locale: es })}
         </Text>
       </View>
+
+      <View style={styles.labelContainer}>
+        <Ionicons name="people" size={16} color="#1877F2" />{" "}
+        <Text style={styles.label}>
+          <Text style={styles.bold}>Participantes:</Text> {reserva.participants}
+        </Text>
+      </View>
+
+      <View style={styles.labelContainer}>
+        <Ionicons name="pricetag" size={16} color="#1877F2" />{" "}
+        <Text style={styles.label}>
+          <Text style={styles.bold}>Precio Total:</Text> {reserva.total_price} €
+        </Text>
+      </View>
       
       <View style={styles.labelContainer}>
         <Ionicons name="time" size={16} color="#1877F2" style={styles.icon} />
