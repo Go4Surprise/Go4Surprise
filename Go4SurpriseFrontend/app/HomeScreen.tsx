@@ -24,6 +24,11 @@ import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 import { useFocusEffect } from '@react-navigation/native';
 
+// Add interface for user data
+interface User {
+  pfp?: string;
+}
+
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
@@ -36,6 +41,66 @@ export default function HomeScreen() {
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [hasBookings, setHasBookings] = useState(false);
+  const [user, setUser] = useState<User>({});
+
+  // Function to fetch user profile data
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        return;
+      }
+      
+      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      setUser({
+        pfp: response.data.pfp || '',
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const usuarioId = await AsyncStorage.getItem("id"); // ✅ UUID del modelo Usuario
+        const token = await AsyncStorage.getItem("accessToken");
+        if (!token) {
+          Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+          router.push("/LoginScreen");
+          return;
+}
+
+        console.log("Token que estoy usando:", token);
+        const response = await axios.get(`${BASE_URL}/bookings/users/${usuarioId}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+
+  
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setHasBookings(true);
+        } else {
+          setHasBookings(false);
+        }
+      } catch (error) {
+        console.error("Error al comprobar reservas:", error);
+        setHasBookings(false);
+      }
+    };
+  
+    fetchBookings();
+    checkAdminStatus(); // ✅ Llama a la función para verificar si el usuario es administrador
+    fetchUserData(); // Add call to fetch user profile data
+  }, []);
+  
   const [loading, setLoading] = useState(true);
 
   // Función para verificar estado de reservas
@@ -149,9 +214,16 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <Image 
-                source={require("../assets/images/user-logo-none.png")} 
-                style={styles.profileIcon} 
-                resizeMode="contain"
+                source={
+                  user.pfp 
+                    ? { uri: user.pfp.startsWith('http') 
+                        ? user.pfp 
+                        : `${BASE_URL}${user.pfp}` 
+                      }
+                    : require("../assets/images/user-logo-none.png")
+                } 
+                style={styles.profileIcon}
+                onError={() => setUser(prev => ({...prev, pfp: ''}))}
               />
             </TouchableOpacity>
           </View>
@@ -281,6 +353,9 @@ const styles = StyleSheet.create({
     width: 52,  
     height: 52,
     borderRadius: 20,
+    borderRadius: 27.5,
+    borderWidth: 1,
+    borderColor: '#E1E1E1',
   },
   centeredContainer: {
     alignSelf: "center",

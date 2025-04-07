@@ -2,10 +2,22 @@
 
 ### 🚀 Nuevas funcionalidades
 - feat: Scroll edit profile y validación de condiciones en registro
+=======
+## Cambios en PR (2025-04-05)
+
+### 🚀 Nuevas funcionalidades
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Scroll edit profile y validación de condiciones en registro
+- feat: Obtención de reviews desde backend
 - feat: Enhance prefrences forms
 - feat: Mejorar la UI de reserva (falta probar en movil el stripe)
 - feat: mejorada la UI de realizar una reserva
 - feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
 - feat: mejorada la interfaz de Login Screen
 - feat: Edit birthdate.
 - feat: update requirements.txt
@@ -72,6 +84,7 @@
 - fix: improve UI for cancelled bookings with red card and text
 - fix: keep the same language
 - fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
 - fix: redirección stripe
 - fix: Fix passwords
 - Merge pull request #81 from Go4Surprise/fix/arreglar-errores
