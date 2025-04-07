@@ -189,7 +189,7 @@ export default function PreferencesFormScreen(): React.ReactElement {
       try {
         const storedToken = await AsyncStorage.getItem('accessToken');
         if (!storedToken) {
-          Alert.alert('Error', 'No token found. Please log in again.');
+          Alert.alert('Error', 'No se encontró ningún token. Inicie sesión de nuevo.');
           router.push('/LoginScreen');
         } else {
           setToken(storedToken);
