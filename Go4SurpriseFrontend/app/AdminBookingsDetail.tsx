@@ -225,7 +225,7 @@ const AdminBookingsDetail = () => {
                         >
                             <Picker.Item label="Pendiente" value="PENDING" />
                             <Picker.Item label="Confirmada" value="CONFIRMED" />
-                            <Picker.Item label="Cancelada" value="CANCELLED" />
+                            <Picker.Item label="Cancelada" value="cancelled" />
                         </Picker>
                     </View>
 
