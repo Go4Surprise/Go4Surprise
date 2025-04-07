@@ -24,6 +24,11 @@ import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 import { useFocusEffect } from '@react-navigation/native';
 
+// Add interface for user data
+interface User {
+  pfp?: string;
+}
+
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
@@ -35,6 +40,7 @@ export default function HomeScreen() {
   const isDesktop = width >= 1024;
 
   const [isAdmin, setIsAdmin] = useState(false);
+
 
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
@@ -118,9 +124,17 @@ export default function HomeScreen() {
               activeOpacity={0.7}
             >
               <Image
-                source={require("../assets/images/user-logo-none.png")}
+                source={
+                  user.pfp
+                    ? {
+                      uri: user.pfp.startsWith('http')
+                        ? user.pfp
+                        : `${BASE_URL}${user.pfp}`
+                    }
+                    : require("../assets/images/user-logo-none.png")
+                }
                 style={styles.profileIcon}
-                resizeMode="contain"
+                onError={() => setUser(prev => ({ ...prev, pfp: '' }))}
               />
             </TouchableOpacity>
           </View>
@@ -187,9 +201,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: {
+    paddingTop: 40,
+    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: 'nowrap',
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOpacity: 0.05,
@@ -203,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    marginRight: 8,
+    marginRight: 3,
   },
   title: {
     fontWeight: "bold",
@@ -216,7 +233,7 @@ const styles = StyleSheet.create({
   adminButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 8,
     marginLeft: 15,
     paddingVertical: 5,
     paddingHorizontal: 10,
@@ -234,8 +251,12 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   profileIcon: {
-    width: 55,
-    height: 55,
+    width: 52,
+    height: 52,
+    borderRadius: 20,
+    borderRadius: 27.5,
+    borderWidth: 1,
+    borderColor: '#E1E1E1',
   },
   centeredContainer: {
     alignSelf: "center",

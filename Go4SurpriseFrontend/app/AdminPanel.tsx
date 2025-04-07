@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F0F2F5',
+        padding: 16,
     },
     centerContainer: {
         flex: 1,
@@ -77,12 +78,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     content: {
+        flex: 1,
+        width: '100%',
+        alignSelf: 'center',
         padding: 20,
-        paddingTop: 50,
     },
     contentDesktop: {
         width: '100%',
-        maxWidth: 1100,
         alignSelf: 'center',
     },
     contentMobile: {

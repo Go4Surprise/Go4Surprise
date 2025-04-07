@@ -15,6 +15,7 @@ import os
 from dotenv import load_dotenv
 from urllib.parse import urlparse
 from decouple import config
+from google.oauth2 import service_account
 
 load_dotenv()
 
@@ -36,7 +37,7 @@ if SECRET_KEY is None:
     print("WARNING: Using a randomly generated SECRET_KEY. Set DJANGO_SECRET_KEY environment variable for production.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -85,6 +86,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'allauth.socialaccount.providers.google',
     'dj_rest_auth.registration',
+    'storages',
 ]
 
 REST_FRAMEWORK = {
@@ -225,7 +227,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -276,3 +277,18 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 STRIPE_SECRET_KEY = 'sk_test_51QPNbqFSJFG8C7sOxyEAUk2v9hbyiZuFDJPpqQdATQ1DhWZM58Z1eD1qzReX1HpmQiNjWHKWugPeeyv51yGRoHUE003juwGGeN'
 STRIPE_PUBLIC_KEY = 'pk_test_51QPNbqFSJFG8C7sO5n4Ooe1Uc2sA827AuPqhc70kYNxiUhW9KW0uE4ccty8YV8v3WRdHjWfbZi2pFEC1XpZmLgRy00dsXZoUeZ'
 STRIPE_ENDPOINT_SECRET = 'whsec_l7kVoTXrfWpVC0ZLT30FCdnXJEcy2sjL'
+
+# Config Almacenamiento de Archivos en Google Cloud Storage
+USE_GCS = os.getenv('USE_GCS', 'False')
+if USE_GCS == 'True':
+    STORAGES = {
+        "default": {"BACKEND": "storages.backends.gcloud.GoogleCloudStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}
+    }
+    GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
+    GS_PROJECT_ID = os.getenv('GS_PROJECT_ID')
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        os.path.join(BASE_DIR, 'gcloud-service-account.json')
+    )
+    GS_PUNTERO = os.getenv('GS_PUNTERO', 'dev')
+    print("Using Google Cloud Storage for file storage.")

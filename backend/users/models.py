@@ -8,12 +8,20 @@ from django.dispatch import receiver
 from django.utils import timezone
 from datetime import timedelta
 
+from go4surprise.settings import GS_PUNTERO
+
+def profile_pic_path(instance, filename):
+    """Generate file path for new profile picture"""
+    ext = filename.split('.')[-1]  # Get file extension
+    # Use UUID instead of user ID for even better uniqueness
+    filename = f"{instance.id}_{uuid.uuid4().hex}.{ext}"
+    return f"{GS_PUNTERO}/profile_pics/{filename}"
 
 class Usuario(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=100)
-    pfp = models.ImageField(upload_to='', null=True, blank=True)
+    pfp = models.ImageField(upload_to=profile_pic_path, null=True, blank=True)
     email = models.EmailField()
     phone = models.CharField(max_length=15, blank=True)
     birthdate = models.DateField(null=True, blank=True, default='2003-11-07')

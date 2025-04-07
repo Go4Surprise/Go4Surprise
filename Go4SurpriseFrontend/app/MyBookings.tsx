@@ -122,6 +122,12 @@ const MyBookings = () => {
         router.push("/LoginScreen");
         return;
       }
+      const token = await AsyncStorage.getItem("accessToken");
+      if (!token) {
+        Alert.alert("Sesión expirada", "Por favor inicia sesión de nuevo.");
+        router.push("/LoginScreen");
+        return;
+      }
 
       console.log(`Sending request to update booking with ID: ${selectedBookingId}`); // Debugging log
       const response = await axios.put(`${BASE_URL}/bookings/cancel/${selectedBookingId}/`, {}, {
@@ -141,6 +147,7 @@ const MyBookings = () => {
       console.error("Error al actualizar la reserva:", error); // Debugging log
       Alert.alert("Error", "No se pudo cancelar la reserva. Inténtalo de nuevo.");
     } finally {
+      setModalVisible(false);
       setModalVisible(false);
     }
   };

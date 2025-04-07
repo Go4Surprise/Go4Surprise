@@ -121,13 +121,42 @@ export default function UserProfileScreen() {
       formData.append('username', editedUser.username);
       formData.append('email', editedUser.email);
       formData.append('phone', editedUser.phone);
-      formData.append('birthdate', editedUser.birthdate.toISOString().split('T')[0]); // Formato YYYY-MM-DD
+      let birthdateString = '';
+      if (editedUser.birthdate) {
+        try {
+          if (editedUser.birthdate instanceof Date) {
+            birthdateString = editedUser.birthdate.toISOString().split('T')[0];
+          } 
+          else if (typeof editedUser.birthdate === 'string') {
+            const dateObj = new Date(editedUser.birthdate);
+            birthdateString = dateObj.toISOString().split('T')[0];
+          }
+        } catch (e) {
+          console.error('Error formatting date:', e);
+          birthdateString = new Date().toISOString().split('T')[0];
+        }
+      }
+      formData.append('birthdate', birthdateString);
   
-      if (editedUser.pfp && editedUser.pfp.startsWith('data:image')) {
-        const base64Data = editedUser.pfp.split(',')[1];
-        const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
-        const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
-        formData.append('pfp', pfpFile);
+      if (editedUser.pfp && editedUser.pfp !== user.pfp) {
+        if (editedUser.pfp.startsWith('data:image')) {
+          // Handle base64 encoded images from web
+          const base64Data = editedUser.pfp.split(',')[1];
+          const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+          const pfpFile = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+          formData.append('pfp', pfpFile);
+        } else if (Platform.OS !== 'web') {
+          // Handle file URI from mobile
+          const filename = editedUser.pfp.split('/').pop();
+          const match = /\.(\w+)$/.exec(filename || 'image.jpg');
+          const type = match ? `image/${match[1]}` : 'image/jpeg';
+          
+          formData.append('pfp', {
+            uri: editedUser.pfp,
+            name: filename || 'profile.jpg',
+            type
+          } as any);
+        }
       }
   
       await axios.put(`${BASE_URL}/users/update/`, formData, {
@@ -136,12 +165,10 @@ export default function UserProfileScreen() {
           'Content-Type': 'multipart/form-data'
         }
       });
-  
-      setUser(prevState => ({
-        ...prevState,
-        ...editedUser
-      }));
-  
+      
+      // Fetch fresh user data from the server instead of just updating local state
+      await fetchUserData();
+      
       setModalVisible(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
@@ -158,7 +185,7 @@ export default function UserProfileScreen() {
 
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
-        setPasswordError("No active session found.");
+        setPasswordError("No se encontró ninguna sesión activa.");
         return;
       }
 
@@ -171,16 +198,16 @@ export default function UserProfileScreen() {
       setPasswordModalVisible(false);
       setCurrentPassword('');
       setNewPassword('');
-      Alert.alert("Success", "Password updated successfully.");
+      Alert.alert("Success", "Contraseña actualizada exitosamente.");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401) {
-          setPasswordError("❌ Current password is incorrect.");
+          setPasswordError("❌La contraseña actual es incorrecta.");
         } else {
-          setPasswordError("⚠️ Could not change password. Please try again.");
+          setPasswordError("⚠️ No se pudo cambiar la contraseña. Inténtalo de nuevo.");
         }
       } else {
-        setPasswordError("🚫 Could not connect to server.");
+        setPasswordError("🚫 No se pudo conectar al servidor.");
       }
     }
   };
@@ -192,12 +219,12 @@ export default function UserProfileScreen() {
       const userId = await AsyncStorage.getItem("userId");
 
       if (!token || !userId) {
-        Alert.alert("Error", "No active session found.");
+        Alert.alert("Error", "No se encontró ninguna sesión activa.");
         return null;
       }
       return userId;
     } catch (error) {
-      console.error("Error getting userId:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
@@ -211,7 +238,7 @@ export default function UserProfileScreen() {
       });
       return usuarioResponse.data.usuario_id;
     } catch (error) {
-      console.error("Error getting usuario_id:", error);
+      console.error("Error al obtener el ID de usuario:", error);
       return null;
     }
   };
@@ -231,8 +258,8 @@ export default function UserProfileScreen() {
       await AsyncStorage.removeItem('refreshToken');
       router.replace('/LoginScreen');
     } catch (error) {
-      console.error("Error logging out", error);
-      Alert.alert("Error", "Could not complete logout.");
+      console.error("Error al cerrar sesión", error);
+      Alert.alert("Error", "No se pudo completar el cierre de sesión.");
     }
   };
   
@@ -273,7 +300,21 @@ export default function UserProfileScreen() {
       {/* Encabezado con fondo de imagen */}
       <ImageBackground source={require('../assets/images/LittleBackground.jpg')} style={styles.header}>
         <View style={styles.avatarContainer}>
-          <Image source={user.pfp ? { uri: `${BASE_URL}${user.pfp}` } : require('../assets/images/user-logo-none.png')} style={styles.avatar} />
+          <Image 
+            source={
+              user.pfp 
+                ? { uri: user.pfp.startsWith('http') 
+                    ? user.pfp // Use as is if it's a full URL (from GCS)
+                    : `${BASE_URL}${user.pfp}` // Otherwise prepend BASE_URL
+                  } 
+                : require('../assets/images/user-logo-none.png')
+            } 
+            style={styles.avatar}
+            onError={() => {
+              // If image fails to load, set user.pfp to empty string so default image is shown
+              setUser(prevUser => ({...prevUser, pfp: ''}))
+            }}
+          />
         </View>
       </ImageBackground>
 
@@ -354,9 +395,17 @@ export default function UserProfileScreen() {
               <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
                   <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
-              {editedUser.pfp ? (
-                  <Image source={{ uri: editedUser.pfp }} style={styles.profileImagePreview} />
-              ) : null}            
+              <Image 
+                source={
+                  editedUser.pfp 
+                    ? { uri: editedUser.pfp } 
+                    : require('../assets/images/user-logo-none.png')
+                }
+                style={styles.profileImagePreview}
+                onError={() => {
+                  setEditedUser(prev => ({...prev, pfp: ''}))
+                }}
+              />
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.modalButton} onPress={() => void handleSaveChanges()}>
                   <Text style={styles.modalButtonText}>Guardar</Text>
@@ -382,7 +431,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={currentPassword}
               onChangeText={setCurrentPassword}
-              placeholder="Current password"
+              placeholder="Contraseña actual"
               secureTextEntry
             />
 
@@ -390,7 +439,7 @@ export default function UserProfileScreen() {
               style={styles.input}
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder="New password"
+              placeholder="Nueva contraseña"
               secureTextEntry
             />
 
@@ -551,10 +600,14 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
+    width: 65,  
+    height: 65,
+    alignItems: 'center',
+    justifyContent: 'center',
   },  
   footer: {
     alignItems: 'center',
-    marginTop: 100,
+    marginTop: 30,
     padding: 5,
   },
   footerText: {
@@ -577,11 +630,11 @@ const styles = StyleSheet.create({
   backgroundColor: 'rgba(0,0,0,0.5)',
 },
 modalContent: {
-  width: '80%',
+  width: '90%',
   backgroundColor: 'white',
   borderRadius: 10,
-  maxHeight: '80%',
-  padding: 5,
+  padding: 20,
+  justifyContent: 'center',
 },
 modalScrollContent: {
   padding: 15,
