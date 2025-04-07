@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from go4surprise.settings import DEBUG, GS_PUNTERO
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -259,7 +260,7 @@ def iniciar_pago(request, booking_id):
     try:
         booking = get_object_or_404(Booking, id=booking_id)
 
-        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+        base_url = "http://localhost:8081" if DEBUG else f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         
         session = stripe.checkout.Session.create(
             payment_method_types=['card', 'paypal'],

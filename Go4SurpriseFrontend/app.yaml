@@ -1,5 +1,5 @@
 runtime: python312
-service: go4-frontend
+service: pre-go4-frontend
 
 handlers:
   # Serve all static assets with caching (including nested paths)

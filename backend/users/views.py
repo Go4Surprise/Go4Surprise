@@ -1,10 +1,12 @@
 from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.response import Response
+
+from go4surprise.settings import DEBUG, GS_PUNTERO
 from .tokens_custom import custom_token_generator
 from .serializers import RegisterSerializer, LoginSerializer, PreferencesSerializer, UserSerializer, UserUpdateSerializer
 from .models import Preferences
@@ -26,6 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import uuid
 from django.conf import settings
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 logger = logging.getLogger(__name__)
@@ -80,7 +83,7 @@ def register_user(request):
         verification_token = usuario.email_verification_token
         
         # Construir el enlace de verificación
-        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+        base_url = "http://localhost:8081" if DEBUG else f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
         verification_link = f"{base_url}/VerifyEmail?token={verification_token}&user_id={usuario.id}"
         
         # Enviar email de verificación
@@ -162,7 +165,7 @@ def login_user(request):
                     if request.data.get('resend_verification'):
                         usuario.refresh_verification_token()
                         
-                        base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+                        base_url = "http://localhost:8081" if DEBUG else f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
                         verification_link = f"{base_url}/VerifyEmail?token={usuario.email_verification_token}&user_id={usuario.id}"
                         
                         send_mail(
@@ -338,6 +341,7 @@ def get_usuario_id(request):
     operation_description="Permite al usuario autenticado actualizar su perfil, incluyendo nombre, apellido, email, teléfono y nombre de usuario.",
 )
 @api_view(['PUT'])
+@parser_classes([MultiPartParser, FormParser]) 
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):
     try:
@@ -449,7 +453,7 @@ def password_reset(request):
     # Generar enlace con el UUID de Usuario y token
     uidb64 = urlsafe_base64_encode(force_bytes(str(usuario.id)))  
     token = custom_token_generator.make_token(user)
-    base_url = "http://localhost:8081" if settings.DEBUG else f"https://{settings.GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
+    base_url = "http://localhost:8081" if DEBUG else f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
     reset_link = f"{base_url}/PasswordResetConfirm?uidb64={uidb64}&token={token}"
 
     # Enviar email
