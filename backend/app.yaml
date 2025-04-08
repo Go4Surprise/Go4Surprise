@@ -1,6 +1,7 @@
 runtime: python312
-service: go4-backend
+service: pre-go4-backend
 entrypoint: gunicorn -b :$PORT go4surprise.wsgi:application
+
 
 handlers:
 # This configures Google App Engine to serve the files in the app's static

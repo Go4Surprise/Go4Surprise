@@ -50,7 +50,7 @@ export default function Experiences() {
 
     // Funciones para navegar entre tarjetas
     const scrollToPrevious = () => {
-        if (activePage > 0 && scrollViewRef.current) {
+        if (scrollViewRef.current) {
             const newPage = activePage - 1;
             scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
             setActivePage(newPage);

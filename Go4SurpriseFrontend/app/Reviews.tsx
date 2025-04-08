@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { BASE_URL } from '../constants/apiUrl';
@@ -15,11 +14,7 @@ interface Review {
 }
 
 export default function Reviews({ navigation }) {
-    const router = useRouter();
     const scrollViewRef = useRef(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
     const [activePage, setActivePage] = useState(0);
     const [width, setWidth] = useState(Dimensions.get('window').width);
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -115,8 +110,8 @@ export default function Reviews({ navigation }) {
 
     // Función para desplazarse a la tarjeta siguiente
     const scrollToNext = () => {
-        if (activePage < reviews.length - 1 && scrollViewRef.current) {
-            const newPage = activePage + 1;
+        const newPage = activePage + 1;
+        if (newPage < reviews.length) {
             scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
             setActivePage(newPage);
         }

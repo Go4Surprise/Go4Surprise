@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, TouchableOpacity, StyleSheet, Alert, Animated, View, SafeAreaView, StatusBar, Dimensions, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -13,9 +13,7 @@ interface Question {
 }
 
 // Define specific keys for the categories to avoid dynamic property access
-interface CategorySelections {
-  [key: string]: string[]; 
-}
+type CategorySelections = Record<string, string[]>;
 
 const questions: Question[] = [
   { id: 1, question: '¿Qué tipo de experiencias relacionadas con la música sueles disfrutar más?', category: 'Música', options: ['🎉 Un festival épico', '🎭 Un musical emocionante', '🎤 Karaoke con amigos', '🎻 Un evento clásico', '🚫 Nada en especial'] },
@@ -111,17 +109,17 @@ export default function PreferencesFormScreen(): React.ReactElement {
   const getCategorySelections = (category: string, selections: CategorySelections): string[] => {
     switch (category) {
       case 'Música':
-        return selections.Música ?? [];
+        return selections.Música;
       case 'Cultura y Arte':
-        return selections["Cultura y Arte"] ?? [];
+        return selections["Cultura y Arte"];
       case 'Deporte y Motor':
-        return selections["Deporte y Motor"] ?? [];
+        return selections["Deporte y Motor"];
       case 'Gastronomía':
-        return selections.Gastronomía ?? [];
+        return selections.Gastronomía;
       case 'Ocio Nocturno':
-        return selections["Ocio Nocturno"] ?? [];
+        return selections["Ocio Nocturno"] ;
       case 'Aventura':
-        return selections.Aventura ?? [];
+        return selections.Aventura;
       default:
         return [];
     }
@@ -294,12 +292,12 @@ export default function PreferencesFormScreen(): React.ReactElement {
     try {
       // Using an explicit mapping approach to avoid bracket notation
       const payload = {
-        music: selectedOptions.Música ?? ["🚫 Nada en especial"],
-        culture: selectedOptions["Cultura y Arte"] ?? ["🚫 Nada en especial"],
-        sports: selectedOptions["Deporte y Motor"] ?? ["🚫 Nada en especial"],
-        gastronomy: selectedOptions.Gastronomía ?? ["🚫 Nada en especial"],
-        nightlife: selectedOptions["Ocio Nocturno"] ?? ["🚫 Nada en especial"],
-        adventure: selectedOptions.Aventura ?? ["🚫 Nada en especial"]
+        music: selectedOptions.Música.length > 0 ? selectedOptions.Música : ["🚫 Nada en especial"],
+        culture: selectedOptions["Cultura y Arte"].length > 0 ? selectedOptions["Cultura y Arte"] : ["🚫 Nada en especial"],
+        sports: selectedOptions["Deporte y Motor"].length > 0 ? selectedOptions["Deporte y Motor"] : ["🚫 Nada en especial"],
+        gastronomy: selectedOptions.Gastronomía.length > 0 ? selectedOptions.Gastronomía : ["🚫 Nada en especial"],
+        nightlife: selectedOptions["Ocio Nocturno"].length > 0 ? selectedOptions["Ocio Nocturno"] : ["🚫 Nada en especial"],
+        adventure: selectedOptions.Aventura.length > 0 ? selectedOptions.Aventura : ["🚫 Nada en especial"]
       };
   
       console.log("Datos enviados:", payload);
