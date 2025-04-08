@@ -42,6 +42,27 @@ export default function HomeScreen() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<User>({});
 
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        return;
+      }
+      
+      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      setUser({
+        pfp: response.data.pfp || '',
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
 
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
@@ -53,6 +74,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       checkAdminStatus();
+      fetchUserData();
     }, [checkAdminStatus])
   );
 

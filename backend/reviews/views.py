@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -11,6 +11,7 @@ from .models import Reviews
 from users.models import Usuario
 from experiences.models import Experience
 from bookings.models import Booking
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 @swagger_auto_schema(
@@ -23,6 +24,7 @@ from bookings.models import Booking
     },
 )
 @api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser]) 
 @permission_classes([IsAuthenticated])
 def post(request):
     serializer = CreateReviewSerializer(data=request.data)
