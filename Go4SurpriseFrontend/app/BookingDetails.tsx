@@ -25,7 +25,7 @@ const BookingDetailsScreen = () => {
   const [token, setToken] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
-  const { width, height } = useWindowDimensions();
+  const { width,  } = useWindowDimensions();
   
   // Determinar si estamos en un dispositivo móvil o desktop
   const isMobile = width < 768;
@@ -113,7 +113,7 @@ const BookingDetailsScreen = () => {
     }
   };
 
-  if (loading || !bookingDetails) {
+  if (loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#6772E5" />

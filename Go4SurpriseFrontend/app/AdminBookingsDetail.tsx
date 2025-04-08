@@ -70,7 +70,7 @@ const AdminBookingsDetail = () => {
     const [experienceNotasAdicionales, setExperienceNotasAdicionales] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     
-    type Experience = {
+    interface Experience {
         id: string;
         title: string;
     };
