@@ -110,12 +110,10 @@ export default function Reviews({ navigation }) {
 
     // Función para desplazarse a la tarjeta siguiente
     const scrollToNext = () => {
-        if (scrollViewRef.current) {
-            const newPage = activePage + 1;
-            if (newPage < reviews.length) {
-                scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
-                setActivePage(newPage);
-            }
+        const newPage = activePage + 1;
+        if (newPage < reviews.length) {
+            scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
+            setActivePage(newPage);
         }
     };
 

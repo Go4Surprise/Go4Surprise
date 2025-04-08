@@ -109,17 +109,17 @@ export default function PreferencesFormScreen(): React.ReactElement {
   const getCategorySelections = (category: string, selections: CategorySelections): string[] => {
     switch (category) {
       case 'Música':
-        return selections.Música || [];
+        return selections.Música;
       case 'Cultura y Arte':
-        return selections["Cultura y Arte"] || [];
+        return selections["Cultura y Arte"];
       case 'Deporte y Motor':
-        return selections["Deporte y Motor"] || [];
+        return selections["Deporte y Motor"];
       case 'Gastronomía':
-        return selections.Gastronomía || [];
+        return selections.Gastronomía;
       case 'Ocio Nocturno':
-        return selections["Ocio Nocturno"] || [];
+        return selections["Ocio Nocturno"] ;
       case 'Aventura':
-        return selections.Aventura || [];
+        return selections.Aventura;
       default:
         return [];
     }

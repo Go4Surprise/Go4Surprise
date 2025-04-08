@@ -16,10 +16,12 @@ const estadoMap: Record<string, string> = {
 };
 
 const translateEstado = (estado: string): string => {
-    // Only allow access if the key exists in estadoMap
-    return Object.prototype.hasOwnProperty.call(estadoMap, estado) 
-      ? estadoMap[estado] 
-      : estado;
+    const dangerousProps = ['__proto__', 'constructor', 'prototype'];
+
+    // Only allow access if the key exists in estadoMap and is not a dangerous property
+    return !dangerousProps.includes(estado) && Object.prototype.hasOwnProperty.call(estadoMap, estado)
+    ? estadoMap[estado]
+    : estado;
   };
 
 interface Booking {
