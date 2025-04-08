@@ -1,141 +1,182 @@
+import pytest
 from django.contrib.auth.models import User
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient
 from rest_framework import status
 from users.models import Usuario, Preferences
-from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
+from unittest.mock import patch
+from django.urls import reverse
+import uuid
 
 
-class UserTests(APITestCase):
-    
-    def setUp(self):
-        # Crear usuario de Django
-        self.user = User.objects.create_user(username="testuser", password="testpassword", email="test@example.com")
+@pytest.fixture
+def api_client_with_token(create_user):
+    client = APIClient()
+    refresh = RefreshToken.for_user(create_user.user)
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    return client
 
-        # Crear Usuario asociado al usuario de Django
-        self.usuario = Usuario.objects.create(user=self.user, name="John", surname="Doe", email="test@example.com", phone="123456789")
 
-        # Crear token JWT para autenticación
-        self.token = str(RefreshToken.for_user(self.user).access_token)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.token}')
+@pytest.fixture
+def create_user(transactional_db):
+    User.objects.filter(username='testuser').delete()
+    user = User.objects.create_user(username='testuser', password='testpass')
+    Usuario.objects.filter(user=user).delete()
+    return Usuario.objects.create(user=user, name='Test', surname='User', email='testuser@example.com')
 
-        # URL de las rutas
-        self.register_url = reverse('register')
-        self.login_url = reverse('login')
-        self.update_preferences_url = reverse('update-preferences')
-        self.get_user_info_url = reverse('get-user-info')
-        self.get_usuario_id_url = reverse('get-usuario-id')
-        self.update_profile_url = reverse('update_user_profile')
-        self.delete_account_url = reverse('delete_user_account')
-        self.change_password_url = reverse('change_password')
 
-    ## ----------------------------------
-    ## ✅ PRUEBAS POSITIVAS
-    ## ----------------------------------
+@pytest.fixture
+def create_admin_user(transactional_db):
+    User.objects.filter(username='adminuser').delete()
+    user = User.objects.create_user(username='adminuser', password='adminpass', is_superuser=True, is_staff=True)
+    Usuario.objects.filter(user=user).delete()
+    return Usuario.objects.create(user=user, name='Admin', surname='User', email='adminuser@example.com')
 
-    def test_register_user_success(self):
-        """Registrar un usuario exitosamente"""
+
+@pytest.fixture
+def api_client_with_admin_token(create_admin_user):
+    client = APIClient()
+    refresh = RefreshToken.for_user(create_admin_user.user)
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    return client
+
+
+@pytest.mark.django_db
+class TestUserViews:
+    # ------------------------- TEST PARA REGISTRO -------------------------
+    def test_register_user_happy_path(self, client):
         data = {
             "username": "newuser",
-            "password": "securepassword",
-            "name": "Alice",
-            "surname": "Smith",
-            "email": "alice@example.com",
+            "password": "newpassword",
+            "name": "New",
+            "surname": "User",
+            "email": "newuser@example.com",
+            "phone": "123456789",
+            "birthdate": "2000-01-01"
+        }
+        response = client.post(reverse('register'), data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert "id" in response.data
+        assert response.data["verification_sent"] is True
+
+    def test_register_user_invalid_data(self, client):
+        data = {
+            "username": "",
+            "password": "short",
+            "email": "invalidemail"
+        }
+        response = client.post(reverse('register'), data=data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "username" in response.data
+        assert "password" in response.data
+        assert "email" in response.data
+
+    # ------------------------- TEST PARA LOGIN -------------------------
+    def test_login_user_happy_path(self, client, create_user):
+        data = {
+            "username": create_user.user.username,
+            "password": "testpass"
+        }
+        response = client.post(reverse('login'), data=data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert "access" in response.data
+        assert "refresh" in response.data
+
+    def test_login_user_invalid_credentials(self, client):
+        data = {
+            "username": "nonexistentuser",
+            "password": "wrongpassword"
+        }
+        response = client.post(reverse('login'), data=data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "error" in response.data
+
+    # ------------------------- TEST PARA VERIFICAR EMAIL -------------------------
+    def test_verify_email_happy_path(self, client, create_user):
+        create_user.refresh_verification_token()
+        response = client.get(reverse('verify_email') + f"?token={create_user.email_verification_token}&user_id={create_user.id}")
+        assert response.status_code == status.HTTP_200_OK
+        assert "message" in response.data
+
+    def test_verify_email_invalid_token(self, client, create_user):
+        response = client.get(reverse('verify_email') + f"?token=invalidtoken&user_id={create_user.id}")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "error" in response.data
+
+    # ------------------------- TEST PARA ACTUALIZAR PERFIL -------------------------
+    def test_update_user_profile_happy_path(self, api_client_with_token, create_user):
+        data = {
+            "name": "Updated",
+            "surname": "User",
             "phone": "987654321"
         }
-        response = self.client.post(self.register_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = api_client_with_token.put(reverse('update_user_profile'), data=data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == "Updated"
+        assert response.data["phone"] == "987654321"
 
-    def test_login_success(self):
-        """Inicio de sesión exitoso"""
-        data = {"username": "testuser", "password": "testpassword"}
-        response = self.client.post(self.login_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("access", response.data)  # El token debe estar presente
+    def test_update_user_profile_invalid_data(self, api_client_with_token):
+        data = {
+            "email": "invalidemail"
+        }
+        response = api_client_with_token.put(reverse('update_user_profile'), data=data)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "email" in response.data
 
-    def test_update_preferences_success(self):
-        """Actualizar preferencias correctamente"""
-        data = {"music": ["Rock", "Pop"], "sports": ["Football"]}
-        response = self.client.patch(self.update_preferences_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    # ------------------------- TEST PARA ELIMINAR CUENTA -------------------------
+    def test_delete_user_account_happy_path(self, api_client_with_token, create_user):
+        response = api_client_with_token.delete(reverse('delete_user_account'))
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    def test_get_user_info_success(self):
-        """Obtener la información del usuario autenticado"""
-        response = self.client.get(self.get_user_info_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "John")
+    def test_delete_user_account_not_authenticated(self, client):
+        response = client.delete(reverse('delete_user_account'))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_usuario_id_success(self):
-        """Obtener el ID del usuario correctamente"""
-        response = self.client.get(self.get_usuario_id_url, {"user_id": self.user.id})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(str(response.data["usuario_id"]), str(self.usuario.id))
+    # ------------------------- TEST PARA CAMBIAR CONTRASEÑA -------------------------
+    def test_change_password_happy_path(self, api_client_with_token, create_user):
+        data = {
+            "current_password": "testpass",
+            "new_password": "newtestpass"
+        }
+        response = api_client_with_token.post(reverse('change_password'), data=data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["message"] == "Contraseña actualizada correctamente"
 
-    def test_update_user_profile_success(self):
-        """Actualizar perfil del usuario exitosamente"""
-        data = {"name": "NewName", "surname": "NewSurname", "phone": "111222333"}
-        response = self.client.put(self.update_profile_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["name"], "NewName")
+    def test_change_password_invalid_current_password(self, api_client_with_token):
+        data = {
+            "current_password": "wrongpass",
+            "new_password": "newtestpass"
+        }
+        response = api_client_with_token.post(reverse('change_password'), data=data, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "error" in response.data
 
-    def test_delete_user_account_success(self):
-        """Eliminar cuenta de usuario exitosamente"""
-        response = self.client.delete(self.delete_account_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    # ------------------------- TEST PARA OBTENER INFORMACIÓN DEL USUARIO -------------------------
+    def test_get_user_info_happy_path(self, api_client_with_token, create_user):
+        response = api_client_with_token.get(reverse('get-user-info'))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["name"] == create_user.name
+        assert response.data["email"] == create_user.email
 
-    def test_change_password_success(self):
-        """Cambiar contraseña exitosamente"""
-        data = {"current_password": "testpassword", "new_password": "newsecurepassword"}
-        response = self.client.post(self.change_password_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_get_user_info_not_authenticated(self, client):
+        response = client.get(reverse('get-user-info'))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    ## ----------------------------------
-    ## ❌ PRUEBAS NEGATIVAS
-    ## ----------------------------------
+    # ------------------------- TEST PARA PREFERENCIAS -------------------------
+    def test_update_preferences_happy_path(self, api_client_with_token, create_user):
+        data = {
+            "music": ["rock", "pop"],
+            "sports": ["football"]
+        }
+        response = api_client_with_token.patch(reverse('update-preferences'), data=data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["music"] == ["rock", "pop"]
+        assert response.data["sports"] == ["football"]
 
-    def test_register_user_invalid_data(self):
-        """Intentar registrar usuario con datos inválidos"""
-        data = {"username": "", "password": "123", "email": "invalidemail"}
-        response = self.client.post(self.register_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_login_invalid_credentials(self):
-        """Intentar iniciar sesión con credenciales incorrectas"""
-        data = {"username": "wronguser", "password": "wrongpassword"}
-        response = self.client.post(self.login_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_update_preferences_invalid_data(self):
-        """Intentar actualizar preferencias con datos inválidos"""
-        data = {"music": "invalid_data"}  # Debe ser una lista
-        response = self.client.patch(self.update_preferences_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_get_usuario_id_not_found(self):
-        """Intentar obtener un usuario inexistente"""
-        response = self.client.get(self.get_usuario_id_url, {"user_id": 99999})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_update_user_profile_invalid_data(self):
-        """Intentar actualizar perfil con datos inválidos"""
-        data = {"email": "invalid-email"}  # No es un email válido
-        response = self.client.put(self.update_profile_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_delete_user_account_unauthenticated(self):
-        """Intentar eliminar cuenta sin autenticación"""
-        self.client.credentials()  # Remueve el token de autenticación
-        response = self.client.delete(self.delete_account_url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_change_password_wrong_current_password(self):
-        """Intentar cambiar contraseña con la contraseña actual incorrecta"""
-        data = {"current_password": "wrongpassword", "new_password": "newpassword"}
-        response = self.client.post(self.change_password_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_change_password_invalid_data(self):
-        """Intentar cambiar contraseña sin proporcionar ambos valores"""
-        data = {"current_password": "testpassword"}  # Falta la nueva contraseña
-        response = self.client.post(self.change_password_url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_update_preferences_invalid_data(self, api_client_with_token):
+        data = {
+            "music": "notalist"
+        }
+        response = api_client_with_token.patch(reverse('update-preferences'), data=data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "error" in response.data

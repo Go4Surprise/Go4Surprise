@@ -58,13 +58,19 @@ def update_experience(request, experience_id):
             {"error": f"Server error: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
+    
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def list_experiences(request):
     """
     List all experiences
     """
-    experiences = Experience.objects.all()
-    serializer = ExperienceSerializer(experiences, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    try:
+        experiences = Experience.objects.all()
+        serializer = ExperienceSerializer(experiences, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": f"Server error: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

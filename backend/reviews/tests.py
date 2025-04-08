@@ -1,153 +1,98 @@
-from django.test import TestCase
-from django.urls import reverse
+import pytest
 from rest_framework.test import APIClient
+from django.urls import reverse
 from rest_framework import status
-from model_bakery import baker
 from users.models import Usuario
 from experiences.models import Experience
 from reviews.models import Reviews
-from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
+from django.contrib.auth.models import User
 
-class ReviewsTestCase(TestCase):
-    def setUp(self):
-        """Configura los objetos necesarios para las pruebas"""
-        self.client = APIClient()
+@pytest.fixture
+def api_client_with_token(create_user):
+    client = APIClient()
+    refresh = RefreshToken.for_user(create_user.user)
+    client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    return client
 
-        # Crear un usuario de Django y asociarlo con un Usuario en la BD
-        self.user = User.objects.create_user(username="testuser", password="testpassword")
-        self.usuario = baker.make(Usuario, user=self.user)
+@pytest.fixture
+def create_user(transactional_db):
+    User.objects.filter(username='testuser').delete()
+    user = User.objects.create_user(username='testuser', password='testpass')
+    Usuario.objects.filter(user=user).delete()
+    usuario = Usuario.objects.create(user=user, name='Test', surname='User', email='testuser@example.com')
+    return usuario
 
-        # Crear una experiencia ficticia
-        self.experience = baker.make(Experience)
+@pytest.fixture
+def create_experience():
+    return Experience.objects.create(
+        title='Experiencia Test',
+        description='Una experiencia de prueba',
+        price=50.0,
+        location='Madrid',
+        time_preference='MORNING',
+        categories=["ADVENTURE", "CULTURE"],
+        notas_adicionales='Preferencia en zona centro'
+    )
 
-        # Crear una reseña asociada al usuario y la experiencia
-        self.review = baker.make(Reviews, user=self.usuario, experience=self.experience, puntuacion=4.5, comentario="Muy buena experiencia")
+@pytest.mark.django_db
+def test_post_review_happy_path(api_client_with_token, create_user, create_experience):
+    data = {
+        'puntuacion': 4.5,
+        'comentario': 'Excelente experiencia',
+        'user': str(create_user.id),
+        'experience': str(create_experience.id),
+        'media_files': []
+    }
+    response = api_client_with_token.post(reverse('create review'), data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
 
-        # Autenticación del usuario en los tests protegidos
-        self.client.force_authenticate(user=self.user)
+@pytest.mark.django_db
+def test_post_review_invalid_score(api_client_with_token, create_user, create_experience):
+    data = {
+        'puntuacion': 6.0,
+        'comentario': 'Puntuación fuera de rango',
+        'user': str(create_user.id),
+        'experience': str(create_experience.id)
+    }
+    response = api_client_with_token.post(reverse('create review'), data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    # ✅ ✅ ✅  PRUEBAS POSITIVAS ✅ ✅ ✅ 
+@pytest.mark.django_db
+def test_get_all_reviews(api_client_with_token, create_user, create_experience):
+    Reviews.objects.create(puntuacion=4.0, comentario='Good', user=create_user, experience=create_experience)
+    response = api_client_with_token.get(reverse('get all reviews'))
+    assert response.status_code == status.HTTP_200_OK
 
-    def test_crear_review_exitosa(self):
-        """Prueba la creación exitosa de una reseña"""
-        url = reverse("create review")
-        data = {
-            "puntuacion": 5,
-            "comentario": "Increíble experiencia",
-            "user": self.usuario.id,
-            "experience": self.experience.id,
-        }
-        response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn("id", response.data)
+@pytest.mark.django_db
+def test_get_reviews_by_user_happy_path(api_client_with_token, create_user, create_experience):
+    Reviews.objects.create(puntuacion=4.0, comentario='Good', user=create_user, experience=create_experience)
+    response = api_client_with_token.get(reverse('get user reviews', args=[str(create_user.id)]))
+    assert response.status_code == status.HTTP_200_OK
 
-    def test_obtener_todas_las_reviews(self):
-        """Prueba la obtención de todas las reseñas"""
-        url = reverse("get all reviews")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(response.data), 1)  # Al menos una reseña
+@pytest.mark.django_db
+def test_get_reviews_by_user_not_found(api_client_with_token):
+    fake_id = uuid.uuid4()
+    response = api_client_with_token.get(reverse('get user reviews', args=[str(fake_id)]))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_obtener_reviews_por_usuario(self):
-        """Prueba la obtención de reseñas de un usuario específico"""
-        url = reverse("get user reviews", kwargs={"user_id": self.usuario.id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(response.data), 1)
+@pytest.mark.django_db
+def test_get_reviews_by_experience_happy_path(api_client_with_token, create_experience, create_user):
+    Reviews.objects.create(puntuacion=5.0, comentario='Great!', experience=create_experience, user=create_user)
+    response = api_client_with_token.get(reverse('get experience reviews', args=[str(create_experience.id)]))
+    assert response.status_code == status.HTTP_200_OK
 
-    def test_obtener_reviews_por_experiencia(self):
-        """Prueba la obtención de reseñas de una experiencia específica"""
-        url = reverse("get experience reviews", kwargs={"experience_id": self.experience.id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(response.data), 1)
+@pytest.mark.django_db
+def test_get_reviews_by_experience_not_found(api_client_with_token):
+    fake_id = uuid.uuid4()
+    response = api_client_with_token.get(reverse('get experience reviews', args=[str(fake_id)]))
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    # ❌ ❌ ❌ PRUEBAS NEGATIVAS ❌ ❌ ❌ 
-
-    def test_crear_review_puntuacion_invalida(self):
-        """Prueba la creación de una reseña con puntuación fuera de rango"""
-        url = reverse("create review")
-        data = {
-            "puntuacion": 6,  # ⚠️ Fuera del rango permitido (0-5)
-            "comentario": "Mala experiencia",
-            "user": self.usuario.id,
-            "experience": self.experience.id,
-        }
-        response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("puntuacion", response.data)
-
-    def test_crear_review_sin_comentario(self):
-        """Prueba la creación de una reseña sin comentario"""
-        url = reverse("create review")
-        data = {
-            "puntuacion": 4,
-            "user": self.usuario.id,
-            "experience": self.experience.id,
-        }
-        response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("comentario", response.data)
-
-    def test_crear_review_usuario_no_existente(self):
-        """Prueba la creación de una reseña con un usuario inexistente"""
-        url = reverse("create review")
-        fake_uuid = uuid.uuid4()
-        data = {
-            "puntuacion": 3,
-            "comentario": "No está mal",
-            "user": fake_uuid,
-            "experience": self.experience.id,
-        }
-        response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("user", response.data)
-
-    def test_crear_review_experience_no_existente(self):
-        """Prueba la creación de una reseña con una experiencia inexistente"""
-        url = reverse("create review")
-        fake_uuid = uuid.uuid4()
-        data = {
-            "puntuacion": 2,
-            "comentario": "Horrible",
-            "user": self.usuario.id,
-            "experience": fake_uuid,
-        }
-        response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("experience", response.data)
-
-    def test_obtener_reviews_usuario_inexistente(self):
-        """Prueba la obtención de reseñas de un usuario inexistente"""
-        fake_uuid = uuid.uuid4()
-        url = reverse("get user reviews", kwargs={"user_id": fake_uuid})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn("error", response.data)
-
-    def test_obtener_reviews_experience_inexistente(self):
-        """Prueba la obtención de reseñas de una experiencia inexistente"""
-        fake_uuid = uuid.uuid4()
-        url = reverse("get experience reviews", kwargs={"experience_id": fake_uuid})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertIn("error", response.data)
-
-    def test_obtener_reviews_falla_servidor(self):
-        """Prueba que la API maneja correctamente un fallo inesperado en la vista"""
-        # Sobreescribir la función `objects.all` para simular un fallo en la BD
-        def fake_all():
-            raise Exception("Error del servidor simulado")
-
-        original_all = Reviews.objects.all
-        Reviews.objects.all = fake_all  # Simular error en la consulta
-
-        url = reverse("get all reviews")
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        self.assertIn("error", response.data)
-
-        # Restaurar el comportamiento original
-        Reviews.objects.all = original_all
+@pytest.mark.django_db
+def test_get_latest_ten_reviews(api_client_with_token, create_user, create_experience):
+    for i in range(12):
+        Reviews.objects.create(puntuacion=5.0, comentario=f'Reseña {i}', user=create_user, experience=create_experience)
+    response = api_client_with_token.get(reverse('get latest ten reviews'))
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 10

@@ -159,8 +159,6 @@ class ExperienceSerializer(serializers.ModelSerializer):
 
 
 class AdminBookingUpdateSerializer(serializers.ModelSerializer):
-    """Serializer for updating Booking model from admin panel"""
-
     participants = serializers.IntegerField(required=False)
     price = serializers.FloatField(write_only=True, required=False)
     booking_date = serializers.DateField(write_only=True, required=False)
@@ -174,11 +172,32 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
     duracion = serializers.IntegerField(required=False)
     localizacion = serializers.CharField(required=False)
     categoria = serializers.ChoiceField(choices=ExperienceCategory.choices, required=False)
+    experience_id = serializers.UUIDField(required=False)
 
     class Meta:
         model = Booking
-        fields = ['participants', 'price', 'booking_date', 'experience_date', 'cancellable', 'status', 'hint', 'duracion',
-                  'localizacion', 'categoria']
+        fields = ['participants', 'price', 'booking_date', 'experience_date', 'cancellable', 'status', 'hint', 
+                  'duracion', 'localizacion', 'categoria', 'experience_id']
+
+    def validate_experience_id(self, value):
+        """
+        Verificar que la experiencia exista
+        """
+        try:
+            Experience.objects.get(id=value)
+        except Experience.DoesNotExist:
+            raise serializers.ValidationError("Experiencia no encontrada.")
+        return value
+
+    def validate_participants(self, value):
+        if value < 1:
+            raise serializers.ValidationError("El número de participantes debe ser mayor a cero.")
+        return value
+
+    def validate_price(self, value):
+        if value < 0:
+            raise serializers.ValidationError("El precio no puede ser negativo.")
+        return value
 
     def validate(self, data):
         if len(data) == 0:
@@ -187,18 +206,23 @@ class AdminBookingUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         hint = validated_data.pop('hint', None)
+        experience_id = validated_data.pop('experience_id', None)
+
+        if experience_id:
+            try:
+                instance.experience = Experience.objects.get(id=experience_id)
+            except Experience.DoesNotExist:
+                raise serializers.ValidationError("Experiencia no encontrada.")
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
+
         if hint is not None and instance.experience:
             instance.experience.hint = hint
             instance.experience.save()
 
         instance.save()
         return instance
-    def get_experience(self, obj):
-        return {"name": obj.experience.title}
 
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
