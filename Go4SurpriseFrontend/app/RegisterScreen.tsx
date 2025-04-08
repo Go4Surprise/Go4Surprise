@@ -205,7 +205,7 @@ export default function RegisterScreen() {
                     />
                     <TouchableOpacity
                         style={styles.eyeIcon}
-                        onPress={() => setShowPassword(!showPassword)}
+                        onPress={() => { setShowPassword(!showPassword); }}
                     >
                         <Ionicons 
                             name={showPassword ? 'eye-off' : 'eye'} 
@@ -226,7 +226,7 @@ export default function RegisterScreen() {
                     />
                     <TouchableOpacity
                         style={styles.eyeIcon}
-                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onPress={() => { setShowConfirmPassword(!showConfirmPassword); }}
                     >
                         <Ionicons 
                             name={showConfirmPassword ? 'eye-off' : 'eye'} 

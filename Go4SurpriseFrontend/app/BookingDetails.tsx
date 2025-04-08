@@ -1,25 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Linking, useWindowDimensions, ScrollView, Platform, Modal } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Linking, useWindowDimensions, ScrollView, Platform, Modal  } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from '../constants/apiUrl';
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 // Importación condicional del WebView solo para plataformas móviles
-let WebViewComponent = null;
+let WebViewComponent: any = null;
+
+// Dynamically import WebView for non-web platforms
 try {
-  // Intentamos importar el WebView solo si no estamos en web
   if (Platform.OS !== 'web') {
-    WebViewComponent = require('react-native-webview').WebView;
+    // Using dynamic import instead of require
+    import('react-native-webview').then(module => {
+      WebViewComponent = module.WebView;
+    });
   }
 } catch (error) {
-  console.log('WebView no disponible en esta plataforma');
+  console.error('Error loading WebView component:', error);
 }
 
 const BookingDetailsScreen = () => {
   const { bookingId } = useLocalSearchParams();
-  const router = useRouter();
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
@@ -39,12 +42,12 @@ const BookingDetailsScreen = () => {
         console.error("Error obteniendo el token:", error);
       }
     };
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   useEffect(() => {
     if (!bookingId) return; // No ejecutar si `bookingId` aún es null
-    fetchBookingDetails();
+    void fetchBookingDetails();
   }, [bookingId]); // Se ejecuta solo cuando `bookingId` cambia y no es null
 
   const handlePayment = async () => {
@@ -218,7 +221,7 @@ const BookingDetailsScreen = () => {
                   styles.button, 
                   isMobile ? styles.buttonMobile : styles.buttonDesktop
                 ]} 
-                onPress={handlePayment}
+                onPress={() => {handlePayment(); }}
                 disabled={loading}
               >
                 {loading ? (
@@ -249,13 +252,13 @@ const BookingDetailsScreen = () => {
         <Modal
           visible={showWebView}
           animationType="slide"
-          onRequestClose={() => setShowWebView(false)}
+          onRequestClose={() => { setShowWebView(false); }}
         >
           <View style={styles.webViewContainer}>
             <View style={styles.webViewHeader}>
               <TouchableOpacity 
                 style={styles.closeButton} 
-                onPress={() => setShowWebView(false)}
+                onPress={() => { setShowWebView(false); }}
               >
                 <Ionicons name="close-outline" size={28} color="#333" />
               </TouchableOpacity>

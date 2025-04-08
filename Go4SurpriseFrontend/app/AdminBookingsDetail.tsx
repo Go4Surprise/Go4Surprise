@@ -31,7 +31,7 @@ const translateHorario = (horario: HorarioPreferencia | null): string =>
 const translateCategoria = (categoria: Categoria | null): string => 
     categoria ? categoriasMap[categoria] || categoria : "Sin categoría";
 
-type BookingDetail = {
+interface BookingDetail {
     id: string;
     experience_date: string;
     participants: number;
@@ -73,16 +73,16 @@ const AdminBookingsDetail = () => {
     interface Experience {
         id: string;
         title: string;
-    };
+    }
 
-    const [experiences, setExperiences] = useState<Experience[]>([]); // Lista de experiencias
+    const [, setExperiences] = useState<Experience[]>([]); // Lista de experiencias
     const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null); // Experiencia seleccionada
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
-        fetchBookingDetail();
-        fetchExperiences(); // Cargar experiencias disponibles
+        void fetchBookingDetail();
+        void fetchExperiences(); // Cargar experiencias disponibles
     }, []);
 
     const fetchBookingDetail = async () => {
@@ -166,7 +166,7 @@ const AdminBookingsDetail = () => {
                         location: experienceLocation,
                         time_preference: experienceHorario,
                         categories: experienceCategories,
-                        hint: hint || "",
+                        hint: hint ?? "",
                         price: experiencePrice,
                         title: experienceTitle,
                         description: experienceDescription,
@@ -213,7 +213,7 @@ const AdminBookingsDetail = () => {
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
                         <Picker
-                            selectedValue={selectedStatus || booking.status}
+                            selectedValue={selectedStatus ?? booking.status}
                             onValueChange={(itemValue) => {
                                 setSelectedStatus(itemValue);
                             }}
@@ -291,7 +291,7 @@ const AdminBookingsDetail = () => {
                     {/* Botón para actualizar con más espacio */}
                     <TouchableOpacity
                         style={[styles.updateButton, styles.updateButtonSpacing]}
-                        onPress={updateBookingStatus}
+                        onPress={() => { updateBookingStatus(); }}
                     >
                         <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
                     </TouchableOpacity>

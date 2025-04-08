@@ -29,8 +29,8 @@ interface Review {
 const useHover = () => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const onHoverIn = () => setIsHovered(true);
-  const onHoverOut = () => setIsHovered(false);
+  const onHoverIn = () => { setIsHovered(true); };
+  const onHoverOut = () => { setIsHovered(false); };
   
   return { isHovered, onHoverIn, onHoverOut };
 };
@@ -195,7 +195,7 @@ export default function MoreReviews() {
         const widthFactor = 0.8;
         const cardWidth = (availableWidth / columnCount) * widthFactor;
         
-        reviews.forEach((review, index) => {
+        reviews.forEach((review, ) => {
             const shortestColumnIndex = columns
                 .map((column, i) => ({ 
                     index: i, 
@@ -203,7 +203,9 @@ export default function MoreReviews() {
                 }))
                 .sort((a, b) => a.height - b.height)[0].index;
                 
-            columns[shortestColumnIndex].push(review);
+                if (Object.prototype.hasOwnProperty.call(columns, shortestColumnIndex)) {
+                    columns[shortestColumnIndex].push(review);
+                }
         });
         
         return { columns, cardWidth };

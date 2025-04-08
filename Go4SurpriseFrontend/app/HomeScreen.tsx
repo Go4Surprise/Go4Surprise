@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   Image,
   ImageBackground,
-  Alert,
   SafeAreaView,
   Platform,
   StatusBar,
@@ -31,7 +30,7 @@ interface User {
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { width, height } = useWindowDimensions();
+  const { width, } = useWindowDimensions();
 
   // Definiciones de tamaños de pantalla más detalladas
   const isSmallMobile = width < 375;
@@ -73,8 +72,8 @@ export default function HomeScreen() {
   // Cargar datos cuando la pantalla obtiene foco
   useFocusEffect(
     useCallback(() => {
-      checkAdminStatus();
-      fetchUserData();
+      void checkAdminStatus();
+      void fetchUserData();
     }, [checkAdminStatus])
   );
 
@@ -157,7 +156,7 @@ export default function HomeScreen() {
                     : require("../assets/images/user-logo-none.png")
                 }
                 style={styles.profileIcon}
-                onError={() => setUser(prev => ({ ...prev, pfp: '' }))}
+                onError={() => { setUser(prev => ({...prev, pfp: ''})); }}
               />
             </TouchableOpacity>
           </View>

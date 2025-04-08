@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { experiencesData } from '../data/experiencesData';
 import ExperienceCard from '../components/ExperienceCard';
 
@@ -50,15 +50,13 @@ export default function Experiences() {
 
     // Funciones para navegar entre tarjetas
     const scrollToPrevious = () => {
-        if (scrollViewRef.current) {
-            const newPage = activePage - 1;
-            scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
-            setActivePage(newPage);
-        }
+        const newPage = activePage - 1;
+        scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
+        setActivePage(newPage);
     };
 
     const scrollToNext = () => {
-        if (activePage < experiencesData.length - 1 && scrollViewRef.current) {
+        if (activePage < experiencesData.length - 1 ) {
             const newPage = activePage + 1;
             scrollViewRef.current.scrollTo({ x: newPage * cardWidth, animated: true });
             setActivePage(newPage);

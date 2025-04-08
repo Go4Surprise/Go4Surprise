@@ -57,7 +57,7 @@ const MyBookings = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<Array<{ uri: string, type: string }>>([]);
+  const [selectedMedia, setSelectedMedia] = useState<{uri: string, type: string}[]>([]);
 
   useEffect(() => {
     void fetchReservas();
@@ -205,7 +205,7 @@ const MyBookings = () => {
 
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Go4Surprise&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=Reserva+sorpresa+en+${item.city}&location=${item.city}`;
 
-    Linking.openURL(url);
+    void Linking.openURL(url);
   };
 
   const openReviewModal = (experienceId: string) => {
@@ -278,7 +278,7 @@ const MyBookings = () => {
           }
         } else {
           // For mobile: Make sure we're creating the file object correctly
-          const filename = media.uri.split('/').pop() || `file${i}`;
+          const filename = media.uri.split('/').pop() ?? `file${i}`;
           const match = /\.(\w+)$/.exec(filename);
           const fileType = match ? match[1] : (media.type === 'video' ? 'mp4' : 'jpg');
           const mimeType = media.type === 'video' ? `video/${fileType}` : `image/${fileType}`;
@@ -333,7 +333,7 @@ const MyBookings = () => {
   };
 
   const renderItem = ({ item }: { item: Reserva }) => {
-    const timePreferenceMap: { [key: string]: string } = {
+    const timePreferenceMap: Record<string, string> = {
       MORNING: "Mañana",
       AFTERNOON: "Tarde",
       EVENING: "Noche",
@@ -407,7 +407,7 @@ const MyBookings = () => {
           <View style={styles.calendarButtonsContainer}>
             <TouchableOpacity
               style={styles.googleCalendarButton}
-              onPress={() => openGoogleCalendar(item)}
+              onPress={() => { openGoogleCalendar(item); }}
             >
               <Ionicons name="logo-google" size={16} color="white" />
               <Text style={styles.buttonText}>Añadir a Google Calendar</Text>
@@ -419,7 +419,7 @@ const MyBookings = () => {
           && (
             <TouchableOpacity
               style={styles.reviewButton}
-              onPress={() => openReviewModal(item.experience.id)}
+              onPress={() => { openReviewModal(item.experience.id); }}
             >
               <Ionicons name="star" size={16} color="white" />
               <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
@@ -499,7 +499,7 @@ const MyBookings = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
-                onPress={() => setModalVisible(false)}
+                onPress={() => { setModalVisible(false); }}
               >
                 <Text style={styles.modalCancelButtonText}>No</Text>
               </TouchableOpacity>
@@ -517,7 +517,7 @@ const MyBookings = () => {
         animationType="slide"
         transparent={true}
         visible={reviewModalVisible}
-        onRequestClose={() => setReviewModalVisible(false)}
+        onRequestClose={() => { setReviewModalVisible(false); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.reviewModalContent}>
@@ -551,7 +551,7 @@ const MyBookings = () => {
             />
 
             <Text style={styles.modalLabel}>Añadir fotos o videos (máx. 5)</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={pickMedia}>
+            <TouchableOpacity style={styles.uploadButton} onPress={() => { pickMedia() }}>
               <Text style={styles.uploadButtonText}>Seleccionar archivo</Text>
             </TouchableOpacity>
 
@@ -571,7 +571,7 @@ const MyBookings = () => {
                     )}
                     <TouchableOpacity
                       style={styles.removeMediaButton}
-                      onPress={() => removeMedia(index)}
+                      onPress={() => { removeMedia(index); }}
                     >
                       <Ionicons name="close-circle" size={20} color="red" />
                     </TouchableOpacity>
@@ -583,7 +583,7 @@ const MyBookings = () => {
             <View style={[styles.modalButtons, styles.reviewModalButtons]}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
-                onPress={() => setReviewModalVisible(false)}
+                onPress={() => { setReviewModalVisible(false); }}
               >
                 <Text style={styles.modalCancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
