@@ -11,7 +11,8 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
-  useWindowDimensions
+  useWindowDimensions,
+  Modal
 } from 'react-native';
 import { router } from 'expo-router';
 import { useNavigation } from 'expo-router';
@@ -19,7 +20,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import CountDown from './CountDown';
 import Reviews from './Reviews';
-import Experiences from './Experiences';
 import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 import { useFocusEffect } from '@react-navigation/native';
@@ -28,6 +28,54 @@ import { useFocusEffect } from '@react-navigation/native';
 interface User {
   pfp?: string;
 }
+
+// Add interface for experience data
+interface Experience {
+  title: string;
+  icon: string;
+  image: any;
+  description: string;
+}
+
+// Define experiences data
+const experiencesData: Experience[] = [
+  {
+    title: 'Aventura',
+    icon: 'walk-outline',
+    image: require('../assets/images/aventura.png'),
+    description: 'Actividades en la naturaleza, al aire libre, donde se respirará aire puro y un ambiente de aventura y diversión increíble.',
+  },
+  {
+    title: 'Cultura',
+    icon: 'book-outline',
+    image: require('../assets/images/cultura.png'),
+    description: 'Sumérgete en el mundo de los museos, teatros y eventos culturales que te conectarán con la historia y las tradiciones.',
+  },
+  {
+    title: 'Deporte',
+    icon: 'fitness-outline',
+    image: require('../assets/images/deporte.png'),
+    description: 'Participa en actividades deportivas que fomentan la salud, el trabajo en equipo y la superación personal.',
+  },
+  {
+    title: 'Gastronomía',
+    icon: 'restaurant-outline',
+    image: require('../assets/images/gastronomia.png'),
+    description: 'Disfruta de experiencias culinarias únicas, catas de vino y deliciosas comidas que deleitarán tu paladar.',
+  },
+  {
+    title: 'Ocio Nocturno',
+    icon: 'moon-outline',
+    image: require('../assets/images/ocionocturno.png'),
+    description: 'Vive la magia de la noche con bares, discotecas y eventos nocturnos llenos de energía y diversión.',
+  },
+  {
+    title: 'Música',
+    icon: 'musical-notes-outline',
+    image: require('../assets/images/musica.png'),
+    description: 'Déjate llevar por el ritmo en conciertos, festivales y eventos musicales que te harán vibrar.',
+  },
+];
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -41,7 +89,7 @@ export default function HomeScreen() {
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<User>({});
-
+  const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
 
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
@@ -178,11 +226,52 @@ export default function HomeScreen() {
           </ImageBackground>
         </View>
 
+        {/* Experiences Section */}
+        <View style={{ marginTop: 30, paddingHorizontal: 20 }}>
+          <Text style={styles.sectionTitle}>Experiencias que ofrecemos</Text>
+          <View style={styles.experiencesContainer}>
+            {experiencesData.map((experience) => (
+              <TouchableOpacity
+                key={experience.title}
+                style={styles.experienceCard}
+                activeOpacity={0.8}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                onPress={() => setSelectedExperience(experience)}
+              >
+                <Ionicons name={experience.icon} size={24} color="#004AAD" style={styles.icon} />
+                <Text style={styles.experienceTitle}>{experience.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Modal for Experience Details */}
+        {selectedExperience && (
+          <Modal
+            transparent={true}
+            animationType="slide"
+            visible={!!selectedExperience}
+            onRequestClose={() => setSelectedExperience(null)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <Image source={selectedExperience.image} style={styles.modalImage} />
+                <Text style={styles.modalTitle}>{selectedExperience.title}</Text>
+                <Text style={styles.modalDescription}>{selectedExperience.description}</Text>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setSelectedExperience(null)}
+                >
+                  <Text style={styles.closeButtonText}>Cerrar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        )}
+
         {/* Reviews Section */}
         <Reviews navigation={navigation} />
-
-        {/* Experiences Section */}
-        <Experiences />
       </ScrollView>
     </SafeAreaView>
   );
@@ -334,5 +423,88 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#004AAD',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  experiencesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 15,
+  },
+  experienceCard: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 15,
+    padding: 15,
+    width: '48%',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 6,
+    alignItems: 'center',
+    transition: 'transform 0.2s ease-in-out',
+  },
+  icon: {
+    marginBottom: 10,
+  },
+  experienceTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#004AAD',
+    textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  modalImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#004AAD',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  closeButton: {
+    backgroundColor: '#004AAD',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
