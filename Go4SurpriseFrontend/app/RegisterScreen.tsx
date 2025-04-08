@@ -297,7 +297,7 @@ export default function RegisterScreen() {
 
                 {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
-                    <TouchableOpacity onPress={() => setAcceptedTerms(!acceptedTerms)} style={styles.checkbox}>
+                    <TouchableOpacity onPress={() => { setAcceptedTerms(!acceptedTerms); }} style={styles.checkbox}>
                         <Ionicons 
                         name={acceptedTerms ? 'checkbox-outline' : 'square-outline'} 
                         size={24} 

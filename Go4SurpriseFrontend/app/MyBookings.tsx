@@ -9,8 +9,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
-  ScrollView,
-  LayoutAnimation,
   Platform,
   Linking,
   TextInput,
@@ -20,7 +18,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { format, isAfter, isBefore, parseISO } from "date-fns";
+import { format, isAfter, isBefore } from "date-fns";
 import { es } from "date-fns/locale";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
@@ -322,7 +320,7 @@ const MyBookings = () => {
         error.response?.data?.error?.includes("Ya has dejado una reseña")) {
         Alert.alert("Error", "Ya has dejado una reseña para esta experiencia.");
         setReviewedExperiences(prev =>
-          prev.includes(selectedExperienceId as string)
+          prev.includes(selectedExperienceId)
             ? prev
             : [...prev, selectedExperienceId as string]
         );
@@ -459,14 +457,14 @@ const MyBookings = () => {
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === "pasadas" && styles.tabButtonActive]}
-          onPress={() => setSelectedTab("pasadas")}
+          onPress={() => { setSelectedTab("pasadas"); }}
         >
           <Text style={[styles.tabText, selectedTab === "pasadas" && styles.tabTextActive]}>Pasadas</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === "canceladas" && styles.tabButtonActive]}
-          onPress={() => setSelectedTab("canceladas")}
+          onPress={() => { setSelectedTab("canceladas"); }}
         >
           <Text style={[styles.tabText, selectedTab === "canceladas" && styles.tabTextActive]}>Canceladas</Text>
         </TouchableOpacity>
@@ -507,7 +505,7 @@ const MyBookings = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalConfirmButton}
-                onPress={cancelarReserva}
+                onPress={() => {void cancelarReserva(); }}
               >
                 <Text style={styles.modalConfirmButtonText}>Sí</Text>
               </TouchableOpacity>
@@ -530,7 +528,7 @@ const MyBookings = () => {
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity
                   key={star}
-                  onPress={() => setReviewRating(star)}
+                  onPress={() => { setReviewRating(star); }}
                 >
                   <Ionicons
                     name={reviewRating >= star ? "star" : "star-outline"}

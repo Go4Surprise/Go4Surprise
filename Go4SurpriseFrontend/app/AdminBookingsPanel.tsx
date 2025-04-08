@@ -15,9 +15,14 @@ const estadoMap: Record<string, string> = {
     cancelled: "Cancelada",
 };
 
-const translateEstado = (estado: string): string => estadoMap[estado] || estado;
+const translateEstado = (estado: string): string => {
+    // Only allow access if the key exists in estadoMap
+    return Object.prototype.hasOwnProperty.call(estadoMap, estado) 
+      ? estadoMap[estado] 
+      : estado;
+  };
 
-type Booking = {
+interface Booking {
     id: string;
     experience_date: string;
     participants: number;
@@ -33,12 +38,10 @@ const AdminBookings = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
     const router = useRouter();
-    const { width } = useWindowDimensions();
     const searchParams = useLocalSearchParams();
-    const isMobile = width < 768;
 
     useEffect(() => {
-        checkAdminStatus();
+        void checkAdminStatus();
         fetchBookings();
 
         // Show the success message if passed in the navigation params
@@ -145,7 +148,7 @@ const AdminBookings = () => {
                     <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {item.total_price}€</Text>
                     <Text style={statusTextStyle}>Estado: {translateEstado(item.status)}</Text>
-                    <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteBooking(item.id)}>
+                    <TouchableOpacity style={styles.deleteButton} onPress={() => { handleDeleteBooking(item.id); }}>
                         <Ionicons name="trash" size={16} color="white" />
                         <Text style={styles.deleteButtonText}>Eliminar</Text>
                     </TouchableOpacity>
