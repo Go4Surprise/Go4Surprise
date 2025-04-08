@@ -1,0 +1,23 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2 style="color: #007AFF;">¡Verifica tu correo electrónico!</h2>
+
+<p>Hola <strong>{{ usuario.name }}</strong>,</p>
+
+<p>Gracias por registrarte en <strong>Go4Surprise</strong>. Para completar tu registro, necesitamos verificar tu
+    dirección de correo electrónico.</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ verification_link }}"
+        style="background-color: #007AFF; color: white; padding: 12px 25px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        Verificar mi correo
+    </a>
+</div>
+
+<p>Este enlace expirará en 48 horas.</p>
+
+<p>Si no fuiste tú quien realizó este registro, puedes ignorar este mensaje.</p>
+
+<p style="margin-top: 30px;">Un saludo,<br><strong>El equipo de Go4Surprise</strong></p>
+{% endblock %}

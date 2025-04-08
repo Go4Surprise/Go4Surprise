@@ -1,0 +1,32 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>¡Reserva confirmada con éxito!</h2>
+<p>Hola <strong>{{ usuario.name }}</strong>,</p>
+<p>Gracias por reservar con nosotros. Aquí están los detalles de tu reserva:</p>
+
+<table>
+    <tr>
+        <td>Fecha de experiencia:</td>
+        <td>{{ experience_date }}</td>
+    </tr>
+    <tr>
+        <td>Ubicación:</td>
+        <td>{{ location }}</td>
+    </tr>
+    <tr>
+        <td>Precio total:</td>
+        <td>{{ total_price }} EUR</td>
+    </tr>
+</table>
+
+<p><strong>¡Estamos emocionados de sorprenderte!</strong></p>
+<p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactarnos respondiendo a este correo.</p>
+
+<p>Gracias nuevamente por elegirnos. ¡Esperamos sorprenderte pronto! 🎁</p>
+
+<a href="https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com/MyBookings" class="cta-button">Ver detalles de la
+    reserva</a>
+
+<p>Un saludo,<br><strong>El equipo de Go4Surprise</strong></p>
+{% endblock %}

@@ -26,6 +26,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import uuid
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
@@ -85,32 +88,32 @@ def register_user(request):
         
         # Enviar email de verificación
         subject = "Verifica tu correo electrónico - Go4Surprise"
-        message = f"""
-        Hola {usuario.name},
-        
+        html_content = render_to_string("emails/email_verificacion.html", {
+            "usuario": usuario,
+            "verification_link": verification_link,
+            "year": datetime.now().year,
+        })
+        text_content = f"""Hola {usuario.name},
+
         Gracias por registrarte en Go4Surprise. Para completar tu registro, necesitamos verificar tu dirección de correo electrónico.
-        
+
         Por favor, haz clic en el siguiente enlace para verificar tu correo:
         {verification_link}
-        
+
         Este enlace expirará en 48 horas.
-        
+
         Si no has sido tú quien se ha registrado, puedes ignorar este mensaje.
-        
+
         Saludos,
         El equipo de Go4Surprise
         """
-        
+
         try:
-            send_mail(
-                subject=subject,
-                message=message,
-                from_email=config('DEFAULT_FROM_EMAIL'),
-                recipient_list=[usuario.email],
-            )
+            email = EmailMultiAlternatives(subject, text_content, config('DEFAULT_FROM_EMAIL'), [usuario.email])
+            email.attach_alternative(html_content, "text/html")
+            email.send()
         except Exception as e:
             logger.error(f"Error al enviar email de verificación: {str(e)}")
-            # En caso de error, continuamos con el registro pero informamos al usuario
         
         return Response({
             "message": "Usuario correctamente creado. Por favor, verifica tu correo electrónico para activar tu cuenta.",
@@ -165,12 +168,33 @@ def login_user(request):
                         base_url = "http://localhost:8081" if settings.DEBUG else "https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
                         verification_link = f"{base_url}/VerifyEmail?token={usuario.email_verification_token}&user_id={usuario.id}"
                         
-                        send_mail(
-                            subject="Verifica tu correo electrónico - Go4Surprise",
-                            message=f"Por favor, verifica tu correo haciendo clic en este enlace: {verification_link}",
-                            from_email=config('DEFAULT_FROM_EMAIL'),
-                            recipient_list=[usuario.email],
-                        )
+                        subject = "Verifica tu correo electrónico - Go4Surprise"
+                        html_content = render_to_string("emails/email_verificacion.html", {
+                            "usuario": usuario,
+                            "verification_link": verification_link,
+                            "year": datetime.now().year,
+                        })
+                        text_content = f"""Hola {usuario.name},
+
+                        Gracias por registrarte en Go4Surprise. Para completar tu registro, necesitamos verificar tu dirección de correo electrónico.
+
+                        Por favor, haz clic en el siguiente enlace para verificar tu correo:
+                        {verification_link}
+
+                        Este enlace expirará en 48 horas.
+
+                        Si no has sido tú quien se ha registrado, puedes ignorar este mensaje.
+
+                        Saludos,
+                        El equipo de Go4Surprise
+                        """
+
+                        try:
+                            email = EmailMultiAlternatives(subject, text_content, config('DEFAULT_FROM_EMAIL'), [usuario.email])
+                            email.attach_alternative(html_content, "text/html")
+                            email.send()
+                        except Exception as e:
+                            logger.error(f"Error al enviar email de verificación: {str(e)}")
                         
                         return Response(
                             {"message": "Se ha enviado un nuevo correo de verificación. Por favor, verifica tu cuenta."},
@@ -453,12 +477,31 @@ def password_reset(request):
     reset_link = f"{base_url}/PasswordResetConfirm?uidb64={uidb64}&token={token}"
 
     # Enviar email
-    send_mail(
-        subject="Password Reset Request",
-        message=f"Click the link below to reset your password:\n{reset_link}",
-        from_email=config('DEFAULT_FROM_EMAIL'),
-        recipient_list=[user.email],
-    )
+    subject = "Recupera tu contraseña - Go4Surprise"
+    html_content = render_to_string("emails/password_reset.html", {
+        "usuario": usuario,
+        "reset_link": reset_link,
+        "year": datetime.now().year,
+    })
+    text_content = f"""Hola {usuario.name},
+
+    Recibimos una solicitud para restablecer tu contraseña.
+
+    Haz clic en el siguiente enlace para crear una nueva contraseña:
+    {reset_link}
+
+    Si no solicitaste este cambio, puedes ignorar este mensaje.
+
+    Saludos,
+    El equipo de Go4Surprise
+    """
+
+    try:
+        email = EmailMultiAlternatives(subject, text_content, config('DEFAULT_FROM_EMAIL'), [user.email])
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+    except Exception as e:
+        logger.error(f"Error al enviar email de recuperación: {str(e)}")    
     return Response({'message': 'Password reset link sent to email', 'reset_link': reset_link}, status=status.HTTP_200_OK)
 
 

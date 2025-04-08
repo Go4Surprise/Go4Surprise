@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #007AFF;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header img {
+            width: 180px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #999999;
+            background-color: #f4f4f4;
+        }
+
+        .footer a {
+            color: #007AFF;
+            text-decoration: none;
+        }
+
+        h2 {
+            color: #007AFF;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        td:nth-child(1) {
+            font-weight: bold;
+            background-color: #f4f4f4;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #007AFF;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="https://i.imgur.com/0IzKUMk.png" alt="Go4Surprise">
+        </div>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+
+        <div class="footer">
+            <p>&copy; {{ year }} Go4Surprise · Todos los derechos reservados</p>
+            <p>
+                <a href="https://go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com" target="_blank">go4surprise.com</a>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
