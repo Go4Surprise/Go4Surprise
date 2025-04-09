@@ -30,6 +30,7 @@ export default function RootLayout() {
         <Stack.Screen name="CountDown" options={{ headerShown: false }} />
         <Stack.Screen name="Reviews" options={{ headerShown: false }} />
         <Stack.Screen name="MoreReviews" options={{ headerShown: false }} />
+        <Stack.Screen name="UserDetails/[id]" options={{ headerShown: false }} />
     </Stack>
       {Platform.OS === 'web' && <div id="root-portal" style={{ zIndex: 99999 }} />}
     </>

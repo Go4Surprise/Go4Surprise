@@ -661,6 +661,7 @@ const styles = StyleSheet.create({
 },
 modalContent: {
   width: '90%',
+  maxHeight: '90%',
   backgroundColor: 'white',
   borderRadius: 10,
   padding: 20,
@@ -668,11 +669,13 @@ modalContent: {
 },
 modalScrollContent: {
   padding: 15,
+  paddingBottom: 40,
 },
 modalTitle: {
   fontSize: 20,
   fontWeight: 'bold',
   marginBottom: 10,
+  color: '#1877F2',
 },
 input: {
   borderBottomWidth: 1,
