@@ -336,7 +336,7 @@ const MyBookings = () => {
     const timePreferenceMap: { [key: string]: string } = {
       MORNING: "Mañana",
       AFTERNOON: "Tarde",
-      EVENING: "Noche",
+      NIGHT: "Noche",
     };
 
     {

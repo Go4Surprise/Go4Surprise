@@ -26,11 +26,13 @@ const translateEstado = (estado: string): string => {
 
 interface Booking {
     id: string;
+    user_name: string; // User's name
+    user_email: string; // User's email
     experience_date: string;
     participants: number;
     total_price: number;
     status: string;
-};
+}
 
 const AdminBookings = () => {
     const [bookings, setBookings] = useState<Booking[]>([]);
@@ -76,10 +78,8 @@ const AdminBookings = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            const sortedBookings = response.data.sort((a: Booking, b: Booking) => 
-                new Date(b.experience_date).getTime() - new Date(a.experience_date).getTime()
-            );
-            setBookings(sortedBookings);
+
+            setBookings(response.data);
         } catch (error: any) {
             if (error.response?.status === 401) {
                 Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -126,7 +126,7 @@ const AdminBookings = () => {
     };
 
     const handleBookingPress = (bookingId: string) => {
-        router.push(`/AdminBookingsDetail?id=${bookingId}`);
+        router.push(`/AdminBookingsDetail?id=${bookingId}`);    
     };
 
     const renderItem = ({ item }: { item: Booking }) => {
@@ -146,6 +146,9 @@ const AdminBookings = () => {
         return (
             <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
                 <View style={cardStyle}>
+                    <Text style={styles.label}>
+                        <Ionicons name="person" size={16} color="#1877F2" /> Usuario: {item.user_name} ({item.user_email})
+                    </Text>
                     <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {item.experience_date}</Text>
                     <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {item.participants}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {item.total_price}€</Text>
