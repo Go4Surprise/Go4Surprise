@@ -55,7 +55,10 @@ class TestRegisterUser(TestCase):
 class TestLoginUser(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user, _ = User.objects.get_or_create(username='testuser', defaults={'password': 'testpass'})
+        self.user = User.objects.create(username='testuser')
+        self.user.set_password('testpass')  # Establece la contraseña correctamente
+        self.user.is_active = True  # Asegúrate de que el usuario esté activo
+        self.user.save()
         self.usuario, _ = Usuario.objects.get_or_create(
             user=self.user,
             defaults={
