@@ -204,6 +204,9 @@ const AdminBookingsDetail = () => {
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity style={styles.backButton} onPress={() => router.push("/AdminBookingsPanel")}>
+                    <Ionicons name="arrow-back" size={24} color="#333" />
+                  </TouchableOpacity>
             <Text style={styles.title}>Detalle de la Reserva</Text>
             {booking && (
                 <View style={styles.card}>
@@ -398,6 +401,12 @@ const styles = StyleSheet.create({
     widePicker: {
         flex: 1, // Hacer que el Picker ocupe más espacio horizontal
         marginLeft: 15, // Agregar espacio entre el título y el Picker
+    },
+    backButton: {
+        position: "absolute",
+        top: 45,
+        left: 20,
+        zIndex: 2,
     },
 });
 

@@ -93,6 +93,15 @@ const AdminBookings = () => {
         }
     };
 
+    const handleLogout = async () => {
+        await AsyncStorage.removeItem('accessToken');
+        await AsyncStorage.removeItem('userId');
+        await AsyncStorage.removeItem('refreshToken');
+        await AsyncStorage.removeItem('id');
+        await AsyncStorage.removeItem('isAdmin');
+        router.replace('/LoginScreen');
+    };
+
     const handleDeleteBooking = (bookingId: string) => {
         setSelectedBookingId(bookingId);
         setModalVisible(true); // Show confirmation modal
@@ -170,6 +179,10 @@ const AdminBookings = () => {
             <View style={styles.header}>
                 <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push('/AdminPanel')}>
                     <Ionicons name="grid-outline" size={24} color="#1877F2" />
+                </TouchableOpacity>
+            
+                <TouchableOpacity style={styles.logoutButton} onPress={() => void handleLogout()}>
+                    <Text style={styles.buttonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
             <Text style={styles.title}>Gestión de Reservas</Text>
@@ -324,6 +337,17 @@ const styles = StyleSheet.create({
         borderColor: '#1877F2',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    logoutButton: {
+        backgroundColor: '#E4144C',
+        paddingVertical: 6,
+        paddingHorizontal: 14,
+        borderRadius: 6,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
