@@ -1,6 +1,6 @@
 from django.urls import path
 
-from bookings.views import crear_reserva, obtener_reserva, obtener_reservas_usuario, obtener_reservas_pasadas_usuario, iniciar_pago, stripe_webhook, actualizar_estado_reserva, cancelar_reserva
+from bookings.views import crear_reserva, obtener_reserva, obtener_reservas_usuario, obtener_reservas_pasadas_usuario, iniciar_pago, send_scheduled_notifications, stripe_webhook, actualizar_estado_reserva, cancelar_reserva
 from bookings.admin import admin_booking_list, admin_booking_update, admin_booking_detail, admin_booking_delete
 
 urlpatterns = [
@@ -16,4 +16,6 @@ urlpatterns = [
     path('iniciar-pago/<booking_id>/', iniciar_pago, name='iniciar_pago'),
     path('stripe-webhook/', stripe_webhook, name='stripe_webhook'),
     path('cancel/<uuid:id>/', cancelar_reserva, name='cancelar_reserva'),
+
+    path('send-scheduled-notifications/', send_scheduled_notifications, name='send_scheduled_notifications')
 ]

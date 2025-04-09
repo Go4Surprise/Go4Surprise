@@ -91,6 +91,29 @@ export default function HomeScreen() {
   const [user, setUser] = useState<User>({});
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
 
+  
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      if (!token) {
+        return;
+      }
+      
+      const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      setUser({
+        pfp: response.data.pfp || '',
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
+
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
     const adminStatus = await AsyncStorage.getItem('isAdmin');
@@ -101,6 +124,7 @@ export default function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       checkAdminStatus();
+      fetchUserData();
     }, [checkAdminStatus])
   );
 

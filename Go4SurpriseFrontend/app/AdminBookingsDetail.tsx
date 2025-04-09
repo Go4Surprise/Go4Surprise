@@ -45,6 +45,10 @@ type BookingDetail = {
         categories: string[];
         hint: string | null;
         price: number;
+        title: string;
+        description: string;
+        link: string;
+        notas_adicionales: string;
     };
 };
 
@@ -60,6 +64,10 @@ const AdminBookingsDetail = () => {
     const [experienceHorario, setExperienceHorario] = useState<string | null>(null);
     const [experienceCategories, setExperienceCategories] = useState<string[]>([]);
     const [experiencePrice, setExperiencePrice] = useState<number | null>(null);
+    const [experienceTitle, setExperienceTitle] = useState<string | null>(null);
+    const [experienceDescription, setExperienceDescription] = useState<string | null>(null);
+    const [experienceLink, setExperienceLink] = useState<string | null>(null);
+    const [experienceNotasAdicionales, setExperienceNotasAdicionales] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     
     type Experience = {
@@ -103,6 +111,10 @@ const AdminBookingsDetail = () => {
             setHint(response.data.experience?.hint || '');
             setExperiencePrice(response.data.experience?.price || null);
             setSelectedExperienceId(response.data.experience?.id || null); // Ensure experience ID is set
+            setExperienceTitle(response.data.experience?.title || '');
+            setExperienceDescription(response.data.experience?.description || '');
+            setExperienceLink(response.data.experience?.link || '');
+            setExperienceNotasAdicionales(response.data.experience?.notas_adicionales || '');
         } catch (error: any) {
             if (error.response?.status === 401) {
                 Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -155,7 +167,11 @@ const AdminBookingsDetail = () => {
                         time_preference: experienceHorario,
                         categories: experienceCategories,
                         hint: hint || "",
-                        price: experiencePrice
+                        price: experiencePrice,
+                        title: experienceTitle,
+                        description: experienceDescription,
+                        link: experienceLink,
+                        notas_adicionales: experienceNotasAdicionales,
                     },
                     experience_date: experienceDate,
                     participants: participants,
@@ -191,29 +207,9 @@ const AdminBookingsDetail = () => {
             <Text style={styles.title}>Detalle de la Reserva</Text>
             {booking && (
                 <View style={styles.card}>
-                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={experienceDate ?? ''}
-                        onChangeText={setExperienceDate}
-                        placeholder="Ingrese la fecha de la experiencia"
-                    />
-                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={participants?.toString() ?? ''}
-                        onChangeText={(text) => setParticipants(Number(text))}
-                        keyboardType="numeric"
-                        placeholder="Número de participantes"
-                    />
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={totalPrice?.toString() ?? ''}
-                        onChangeText={(text) => setTotalPrice(Number(text))}
-                        keyboardType="numeric"
-                        placeholder="Precio total"
-                    />
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
+                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
                         <Picker
@@ -229,7 +225,7 @@ const AdminBookingsDetail = () => {
                         </Picker>
                     </View>
 
-                    {/* Mover el desplegable de experiencias al lado del título */}
+                    {/* Mover el desplegable de experiencias al lado del título 
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="briefcase" size={16} color="#1877F2" /> Experiencia:</Text>
                         <Picker
@@ -243,6 +239,7 @@ const AdminBookingsDetail = () => {
                         </Picker>
                         
                     </View>
+                    */}
 
                     
 
@@ -256,6 +253,32 @@ const AdminBookingsDetail = () => {
                         <Ionicons name="pricetag" size={16} color="#1877F2" /> 
                         Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
                     </Text>
+
+                    <Text style={styles.label}><Ionicons name="text" size={16} color="#1877F2" /> Notas adicionales: {experienceNotasAdicionales ? experienceNotasAdicionales : "Sin notas adicionales"}</Text>
+
+                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Título: </Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceTitle ?? ''}
+                        onChangeText={setExperienceTitle}
+                        placeholder="Ingrese el título de la experiencia..."
+                    />
+                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Descripción:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceDescription ?? ''}
+                        onChangeText={setExperienceDescription}
+                        placeholder="Ingrese la descripción de la experiencia..."
+                    />
+                    <Text style={styles.label}><Ionicons name="link" size={16} color="#1877F2" /> Link: </Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceLink ?? ''}
+                        onChangeText={setExperienceLink}
+                        placeholder="Ingrese el link de la experiencia..."
+                    />
+
+                    {/* Campo para agregar una pista */}
 
                     <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
                     <TextInput
