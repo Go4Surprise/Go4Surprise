@@ -289,7 +289,7 @@ export default function LoginScreen() {
           
           <TouchableOpacity 
             style={styles.closeButton}
-            onPress={() => setShowVerificationModal(false)}
+            onPress={() => { setShowVerificationModal(false); }}
           >
             <Text style={styles.closeButtonText}>Cerrar</Text>
           </TouchableOpacity>

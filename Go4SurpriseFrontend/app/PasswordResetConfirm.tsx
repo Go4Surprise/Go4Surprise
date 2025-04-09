@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-nativ
 import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import { BASE_URL } from "../constants/apiUrl";
+import { timingSafeEqual } from 'crypto';
 
 const PasswordResetConfirm = () => {
     const { uidb64, token } = useLocalSearchParams(); 
@@ -21,7 +22,7 @@ const PasswordResetConfirm = () => {
             return;
         }
 
-        if (password !== confirmPassword) {
+        if (!comparePasswordsTimingSafe(password, confirmPassword)) {
             setError("Las contraseñas no coinciden.");
             return;
         }
@@ -34,6 +35,16 @@ const PasswordResetConfirm = () => {
             setError("No se pudo restablecer la contraseña. Inténtalo de nuevo.");
         }
     };
+
+    const comparePasswordsTimingSafe = (a: string, b: string): boolean => {
+
+        const equal = a.length === b.length;
+        
+        const bufA = Buffer.from(a, 'utf8');
+        const bufB = Buffer.from(b.length === a.length ? b : a, 'utf8');
+        
+        return equal && timingSafeEqual(bufA, bufB);
+      };
 
     return (
         <View style={styles.container}>

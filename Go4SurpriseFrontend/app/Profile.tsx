@@ -6,7 +6,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Platform } from 'react-native';
 
 
@@ -148,7 +147,7 @@ export default function UserProfileScreen() {
         } else if (Platform.OS !== 'web') {
           // Handle file URI from mobile
           const filename = editedUser.pfp.split('/').pop();
-          const match = /\.(\w+)$/.exec(filename || 'image.jpg');
+          const match = /\.(\w+)$/.exec(filename ?? 'image.jpg');
           const type = match ? `image/${match[1]}` : 'image/jpeg';
           
           formData.append('pfp', {
