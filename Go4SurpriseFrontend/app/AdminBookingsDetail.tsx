@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -203,110 +203,116 @@ const AdminBookingsDetail = () => {
     if (error) return <Text style={styles.errorText}>{error}</Text>;
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Detalle de la Reserva</Text>
-            {booking && (
-                <View style={styles.card}>
-                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
-                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
-                    <View style={styles.row}>
-                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
-                        <Picker
-                            selectedValue={selectedStatus || booking.status}
-                            onValueChange={(itemValue) => {
-                                setSelectedStatus(itemValue);
-                            }}
-                            style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
-                        >
-                            <Picker.Item label="Pendiente" value="PENDING" />
-                            <Picker.Item label="Confirmada" value="CONFIRMED" />
-                            <Picker.Item label="Cancelada" value="cancelled" />
-                        </Picker>
-                    </View>
+        <ScrollView contentContainerStyle={styles.scrollContainer}> {/* Wrap content in ScrollView */}
+            <View style={styles.container}>
+                <Text style={styles.title}>Detalle de la Reserva</Text>
+                {booking && (
+                    <View style={styles.card}>
+                        <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
+                        <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
+                        <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
+                        <View style={styles.row}>
+                            <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
+                            <Picker
+                                selectedValue={selectedStatus || booking.status}
+                                onValueChange={(itemValue) => {
+                                    setSelectedStatus(itemValue);
+                                }}
+                                style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
+                            >
+                                <Picker.Item label="Pendiente" value="PENDING" />
+                                <Picker.Item label="Confirmada" value="CONFIRMED" />
+                                <Picker.Item label="Cancelada" value="cancelled" />
+                            </Picker>
+                        </View>
 
-                    {/* Mover el desplegable de experiencias al lado del título 
-                    <View style={styles.row}>
-                        <Text style={styles.label}><Ionicons name="briefcase" size={16} color="#1877F2" /> Experiencia:</Text>
-                        <Picker
-                            selectedValue={selectedExperienceId}
-                            onValueChange={(itemValue) => setSelectedExperienceId(itemValue)}
-                            style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
-                        >
-                            {experiences.map((exp) => (
-                                <Picker.Item key={exp.id} label={exp.title} value={exp.id} />
-                            ))}
-                        </Picker>
+                        {/* Mover el desplegable de experiencias al lado del título 
+                        <View style={styles.row}>
+                            <Text style={styles.label}><Ionicons name="briefcase" size={16} color="#1877F2" /> Experiencia:</Text>
+                            <Picker
+                                selectedValue={selectedExperienceId}
+                                onValueChange={(itemValue) => setSelectedExperienceId(itemValue)}
+                                style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
+                            >
+                                {experiences.map((exp) => (
+                                    <Picker.Item key={exp.id} label={exp.title} value={exp.id} />
+                                ))}
+                            </Picker>
+                            
+                        </View>
+                        */}
+
                         
+
+                        <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
+                        <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
+                        <Text style={styles.label}>
+                            <Ionicons name="time" size={16} color="#1877F2" /> 
+                            Horario Preferencia: {experienceHorario ? translateHorario(experienceHorario as HorarioPreferencia) : "Sin preferencia"}
+                        </Text>
+                        <Text style={styles.label}>
+                            <Ionicons name="pricetag" size={16} color="#1877F2" /> 
+                            Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
+                        </Text>
+
+                        <Text style={styles.label}><Ionicons name="text" size={16} color="#1877F2" /> Notas adicionales: {experienceNotasAdicionales ? experienceNotasAdicionales : "Sin notas adicionales"}</Text>
+
+                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Título: </Text>
+                        <TextInput
+                            style={styles.input}
+                            value={experienceTitle ?? ''}
+                            onChangeText={setExperienceTitle}
+                            placeholder="Ingrese el título de la experiencia..."
+                        />
+                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Descripción:</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={experienceDescription ?? ''}
+                            onChangeText={setExperienceDescription}
+                            placeholder="Ingrese la descripción de la experiencia..."
+                        />
+                        <Text style={styles.label}><Ionicons name="link" size={16} color="#1877F2" /> Link: </Text>
+                        <TextInput
+                            style={styles.input}
+                            value={experienceLink ?? ''}
+                            onChangeText={setExperienceLink}
+                            placeholder="Ingrese el link de la experiencia..."
+                        />
+
+                        {/* Campo para agregar una pista */}
+
+                        <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={hint ?? ''}
+                            onChangeText={setHint}
+                            placeholder="Ingrese una pista para la experiencia..."
+                        />
+
+                        {/* Botón para actualizar con más espacio */}
+                        <TouchableOpacity
+                            style={[styles.updateButton, styles.updateButtonSpacing]}
+                            onPress={updateBookingStatus}
+                        >
+                            <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
+                        </TouchableOpacity>
                     </View>
-                    */}
-
-                    
-
-                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
-                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
-                    <Text style={styles.label}>
-                        <Ionicons name="time" size={16} color="#1877F2" /> 
-                        Horario Preferencia: {experienceHorario ? translateHorario(experienceHorario as HorarioPreferencia) : "Sin preferencia"}
-                    </Text>
-                    <Text style={styles.label}>
-                        <Ionicons name="pricetag" size={16} color="#1877F2" /> 
-                        Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
-                    </Text>
-
-                    <Text style={styles.label}><Ionicons name="text" size={16} color="#1877F2" /> Notas adicionales: {experienceNotasAdicionales ? experienceNotasAdicionales : "Sin notas adicionales"}</Text>
-
-                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Título: </Text>
-                    <TextInput
-                        style={styles.input}
-                        value={experienceTitle ?? ''}
-                        onChangeText={setExperienceTitle}
-                        placeholder="Ingrese el título de la experiencia..."
-                    />
-                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Descripción:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={experienceDescription ?? ''}
-                        onChangeText={setExperienceDescription}
-                        placeholder="Ingrese la descripción de la experiencia..."
-                    />
-                    <Text style={styles.label}><Ionicons name="link" size={16} color="#1877F2" /> Link: </Text>
-                    <TextInput
-                        style={styles.input}
-                        value={experienceLink ?? ''}
-                        onChangeText={setExperienceLink}
-                        placeholder="Ingrese el link de la experiencia..."
-                    />
-
-                    {/* Campo para agregar una pista */}
-
-                    <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
-                    <TextInput
-                        style={styles.input}
-                        value={hint ?? ''}
-                        onChangeText={setHint}
-                        placeholder="Ingrese una pista para la experiencia..."
-                    />
-
-                    {/* Botón para actualizar con más espacio */}
-                    <TouchableOpacity
-                        style={[styles.updateButton, styles.updateButtonSpacing]}
-                        onPress={updateBookingStatus}
-                    >
-                        <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-        </View>
+                )}
+            </View>
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        padding: 16,
+    },
     container: {
         flex: 1,
-        padding: 16,
         backgroundColor: '#f9f9f9',
-        alignItems: 'center', 
+        alignItems: 'center',
         justifyContent: 'center',
     },
     title: {
