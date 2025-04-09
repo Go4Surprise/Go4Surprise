@@ -40,6 +40,7 @@ export default function UserProfileScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 
   // Fetch user data from API
@@ -275,7 +276,8 @@ export default function UserProfileScreen() {
   
       if (response.status === 204) {
         await AsyncStorage.clear();
-        router.replace('/LoginScreen');
+        setShowDeleteModal(false);
+        router.replace('/'); // Redirect to main screen
       } else {
         Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
       }
@@ -347,7 +349,7 @@ export default function UserProfileScreen() {
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => void handleDeleteAccount()}>
+        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => setShowDeleteModal(true)}>
           <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
@@ -410,7 +412,7 @@ export default function UserProfileScreen() {
                   <Text style={styles.modalButtonText}>Guardar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setModalVisible(false); }}>
-                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                  <Text style={styles.cancelButton}>Cancelar</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -447,7 +449,36 @@ export default function UserProfileScreen() {
                 <Text style={styles.modalButtonText}>Guardar</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => { setPasswordModalVisible(false); }}>
+                <Text style={styles.cancelButton}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="warning" size={50} color="#d9534f" style={styles.modalIcon} />
+            <Text style={styles.modalTitle}>Eliminar Cuenta</Text>
+            <Text style={styles.modalText}>¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer y eliminará todas tus reservas asociadas.</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowDeleteModal(false)}
+              >
                 <Text style={styles.modalButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton]}
+                onPress={handleDeleteAccount}
+              >
+                <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -468,7 +499,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     backgroundColor: '#fff',
-    boxSizing: 'border-box',
+    boxSizing: 'border-box' as 'border-box', // Explicitly cast to valid BoxSizing type
   },
   
   dateButton: {
@@ -692,5 +723,32 @@ profileImagePreview: {
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 20,
+  },
+  confirmButton: {
+    backgroundColor: '#d9534f',
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  modalIcon: {
+    alignSelf: 'center',
+    marginBottom: 10,
   },
 });
