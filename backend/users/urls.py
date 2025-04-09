@@ -3,7 +3,7 @@ from .admin import admin_user_delete, admin_user_detail, admin_user_list, admin_
 from .views import (
     password_reset, register_user, login_user, update_preferences, get_usuario_id, 
     check_username_exists, password_reset_confirm, verify_email,
-    get_user_info, update_user_profile, delete_user_account, change_password, GoogleLogin
+    get_user_info, update_user_profile, delete_user_account, change_password, GoogleLogin, get_username_by_id
 )
 from django.contrib.auth.views import PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.views.decorators.csrf import csrf_exempt
@@ -32,4 +32,6 @@ urlpatterns = [
     path('admin/detail/<int:pk>/', admin_user_detail, name='admin_user_detail'),
     path('admin/update/<int:pk>/', admin_user_update, name='admin_user_update'),
     path('admin/delete/<int:pk>/', admin_user_delete, name='admin_user_delete'),
+
+    path('get-username/<uuid:user_id>/', get_username_by_id, name='get_username_by_id'),
 ]

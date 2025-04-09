@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -506,3 +506,15 @@ def password_reset_confirm(request, uidb64, token):
         return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_username_by_id(request, user_id):
+    """
+    Retrieve the username based on the user ID.
+    """
+    try:
+        user = get_object_or_404(Usuario, id=user_id)
+        return Response({"username": user.username}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

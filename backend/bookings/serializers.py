@@ -145,11 +145,13 @@ class ReservaSerializer(serializers.ModelSerializer):
     
 
 class AdminBookingSerializer(serializers.ModelSerializer):
-    experience = ExperienceSerializer()  # Incluir el serializador de la experiencia
+    experience = ExperienceSerializer()  # Include the experience serializer
+    user_name = serializers.CharField(source='user.name', read_only=True)  # Add user's name
+    user_email = serializers.EmailField(source='user.email', read_only=True)  # Add user's email
 
     class Meta:
         model = Booking
-        fields = '__all__'
+        fields = ['id', 'experience_date', 'participants', 'total_price', 'status', 'user_name', 'user_email', 'experience']  # Include user_name and user_email
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
