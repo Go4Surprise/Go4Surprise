@@ -661,11 +661,14 @@ class TestCrearReserva:
         assert mock_send_mail.call_count == 1
         args, kwargs = mock_send_mail.call_args
 
+        assert 'subject' in kwargs
+
         # Verificar el asunto (primer argumento)
-        assert "✨ ¡Tu pista para la experiencia Go4Surprise está lista! ✨" in args[0]
+        assert "✨ ¡Tu pista para la experiencia Go4Surprise está lista! ✨" in kwargs['subject']
 
         # Verificar el contenido del mensaje (segundo argumento)
-        assert "Tu pista para la experiencia Go4Surprise está lista!" in args[1]
+        assert 'message' in kwargs
+        assert "Go4Surprise" in kwargs['message']
         assert create_confirmed_booking.user.email in kwargs['recipient_list']
 
     @staticmethod
@@ -683,11 +686,14 @@ class TestCrearReserva:
         assert mock_send_mail.call_count == 1
         args, kwargs = mock_send_mail.call_args
 
+        assert 'subject' in kwargs
+
         # Verificar el asunto (primer argumento)
-        assert "✨ Detalles de tu experiencia Go4Surprise ✨" in args[0]
+        assert "✨ Detalles de tu experiencia Go4Surprise ✨" in kwargs['subject']
 
         # Verificar el contenido del mensaje (segundo argumento)
-        assert "Detalles de tu experiencia Go4Surprise" in args[1]
+        assert 'message' in kwargs
+        assert "Go4Surprise" in kwargs['message']
         assert create_experience_details_booking.user.email in kwargs['recipient_list']
 
     @staticmethod

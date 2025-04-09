@@ -1,3 +1,4 @@
+import json
 import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
@@ -54,7 +55,12 @@ class TestUserViews:
             "phone": "123456789",
             "birthdate": "2000-01-01"
         }
-        response = client.post(reverse('register'), data=data, format='json')
+        response = client.post(
+            reverse('register'),
+            data=json.dumps(data),  # convierte a string JSON
+            content_type='application/json'  # especifica tipo de contenido
+        )
+
         assert response.status_code == status.HTTP_201_CREATED
         assert "id" in response.data
         assert response.data["verification_sent"] is True
@@ -65,7 +71,11 @@ class TestUserViews:
             "password": "short",
             "email": "invalidemail"
         }
-        response = client.post(reverse('register'), data=data, format='json')
+        response = client.post(
+            reverse('register'),
+            data=json.dumps(data),  # convierte a string JSON
+            content_type='application/json'  # especifica tipo de contenido
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "username" in response.data
         assert "password" in response.data
@@ -77,7 +87,14 @@ class TestUserViews:
             "username": create_user.user.username,
             "password": "testpass"
         }
-        response = client.post(reverse('login'), data=data, format='json')
+        create_user.email_verified = True
+        create_user.save()
+
+        response = client.post(
+            reverse('login'),
+            data=json.dumps(data),  # convierte a string JSON
+            content_type='application/json'  # especifica tipo de contenido
+        )
         assert response.status_code == status.HTTP_200_OK
         assert "access" in response.data
         assert "refresh" in response.data
@@ -87,7 +104,11 @@ class TestUserViews:
             "username": "nonexistentuser",
             "password": "wrongpassword"
         }
-        response = client.post(reverse('login'), data=data, format='json')
+        response = client.post(
+            reverse('login'),
+            data=json.dumps(data),  # convierte a string JSON
+            content_type='application/json'  # especifica tipo de contenido
+        )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "error" in response.data
 
