@@ -547,3 +547,19 @@ def send_scheduled_notifications(request):
             "status": "error",
             "message": f"Error processing notifications: {str(e)}"
         }, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_booking_list(request):
+    """
+    Retrieve all bookings for admin view.
+    """
+    try:
+        bookings = Booking.objects.select_related('user').all()  # Use select_related to fetch related user data
+        serializer = AdminBookingSerializer(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": f"Error retrieving bookings: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

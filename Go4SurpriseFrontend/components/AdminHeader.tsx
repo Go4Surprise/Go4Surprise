@@ -2,12 +2,23 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 interface AdminHeaderProps {
     router: any;
     adminName: string;
     onLogout: () => void;
 }
+
+const handleLogout = async (router: any) => {
+    await AsyncStorage.removeItem('accessToken');
+    await AsyncStorage.removeItem('userId');
+    await AsyncStorage.removeItem('refreshToken');
+    await AsyncStorage.removeItem('id');
+    await AsyncStorage.removeItem('isAdmin');
+    router.replace('/LoginScreen');
+};
 
 const AdminHeader = ({ router, adminName, onLogout }: AdminHeaderProps) => {
     return (
@@ -23,7 +34,7 @@ const AdminHeader = ({ router, adminName, onLogout }: AdminHeaderProps) => {
                     </TouchableOpacity>
                 </View>
     
-                <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(router)}>
                     <Text style={styles.buttonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>
