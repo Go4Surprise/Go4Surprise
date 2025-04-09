@@ -50,7 +50,7 @@ export default function IndexScreen() {
               En Go4Surprise, eligiendo una fecha y ciudad, serás capaz de asistir a un evento totalmente sorpresa.{"\n\n"}
               Estas entradas además gozarán de un precio reducido en comparación con las vendidas por la competencia para el mismo evento.
             </Text>
-            <TouchableOpacity style={styles.homeButton} onPress={() => scrollToSection(contactRef)}>
+            <TouchableOpacity style={styles.homeButton} onPress={() => { scrollToSection(contactRef); }}>
               <Text style={styles.homeButtonText}>Contáctanos</Text>
             </TouchableOpacity>
 

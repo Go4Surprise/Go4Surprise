@@ -1,3 +1,4 @@
+import json
 import pytest
 from rest_framework.test import APIClient
 from django.urls import reverse
@@ -41,22 +42,31 @@ def test_post_review_happy_path(api_client_with_token, create_user, create_exper
     data = {
         'puntuacion': 4.5,
         'comentario': 'Excelente experiencia',
-        'user': str(create_user.id),
-        'experience': str(create_experience.id),
+        'user': create_user.id,
+        'experience': create_experience.id,
         'media_files': []
     }
-    response = api_client_with_token.post(reverse('create review'), data, format='json')
+
+    response = api_client_with_token.post(
+        reverse('create review'),
+        data=data
+    )
     assert response.status_code == status.HTTP_201_CREATED
+
 
 @pytest.mark.django_db
 def test_post_review_invalid_score(api_client_with_token, create_user, create_experience):
     data = {
         'puntuacion': 6.0,
         'comentario': 'Puntuación fuera de rango',
-        'user': str(create_user.id),
-        'experience': str(create_experience.id)
+        'user': create_user.id,
+        'experience': create_experience.id
     }
-    response = api_client_with_token.post(reverse('create review'), data, format='json')
+
+    response = api_client_with_token.post(
+        reverse('create review'),
+        data=data
+    )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 @pytest.mark.django_db
@@ -91,8 +101,35 @@ def test_get_reviews_by_experience_not_found(api_client_with_token):
 
 @pytest.mark.django_db
 def test_get_latest_ten_reviews(api_client_with_token, create_user, create_experience):
+    """
+    Crea 12 reviews relacionadas con una experiencia real y válidas para la lógica del backend.
+    """
+    from bookings.models import Booking
+    from datetime import date
+
+    # Creamos 12 reservas confirmadas para asociar reviews a algo más realista
     for i in range(12):
-        Reviews.objects.create(puntuacion=5.0, comentario=f'Reseña {i}', user=create_user, experience=create_experience)
+        booking = Booking.objects.create(
+            user=create_user,
+            experience=create_experience,
+            experience_date=date.today(),
+            booking_date=date.today(),
+            cancellable=True,
+            status="CONFIRMED",
+            participants=1,
+            price=50.0,
+            total_price=50.0,
+            payment_intent_id=f"pi_test_{i}"
+        )
+        Reviews.objects.create(
+            puntuacion=5.0,
+            comentario=f'Reseña {i}',
+            user=create_user,
+            experience=create_experience
+        )
+
     response = api_client_with_token.get(reverse('get latest ten reviews'))
     assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
     assert len(response.data) == 10
+
