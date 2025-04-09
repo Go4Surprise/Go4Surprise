@@ -405,6 +405,12 @@ const styles = StyleSheet.create({
         flex: 1, // Hacer que el Picker ocupe más espacio horizontal
         marginLeft: 15, // Agregar espacio entre el título y el Picker
     },
+    backButton: {
+        position: "absolute",
+        top: 45,
+        left: 20,
+        zIndex: 2,
+    },
 });
 
 export default AdminBookingsDetail;
