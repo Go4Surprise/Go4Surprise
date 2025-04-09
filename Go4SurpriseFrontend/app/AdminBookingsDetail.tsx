@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -203,7 +203,7 @@ const AdminBookingsDetail = () => {
     if (error) return <Text style={styles.errorText}>{error}</Text>;
 
     return (
-        <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
             <TouchableOpacity style={styles.backButton} onPress={() => router.push("/AdminBookingsPanel")}>
                     <Ionicons name="arrow-back" size={24} color="#333" />
                   </TouchableOpacity>
@@ -300,14 +300,14 @@ const AdminBookingsDetail = () => {
                     </TouchableOpacity>
                 </View>
             )}
-        </View>
+        </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        padding: 16,
+        flexGrow: 1,
+        padding: 20,
         backgroundColor: '#f9f9f9',
         alignItems: 'center', 
         justifyContent: 'center',
@@ -316,7 +316,8 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
+        marginTop: 20, 
         color: '#1877F2',
     },
     loader: {
