@@ -26,6 +26,7 @@ node_modules/
 /backend/*/__pycache__
 /backend/*/migrations/__pycache__
 /backend/.env
+/backend/dev/reviews
 
 .qodo
 /backend/static
