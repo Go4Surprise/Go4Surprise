@@ -32,7 +32,7 @@ interface User {
 // Add interface for experience data
 interface Experience {
   title: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   image: any;
   description: string;
 }
@@ -367,7 +367,6 @@ const styles = StyleSheet.create({
   profileIcon: {
     width: 53,
     height: 53,
-    borderRadius: 20,
     borderRadius: 27.5,
     borderWidth: 1,
     borderColor: '#E1E1E1',
@@ -473,7 +472,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
     alignItems: 'center',
-    transition: 'transform 0.2s ease-in-out',
   },
   icon: {
     marginBottom: 10,
@@ -504,7 +502,7 @@ const styles = StyleSheet.create({
   },
   modalImage: {
     width: '100%',
-    height: 150,
+    height: 400,
     borderRadius: 10,
     marginBottom: 15,
   },

@@ -33,7 +33,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from datetime import datetime
 
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from bookings.models import Booking
 
 
@@ -369,7 +369,7 @@ def get_usuario_id(request):
     operation_description="Permite al usuario autenticado actualizar su perfil, incluyendo nombre, apellido, email, teléfono y nombre de usuario.",
 )
 @api_view(['PUT'])
-@parser_classes([MultiPartParser, FormParser]) 
+@parser_classes([MultiPartParser, FormParser, JSONParser]) 
 @permission_classes([IsAuthenticated])
 def update_user_profile(request):
     try:
@@ -383,6 +383,8 @@ def update_user_profile(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 @swagger_auto_schema(

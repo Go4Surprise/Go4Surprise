@@ -23,7 +23,9 @@ import logging
 import stripe
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils.timezone import now
+from datetime import date
 
 
 logger = logging.getLogger(__name__)
@@ -184,7 +186,6 @@ def obtener_reservas_usuario(request, user_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-from datetime import date
 
 @swagger_auto_schema(
     method='get',
@@ -469,7 +470,6 @@ def notify_users_about_hint():
     """
     Notifica a los usuarios sobre la pista que se vuelve visible para sus reservas.
     """
-    from bookings.models import Booking  # Importar aquí para evitar importaciones circulares
 
     # Obtener reservas donde la pista se vuelve visible (48 horas antes de la fecha de la experiencia)
     threshold_date = now().date() + timedelta(days=2)
@@ -479,10 +479,21 @@ def notify_users_about_hint():
         # Verificar que la pista esté rellena, que la reserva esté confirmada y que el correo esté verificado
         if booking.experience and booking.experience.hint and booking.user.email_verified:
             subject = f"✨ ¡Tu pista para la experiencia Go4Surprise está lista! ✨"
-            message = f"""
+            from_email = config('DEFAULT_FROM_EMAIL')
+            to = [booking.user.email]
+
+            # Crear el contexto para la plantilla
+            context = {
+                "booking": booking,
+                "subject": subject,
+                "year": datetime.now().year,
+            }
+
+            # Contenido de texto plano como fallback
+            text_content = f"""
             Hola {booking.user.name},
 
-            ¡Estamos emocionados de que tu experiencia con Go4Surprise esté a menos de 48 horas de distancia! 🎉
+            ¡Estamos emocionados de que tu experiencia con Go4Surprise es en 2 días! 🎉
 
             Aquí tienes una pista exclusiva para tu aventura sorpresa:
             🕵️‍♂️ "{booking.experience.hint}" 🕵️‍♀️
@@ -499,13 +510,16 @@ def notify_users_about_hint():
             🌟 Nos vemos pronto,
             El equipo de Go4Surprise
             """
+            
+            # Renderizar la plantilla HTML
+            html_content = render_to_string("emails/pista.html", context)
+
+            # Crear el objeto de mensaje multipart
+            msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+            msg.attach_alternative(html_content, "text/html")
+
             try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[booking.user.email],
-                )
+                msg.send()
                 print(f"Email enviado a {booking.user.email} para la reserva {booking.id}")
             except Exception as e:
                 print(f"Error al enviar el email para la reserva {booking.id}: {str(e)}")
@@ -516,7 +530,6 @@ def notify_users_about_experience_details():
     """
     Notifica a los usuarios con todos los detalles de la experiencia y la pista 24 horas antes de la fecha de la experiencia.
     """
-    from bookings.models import Booking  # Importar aquí para evitar importaciones circulares
 
     # Obtener reservas donde la experiencia está a 24 horas de distancia
     threshold_date = now().date() + timedelta(days=1)
@@ -526,10 +539,21 @@ def notify_users_about_experience_details():
         # Verificar todos los detalles necesarios para enviar el correo
         if booking.experience.title and booking.experience.description and booking.experience.link and booking.experience and booking.experience.hint and booking.user.email_verified:
             subject = f"✨ Detalles de tu experiencia Go4Surprise ✨"
-            message = f"""
+            from_email = config('DEFAULT_FROM_EMAIL')
+            to = [booking.user.email]
+
+            # Crear el contexto para la plantilla
+            context = {
+                "booking": booking,
+                "subject": subject,
+                "year": datetime.now().year,
+            }
+
+            # Contenido de texto plano como fallback
+            text_content = f"""
             Hola {booking.user.name},
 
-            ¡Tu experiencia con Go4Surprise está a menos de 24 horas de distancia! 🎉 Aquí tienes todos los detalles que necesitas:
+            ¡Tu experiencia con Go4Surprise es mañana! 🎉 Aquí tienes todos los detalles que necesitas:
 
             Título: {booking.experience.title}
             Descripción: {booking.experience.description}
@@ -548,13 +572,16 @@ def notify_users_about_experience_details():
             🌟 Nos vemos pronto,
             El equipo de Go4Surprise
             """
+            
+            # Renderizar la plantilla HTML
+            html_content = render_to_string("emails/experiencia.html", context)
+
+            # Crear el objeto de mensaje multipart
+            msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+            msg.attach_alternative(html_content, "text/html")
+
             try:
-                send_mail(
-                    subject=subject,
-                    message=message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[booking.user.email],
-                )
+                msg.send()
                 print(f"Email enviado a {booking.user.email} para la reserva {booking.id}")
             except Exception as e:
                 print(f"Error al enviar el email para la reserva {booking.id}: {str(e)}")

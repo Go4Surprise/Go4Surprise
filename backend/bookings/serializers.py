@@ -151,7 +151,7 @@ class AdminBookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ['id', 'experience_date', 'participants', 'total_price', 'status', 'user_name', 'user_email', 'experience']  # Include user_name and user_email
+        fields = ['id', 'experience_date', 'participants', 'total_price', 'status', 'user_name', 'user_email', 'experience', 'booking_date']  # Include user_name and user_email
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
