@@ -6,13 +6,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
 import unittest, time
-from webdriver_manager.chrome import ChromeDriverManager
 
 class AppDynamicsJob(unittest.TestCase):
     def setUp(self):
         chrome_options = Options()
         chrome_options.add_argument("--start-maximized")
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        service = Service(r"C:\Webdriver\chromedriver-win64\chromedriver.exe")
+        self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.wait = WebDriverWait(self.driver, 30)
 
     def fill_field_safe(self, by, value, text):
@@ -29,7 +29,9 @@ class AppDynamicsJob(unittest.TestCase):
     def click_with_retry(self, by, value):
         for _ in range(3):
             try:
-                element = self.wait.until(EC.element_to_be_clickable((by, value)))
+                element = self.wait.until(EC.presence_of_element_located((by, value)))
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+                time.sleep(1)  # da tiempo a que se "active"
                 self.driver.execute_script("arguments[0].click();", element)
                 return
             except StaleElementReferenceException:
@@ -61,22 +63,16 @@ class AppDynamicsJob(unittest.TestCase):
             input.dispatchEvent(new Event('change', { bubbles: true }));
         """, birth_input, "2003-06-11")
 
-        # Aceptar política de privacidad (checkbox)
-        # Clic forzado en el icono del checkbox (Ionicons)
-        # Buscar el texto 'Política de Privacidad' y hacer clic en el checkbox siguiente
-        # Clic en el primer div de la fila donde está el checkbox y el texto
-        terms_row = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'He leído y acepto la')]")))
-        checkbox_area = terms_row.find_element(By.XPATH, "./preceding::div[1]")
-        driver.execute_script("arguments[0].click();", checkbox_area)
+        # Selecciona el checkbox por el texto adyacente o usa el icono directamente
+        checkbox = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@class, 'css-text') and contains(@class, 'userSelect')]")))
+        driver.execute_script("arguments[0].click();", checkbox)
 
-        # Clic en el botón Registrarse navegando desde el texto
-        register_text = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'Registrarse')]")))
-        register_button = register_text.find_element(By.XPATH, "./ancestor::*[contains(@class, 'button') or @role='button' or self::div]")
-        driver.execute_script("arguments[0].click();", register_button)
 
+        # Click en 'Registrarse'
+        self.click_with_retry(By.XPATH, "//div[contains(text(), 'Registrarse')]")
 
         # Esperar tras registrarse
-        time.sleep(5)
+        time.sleep(2)
 
 
     def tearDown(self):

@@ -6,13 +6,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
 import unittest, time
-from webdriver_manager.chrome import ChromeDriverManager
 
 class AppDynamicsJob(unittest.TestCase):
     def setUp(self):
         chrome_options = Options()
         chrome_options.add_argument("--start-maximized")
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        service = Service(r"C:\Webdriver\chromedriver-win64\chromedriver.exe")
+        self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.wait = WebDriverWait(self.driver, 30)
 
     def fill_field_safe(self, by, value, text):
@@ -69,7 +69,7 @@ class AppDynamicsJob(unittest.TestCase):
         self.click_with_retry(By.XPATH, "//*[contains(text(),'Guardar')]")
 
         # Esperar un poco para que se guarde y cerrar navegador
-        time.sleep(3)
+        time.sleep(4)
 
     def tearDown(self):
         self.driver.quit()
