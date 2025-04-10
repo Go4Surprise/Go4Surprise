@@ -243,3 +243,87 @@ class TestUpdatePreferences(TestCase):
         response = self.client.patch(reverse('update-preferences'), data=data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
+        
+class TestGetUsuarioId(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user, _ = User.objects.get_or_create(username="testuser", defaults={"password": "testpass"})
+        self.usuario, _ = Usuario.objects.get_or_create(
+            user=self.user,
+            defaults={"name": "Test", "surname": "User", "email": "testuser@example.com"}
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_usuario_id_happy_path(self):
+        url = reverse("get-usuario-id") + f"?user_id={self.user.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        # ✅ Convertimos a string para evitar comparación de UUID vs string
+        self.assertEqual(str(response.data["usuario_id"]), str(self.usuario.id))
+
+    def test_get_usuario_id_user_not_found(self):
+        url = reverse("get-usuario-id") + "?user_id=999999"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_usuario_id_missing_param(self):
+        url = reverse("get-usuario-id")  # Sin query param
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 400)
+
+    def tearDown(self):
+        Usuario.objects.all().delete()
+        User.objects.all().delete()
+
+
+class TestCheckUsernameExists(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user, _ = User.objects.get_or_create(username="existinguser", defaults={"password": "testpass"})
+
+    def test_check_username_exists_true(self):
+        url = reverse("check_username", args=["existinguser"])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["exists"])
+
+    def test_check_username_exists_false(self):
+        url = reverse("check_username", args=["unknownuser"])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["exists"])
+
+    def tearDown(self):
+        Usuario.objects.all().delete()
+        User.objects.all().delete()
+
+
+class TestPasswordReset(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user, _ = User.objects.get_or_create(username="resetuser", defaults={"password": "testpass"})
+        self.usuario, _ = Usuario.objects.get_or_create(
+            user=self.user,
+            defaults={"name": "Reset", "surname": "User", "email": "reset@example.com"}
+        )
+
+    def test_password_reset_invalid_email(self):
+        data = {"email": "unknown@example.com"}
+        response = self.client.post(
+            reverse("password_reset"),
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_password_reset_missing_email(self):
+        response = self.client.post(
+            reverse("password_reset"),
+            data=json.dumps({}),
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def tearDown(self):
+        Usuario.objects.all().delete()
+        User.objects.all().delete()
