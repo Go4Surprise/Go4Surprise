@@ -7,7 +7,9 @@ class ExperienceLoadTest(HttpUser):
 
     host = "http://localhost:8000"  # Configura la URL base
 
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODM5MzUzLCJpYXQiOjE3NDQyMzkzNTMsImp0aSI6ImJmZTQ0YTc0ODg1MzRhYWNiZGFkOTdhNGFjZTVhNTM2IiwidXNlcl9pZCI6MX0.34oXR48hx_liPeUnKRRYsVWgWa8EIxjKr2m2E_d0bww"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODgzMTM2LCJpYXQiOjE3NDQyODMxMzYsImp0aSI6IjY3MDUxOGVhNzk2YjQ5ODc4NzM1Zjc5YmMwOGZlNzlkIiwidXNlcl9pZCI6NTI0fQ.TJ7TTj0kq1GjM2lhYR7BdrcLz9W0qZTCqTr6J9Ht2iI"
+
+    refresh_token_value = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0NDM2OTUzNiwiaWF0IjoxNzQ0MjgzMTM2LCJqdGkiOiJlNmQ4NDIzOThjNzM0MjU5YjMzMzkyNGE4M2ZjZjgxOSIsInVzZXJfaWQiOjUyNH0.-T1CJYbBHw0EnCbXUhS11HrL52KR-WBv2pyR2DfT7MY"
 
     experience_ids = [
         "17504b79-7230-40fc-903b-0a203069440e",
@@ -15,7 +17,22 @@ class ExperienceLoadTest(HttpUser):
         "972f77b1-64b4-4270-b30a-64b6b1635239",
     ]
 
+    def refresh_token(self):
+        """Renueva el token de acceso utilizando el refresh token."""
+        response = self.client.post(
+            "/auth/token/refresh/",
+            json={"refresh": self.refresh_token_value},
+            headers={"Content-Type": "application/json"}
+        )
+        if response.status_code == 200:
+            self.token = response.json().get("access")
+        else:
+            print(f"Error al renovar el token: {response.status_code} - {response.text}")
+
     def get_headers(self):
+        """Obtiene los encabezados con el token actualizado."""
+        if not self.token:
+            self.refresh_token()
         return {
             "Authorization": f"Bearer {self.token}" if self.token else "",
             "Content-Type": "application/json",
