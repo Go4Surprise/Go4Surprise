@@ -41,6 +41,9 @@ export default function UserProfileScreen() {
   const [passwordError, setPasswordError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+
 
 
   // Fetch user data from API
@@ -428,21 +431,33 @@ export default function UserProfileScreen() {
 
             {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-            <TextInput
-              style={styles.input}
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-              placeholder="Contraseña actual"
-              secureTextEntry
-            />
+            {/* Contraseña actual */}
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholder="Contraseña actual"
+                secureTextEntry={!showCurrentPassword}
+              />
+              <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                <Ionicons name={showCurrentPassword ? "eye-off" : "eye"} size={24} color="#777" />
+              </TouchableOpacity>
+            </View>
 
-            <TextInput
-              style={styles.input}
-              value={newPassword}
-              onChangeText={setNewPassword}
-              placeholder="Nueva contraseña"
-              secureTextEntry
-            />
+            {/* Nueva contraseña */}
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="Nueva contraseña"
+                secureTextEntry={!showNewPassword}
+              />
+              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="#777" />
+              </TouchableOpacity>
+            </View>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButton} onPress={() => void handleChangePassword()}>
@@ -754,4 +769,13 @@ profileImagePreview: {
     alignSelf: 'center',
     marginBottom: 10,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 10,
+    paddingVertical: 5,
+  },
+  
 });
