@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -29,6 +29,7 @@ import json
 import uuid
 from django.conf import settings
 from rest_framework.parsers import MultiPartParser, FormParser
+from bookings.models import Booking
 
 
 logger = logging.getLogger(__name__)
@@ -370,13 +371,15 @@ def update_user_profile(request):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def delete_user_account(request):
-    """Elimina la cuenta del usuario autenticado"""
+    """Elimina la cuenta del usuario autenticado y sus reservas asociadas"""
     try:
         user = request.user
         usuario = user.usuario  # Relación con el modelo Usuario
 
-        print(f"Eliminando usuario {usuario.id} - {user.username}")  # Para debug
+        # Eliminar reservas asociadas
+        Booking.objects.filter(user=usuario).delete()
 
+        # Eliminar usuario
         usuario.delete()
         user.delete()
 
@@ -384,7 +387,7 @@ def delete_user_account(request):
     except Usuario.DoesNotExist:
         return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        print(f"Error al eliminar cuenta: {str(e)}")  # Para debug
+        print(f"Error al eliminar cuenta: {str(e)}")
         return Response({"error": f"Error al eliminar la cuenta: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -502,4 +505,16 @@ def password_reset_confirm(request, uidb64, token):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-    return JsonResponse({'error': 'Invalid request'}, status=400) 
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def get_username_by_id(request, user_id):
+    """
+    Retrieve the username based on the user ID.
+    """
+    try:
+        user = get_object_or_404(Usuario, id=user_id)
+        return Response({"username": user.username}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
