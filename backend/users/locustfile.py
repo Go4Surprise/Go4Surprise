@@ -7,17 +7,17 @@ class UsersLoadTest(HttpUser):
 
     host = "http://localhost:8000"
 
-    token_admin = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODM5MzUzLCJpYXQiOjE3NDQyMzkzNTMsImp0aSI6ImJmZTQ0YTc0ODg1MzRhYWNiZGFkOTdhNGFjZTVhNTM2IiwidXNlcl9pZCI6MX0.34oXR48hx_liPeUnKRRYsVWgWa8EIxjKr2m2E_d0bww"
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODQ0MzUxLCJpYXQiOjE3NDQyNDQzNTEsImp0aSI6ImUyNWU1MDZlMjMzMzQxODY5ODMzOTU0MDJhODk1YmNmIiwidXNlcl9pZCI6ODh9.6tcO4d2i9HS7e6lsS1yu_jUY_vSdU0riTog7HkYrmMo"
+    token_admin = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODgzMTM2LCJpYXQiOjE3NDQyODMxMzYsImp0aSI6IjY3MDUxOGVhNzk2YjQ5ODc4NzM1Zjc5YmMwOGZlNzlkIiwidXNlcl9pZCI6NTI0fQ.TJ7TTj0kq1GjM2lhYR7BdrcLz9W0qZTCqTr6J9Ht2iI"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjo0ODk3ODg0NjIxLCJpYXQiOjE3NDQyODQ2MjEsImp0aSI6IjZlODM3NjQzMTk2NDQzN2Q5MjZkZmFkYmY0NTkwYzhlIiwidXNlcl9pZCI6NTI3fQ.4s2kV0m2t8snSJi0_psH30OKUY5W6Uv6Ehbqhxf4c_I"
 
-    User_ids = [
-        "aae781ef-cd13-4efc-98fd-805403ddf44a",
+    user_ids = [
+        "f7382551-69c4-4b71-a325-bf2ad1957bf4",
     ]
     user_ids_admin = [
-        "af31f636-6313-42d2-a424-dd4ed95ae384",
+        "629b8d53-bbf8-495d-9685-fffe9eb5a3f5",
     ]
 
-    random_username = f"user_{uuid.uuid4().hex[:8]}"  # Genera un username aleatorio
+    random_username = f"user_{uuid.uuid4().hex[:8]}"
 
     def get_headers(self):
         return {
@@ -49,16 +49,20 @@ class UsersLoadTest(HttpUser):
 
         self.client.post("/users/register/", json=data, headers=headers) """
 
+    """ @task
+    def delete_user_account(self):
+        self.client.delete("/users/delete/", headers=null) """
+
     @task
     def login_user(self):
         """Prueba la URL para iniciar sesión."""
         data = {
-            "username": "test1",
-            "password": "test1test1"
+            "username": "prueba-josema",
+            "password": "contraseña"
         }
 
         headers = self.get_headers().copy()
-        headers.pop("Authorization", None)  # Elimina el encabezado Authorization
+        headers.pop("Authorization", None)
 
         self.client.post("/users/login/", json=data, headers=headers)
 
@@ -95,7 +99,51 @@ class UsersLoadTest(HttpUser):
 
         self.client.put("/users/update/", data=data, headers=headers)
 
-    """ @task
-    def delete_user_account(self):
-        self.client.delete("/users/delete/", headers=self.get_headers()) """
+    @task
+    def change_password(self):
+        """Prueba la URL para cambiar la contraseña."""
+        data = {
+            "current_password": "contraseña",
+            "new_password": "contraseña",
+        }
+        self.client.post("/users/change_password/", json=data, headers=self.get_headers())
 
+
+    @task
+    def check_username_exists(self):
+        """Prueba la URL para verificar si un nombre de usuario existe."""
+        username = "prueba-josema"
+        self.client.get(f"/users/check_username/{username}/", headers=self.get_headers())
+
+
+    # ------------------TESTS ADMIN---------------------------------------------------------------------
+
+
+    @task
+    def admin_list_users(self):
+        """Prueba la URL para listar usuarios (admin)."""
+        self.client.get("/users/admin/list/", headers=self.get_headers_admin())
+
+
+    @task
+    def admin_user_detail(self):
+        """Prueba la URL para obtener detalles de un usuario (admin)."""
+        user_id = 3
+        self.client.get(f"/users/admin/detail/{user_id}/", headers=self.get_headers_admin())
+
+
+    @task
+    def admin_update_user(self):
+        """Prueba la URL para actualizar un usuario (admin)."""
+        user_id = 3
+        data = {
+            "name": "Juanito",
+            "phone": "987654321"
+        }
+        self.client.put(f"/users/admin/update/{user_id}/", json=data, headers=self.get_headers())
+
+""" 
+    @task
+    def admin_delete_user(self):
+        user_id = random.choice(self.user_ids)
+        self.client.delete(f"/users/admin/delete/{user_id}/", headers=self.get_headers()) """
