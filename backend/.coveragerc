@@ -13,6 +13,7 @@ omit =
     */asgi.py
     */urls.py
     */settings.py
+    */locustfile.py
     
     manage.py
 
