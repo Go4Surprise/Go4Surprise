@@ -362,11 +362,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   profileButton: {
-    padding: 5,
+    padding: 2,
   },
   profileIcon: {
-    width: 52,
-    height: 52,
+    width: 53,
+    height: 53,
     borderRadius: 20,
     borderRadius: 27.5,
     borderWidth: 1,
@@ -458,8 +458,9 @@ const styles = StyleSheet.create({
   experiencesContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
     gap: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   experienceCard: {
     backgroundColor: '#f9f9f9',

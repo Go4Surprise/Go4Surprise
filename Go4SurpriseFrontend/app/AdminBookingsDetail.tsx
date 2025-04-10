@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,10 +25,10 @@ const categoriasMap: Record<Categoria, string> = {
     MUSIC: "Música",
 };
 
-const translateHorario = (horario: HorarioPreferencia | null): string => 
+const translateHorario = (horario: HorarioPreferencia | null): string =>
     horario ? horarioPreferenciaMap[horario] || horario : "Sin preferencia";
 
-const translateCategoria = (categoria: Categoria | null): string => 
+const translateCategoria = (categoria: Categoria | null): string =>
     categoria ? categoriasMap[categoria] || categoria : "Sin categoría";
 
 type BookingDetail = {
@@ -69,20 +69,20 @@ const AdminBookingsDetail = () => {
     const [experienceLink, setExperienceLink] = useState<string | null>(null);
     const [experienceNotasAdicionales, setExperienceNotasAdicionales] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
-    
+
     interface Experience {
         id: string;
         title: string;
-    };
+    }
 
-    const [experiences, setExperiences] = useState<Experience[]>([]); // Lista de experiencias
-    const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null); // Experiencia seleccionada
+    const [experiences, setExperiences] = useState<Experience[]>([]);
+    const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
         fetchBookingDetail();
-        fetchExperiences(); // Cargar experiencias disponibles
+        fetchExperiences();
     }, []);
 
     const fetchBookingDetail = async () => {
@@ -90,7 +90,7 @@ const AdminBookingsDetail = () => {
             const token = await AsyncStorage.getItem('accessToken');
             if (!token) {
                 Alert.alert('Error', 'No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
-                router.replace('/LoginScreen'); // Redirect to login if no token
+                router.replace('/LoginScreen');
                 return;
             }
 
@@ -100,25 +100,26 @@ const AdminBookingsDetail = () => {
                     'Content-Type': 'application/json',
                 },
             });
-            setBooking(response.data);
-            setSelectedStatus(response.data.status);
-            setExperienceDate(response.data.experience_date);
-            setParticipants(response.data.participants);
-            setTotalPrice(response.data.total_price);
-            setExperienceLocation(response.data.experience?.location || '');
-            setExperienceHorario(response.data.experience?.time_preference || null);
-            setExperienceCategories(response.data.experience?.categories || []);
-            setHint(response.data.experience?.hint || '');
-            setExperiencePrice(response.data.experience?.price || null);
-            setSelectedExperienceId(response.data.experience?.id || null); // Ensure experience ID is set
-            setExperienceTitle(response.data.experience?.title || '');
-            setExperienceDescription(response.data.experience?.description || '');
-            setExperienceLink(response.data.experience?.link || '');
-            setExperienceNotasAdicionales(response.data.experience?.notas_adicionales || '');
+            const data = response.data;
+            setBooking(data);
+            setSelectedStatus(data.status);
+            setExperienceDate(data.experience_date);
+            setParticipants(data.participants);
+            setTotalPrice(data.total_price);
+            setExperienceLocation(data.experience?.location || '');
+            setExperienceHorario(data.experience?.time_preference || null);
+            setExperienceCategories(data.experience?.categories || []);
+            setHint(data.experience?.hint || '');
+            setExperiencePrice(data.experience?.price || null);
+            setSelectedExperienceId(data.experience?.id || null);
+            setExperienceTitle(data.experience?.title || '');
+            setExperienceDescription(data.experience?.description || '');
+            setExperienceLink(data.experience?.link || '');
+            setExperienceNotasAdicionales(data.experience?.notas_adicionales || '');
         } catch (error: any) {
             if (error.response?.status === 401) {
                 Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                router.replace('/LoginScreen'); // Redirect to login on 401
+                router.replace('/LoginScreen');
             } else {
                 setError('Error al cargar los detalles de la reserva. Por favor, inténtalo de nuevo.');
             }
@@ -153,7 +154,7 @@ const AdminBookingsDetail = () => {
             const token = await AsyncStorage.getItem('accessToken');
             if (!token) {
                 Alert.alert('Error', 'No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
-                router.replace('/LoginScreen'); // Redirect to login if no token
+                router.replace('/LoginScreen');
                 return;
             }
 
@@ -191,7 +192,7 @@ const AdminBookingsDetail = () => {
         } catch (error: any) {
             if (error.response?.status === 401) {
                 Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                router.replace('/LoginScreen'); // Redirect to login on 401
+                router.replace('/LoginScreen');
             } else {
                 Alert.alert('Error', 'No se pudo actualizar la reserva.');
             }
@@ -203,102 +204,75 @@ const AdminBookingsDetail = () => {
     if (error) return <Text style={styles.errorText}>{error}</Text>;
 
     return (
-        <ScrollView contentContainerStyle={styles.scrollContainer}> {/* Wrap content in ScrollView */}
-            <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.backButton} onPress={() => router.push('/AdminBookingsPanel')}>
+                    <Ionicons name="arrow-back" size={24} color="#1877F2" />
+                </TouchableOpacity>
                 <Text style={styles.title}>Detalle de la Reserva</Text>
-                {booking && (
-                    <View style={styles.card}>
-                        <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
-                        <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
-                        <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
-                        <View style={styles.row}>
-                            <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
-                            <Picker
-                                selectedValue={selectedStatus || booking.status}
-                                onValueChange={(itemValue) => {
-                                    setSelectedStatus(itemValue);
-                                }}
-                                style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
-                            >
-                                <Picker.Item label="Pendiente" value="PENDING" />
-                                <Picker.Item label="Confirmada" value="CONFIRMED" />
-                                <Picker.Item label="Cancelada" value="cancelled" />
-                            </Picker>
-                        </View>
-
-                        {/* Mover el desplegable de experiencias al lado del título 
-                        <View style={styles.row}>
-                            <Text style={styles.label}><Ionicons name="briefcase" size={16} color="#1877F2" /> Experiencia:</Text>
-                            <Picker
-                                selectedValue={selectedExperienceId}
-                                onValueChange={(itemValue) => setSelectedExperienceId(itemValue)}
-                                style={[styles.transparentPicker, styles.widePicker]} // Aplicar estilos actualizados
-                            >
-                                {experiences.map((exp) => (
-                                    <Picker.Item key={exp.id} label={exp.title} value={exp.id} />
-                                ))}
-                            </Picker>
-                            
-                        </View>
-                        */}
-
-                        
-
-                        <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
-                        <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
-                        <Text style={styles.label}>
-                            <Ionicons name="time" size={16} color="#1877F2" /> 
-                            Horario Preferencia: {experienceHorario ? translateHorario(experienceHorario as HorarioPreferencia) : "Sin preferencia"}
-                        </Text>
-                        <Text style={styles.label}>
-                            <Ionicons name="pricetag" size={16} color="#1877F2" /> 
-                            Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
-                        </Text>
-
-                        <Text style={styles.label}><Ionicons name="text" size={16} color="#1877F2" /> Notas adicionales: {experienceNotasAdicionales ? experienceNotasAdicionales : "Sin notas adicionales"}</Text>
-
-                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Título: </Text>
-                        <TextInput
-                            style={styles.input}
-                            value={experienceTitle ?? ''}
-                            onChangeText={setExperienceTitle}
-                            placeholder="Ingrese el título de la experiencia..."
-                        />
-                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Descripción:</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={experienceDescription ?? ''}
-                            onChangeText={setExperienceDescription}
-                            placeholder="Ingrese la descripción de la experiencia..."
-                        />
-                        <Text style={styles.label}><Ionicons name="link" size={16} color="#1877F2" /> Link: </Text>
-                        <TextInput
-                            style={styles.input}
-                            value={experienceLink ?? ''}
-                            onChangeText={setExperienceLink}
-                            placeholder="Ingrese el link de la experiencia..."
-                        />
-
-                        {/* Campo para agregar una pista */}
-
-                        <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={hint ?? ''}
-                            onChangeText={setHint}
-                            placeholder="Ingrese una pista para la experiencia..."
-                        />
-
-                        {/* Botón para actualizar con más espacio */}
-                        <TouchableOpacity
-                            style={[styles.updateButton, styles.updateButtonSpacing]}
-                            onPress={updateBookingStatus}
-                        >
-                            <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
             </View>
+            {booking && (
+                <View style={styles.card}>
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
+                    <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
+                    <View style={styles.row}>
+                        <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
+                        <Picker
+                            selectedValue={selectedStatus || booking.status}
+                            onValueChange={(itemValue) => setSelectedStatus(itemValue)}
+                            style={[styles.transparentPicker, styles.widePicker]}
+                        >
+                            <Picker.Item label="Pendiente" value="PENDING" />
+                            <Picker.Item label="Confirmada" value="CONFIRMED" />
+                            <Picker.Item label="Cancelada" value="cancelled" />
+                        </Picker>
+                    </View>
+                    <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
+                    <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio de experiencia: {experiencePrice}</Text>
+                    <Text style={styles.label}>
+                        <Ionicons name="time" size={16} color="#1877F2" /> Horario Preferencia: {experienceHorario ? translateHorario(experienceHorario as HorarioPreferencia) : "Sin preferencia"}
+                    </Text>
+                    <Text style={styles.label}>
+                        <Ionicons name="pricetag" size={16} color="#1877F2" /> Categorías descartadas: {experienceCategories.length > 0 ? experienceCategories.map(cat => translateCategoria(cat as Categoria)).join(', ') : "Ninguna"}
+                    </Text>
+                    <Text style={styles.label}><Ionicons name="text" size={16} color="#1877F2" /> Notas adicionales: {experienceNotasAdicionales ? experienceNotasAdicionales : "Sin notas adicionales"}</Text>
+                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Título: </Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceTitle ?? ''}
+                        onChangeText={setExperienceTitle}
+                        placeholder="Ingrese el título de la experiencia..."
+                    />
+                    <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Descripción:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceDescription ?? ''}
+                        onChangeText={setExperienceDescription}
+                        placeholder="Ingrese la descripción de la experiencia..."
+                    />
+                    <Text style={styles.label}><Ionicons name="link" size={16} color="#1877F2" /> Link: </Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceLink ?? ''}
+                        onChangeText={setExperienceLink}
+                        placeholder="Ingrese el link de la experiencia..."
+                    />
+                    <Text style={styles.label}><Ionicons name="bulb" size={16} color="#1877F2" /> Pista:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={hint ?? ''}
+                        onChangeText={setHint}
+                        placeholder="Ingrese una pista para la experiencia..."
+                    />
+                    <TouchableOpacity
+                        style={[styles.updateButton, styles.updateButtonSpacing]}
+                        onPress={updateBookingStatus}
+                    >
+                        <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </ScrollView>
     );
 };
@@ -310,16 +284,20 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     container: {
-        flex: 1,
+        flexGrow: 1,
+        padding: 20,
         backgroundColor: '#f9f9f9',
         alignItems: 'center',
         justifyContent: 'center',
     },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
         color: '#1877F2',
     },
     loader: {
@@ -333,7 +311,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     card: {
-        width: '100%', 
+        width: '100%',
         maxWidth: 1200,
         backgroundColor: 'white',
         padding: 16,
@@ -390,26 +368,24 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     updateButtonSpacing: {
-        marginTop: 8, // Agregar espacio adicional entre el botón y las propiedades
+        marginTop: 8,
     },
     transparentPicker: {
         height: 40,
-        backgroundColor: 'white', // Fondo blanco como los inputs
-        borderColor: '#ddd', // Borde gris claro
+        backgroundColor: 'white',
+        borderColor: '#ddd',
         borderWidth: 1,
         borderRadius: 6,
         paddingHorizontal: 10,
         marginBottom: 10,
     },
     widePicker: {
-        flex: 1, // Hacer que el Picker ocupe más espacio horizontal
-        marginLeft: 15, // Agregar espacio entre el título y el Picker
+        flex: 1,
+        marginLeft: 15,
     },
     backButton: {
-        position: "absolute",
-        top: 45,
-        left: 20,
-        zIndex: 2,
+        marginRight: 10,
+        padding: 5, // Add padding to make it easier to tap
     },
 });
 
