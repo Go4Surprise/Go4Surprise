@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from bookings.models import Booking
 from .models import Usuario
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -107,6 +109,10 @@ def admin_user_delete(request, pk):
     """
     try:
         user = User.objects.get(pk=pk)
+        usuario = Usuario.objects.get(user=user)
+        # Eliminar reservas asociadas
+        Booking.objects.filter(user=usuario).delete()
+        usuario.delete()
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     except User.DoesNotExist:

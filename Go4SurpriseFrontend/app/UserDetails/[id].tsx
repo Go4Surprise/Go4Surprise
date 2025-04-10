@@ -93,40 +93,38 @@ export default function UserDetails() {
     };
 
     const handleDeleteUser = async () => {
-        const confirmed = await new Promise<boolean>((resolve) => {
-            Alert.alert(
-                "Confirmar eliminación",
-                "¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer.",
-                [
-                    { 
-                        text: "Cancelar", 
-                        style: "cancel", 
-                        onPress: () => { resolve(false); } 
-                    },
-                    { 
-                        text: "Eliminar", 
-                        style: "destructive",
-                        onPress: () => { resolve(true); }                    }
-                ]
-            );
-        });
-    
-        if (!confirmed) return;
-    
         try {
+            console.log("Delete function triggered for ID:", id);
+            
             const token = await AsyncStorage.getItem('accessToken');
-            await axios.delete(`${BASE_URL}/users/admin/delete/${id}/`, {
+            
+            if (!token) {
+                console.error("No access token found");
+                Alert.alert('Error', 'No se encontró el token de acceso');
+                return;
+            }
+            
+            const deleteUrl = `${BASE_URL}/users/admin/delete/${id}/`;
+            
+            const response = await axios.delete(deleteUrl, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
-            
+
             Alert.alert('Éxito', 'Usuario eliminado correctamente');
             router.replace('/AdminUserPanel');
-        } catch (error) {
-            Alert.alert('Error', 'No se pudo eliminar el usuario');
+        } catch (error: any) {
             console.error('Error deleting user:', error);
+            if (axios.isAxiosError(error)) {
+                console.error("Status:", error.response?.status);
+                console.error("Response data:", error.response?.data);
+            }
+            Alert.alert(
+                'Error', 
+                `No se pudo eliminar el usuario: ${error.message || 'Error desconocido'}`
+            );
         }
     };
 
