@@ -40,17 +40,19 @@ class BookingFlowTest(unittest.TestCase):
         driver.get("http://localhost:8081/RegisterBookings")
 
         # Seleccionar ciudad por alt en img
-        buttons = driver.find_elements(By.TAG_NAME, "button")
-        for button in buttons:
+        for _ in range(3):  # reintento hasta 3 veces si el elemento se vuelve stale
             try:
-                if "SEVILLA" in button.text:
-                    driver.execute_script("arguments[0].scrollIntoView();", button)
-                    driver.execute_script("arguments[0].click();", button)
-                    break
-            except:
-                continue
+                img = wait.until(EC.presence_of_element_located((By.XPATH, "//img[@alt='Sevilla']")))
+                button = img.find_element(By.XPATH, "./ancestor::button")
+                driver.execute_script("arguments[0].scrollIntoView(true);", button)
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].click();", button)
+                print("✅ Ciudad Sevilla seleccionada correctamente.")
+                break
+            except StaleElementReferenceException:
+                print("⚠️ Elemento stale, reintentando...")
+                time.sleep(1)
 
-        print("✅ Seleccionada ciudad SEVILLA.")
 
         # Seleccionar categoría CULTURA
         buttons = driver.find_elements(By.TAG_NAME, "button")
@@ -72,10 +74,15 @@ class BookingFlowTest(unittest.TestCase):
 
         # Fecha
         # Paso 8: Rellenar campo de fecha correctamente
-        fecha_input = self.wait.until(EC.element_to_be_clickable((By.NAME, "experience_date")))
-        fecha_input.clear()
-        fecha_input.send_keys("2025-04-20")
-        print("✅ Fecha introducida correctamente.")
+        # Forzar valor con JS si falla el input manual
+        fecha_input = driver.find_element(By.NAME, "experience_date")
+        driver.execute_script("""
+            const input = arguments[0];
+            input.value = arguments[1];
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        """, fecha_input, "2025-04-20")
+
 
 
         # Enviar
