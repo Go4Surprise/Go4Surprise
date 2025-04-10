@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 const estadoMap: Record<string, string> = {
     PENDING: "Pendiente",
     CONFIRMED: "Confirmada",
-    cancelled: "Cancelada",
+    CANCELLED: "Cancelada",
 };
 
 const translateEstado = (estado: string): string => {
@@ -181,12 +181,12 @@ const AdminBookings = () => {
         const cardStyle = [
             styles.card,
             isPastDate ? styles.cardPastDate : null,
-            item.status === 'cancelled' ? styles.cardCancelled : null,
+            item.status === 'CANCELLED' ? styles.cardCancelled : null,
             item.status === 'CONFIRMED' ? styles.cardConfirmed : null,
         ];
         const statusTextStyle = [
             styles.statusText,
-            item.status === 'cancelled' ? styles.statusCancelled : null,
+            item.status === 'CANCELLED' ? styles.statusCancelled : null,
             item.status === 'CONFIRMED' ? styles.statusConfirmed : null,
         ];
 
@@ -402,6 +402,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 10,
+        paddingTop: 30,
     },
     dashboardButton: {
         padding: 8,

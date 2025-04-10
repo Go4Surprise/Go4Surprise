@@ -225,7 +225,7 @@ const AdminBookingsDetail = () => {
                         >
                             <Picker.Item label="Pendiente" value="PENDING" />
                             <Picker.Item label="Confirmada" value="CONFIRMED" />
-                            <Picker.Item label="Cancelada" value="cancelled" />
+                            <Picker.Item label="Cancelada" value="CANCELLED" />
                         </Picker>
                     </View>
                     <Text style={styles.label}><Ionicons name="location" size={16} color="#1877F2" /> Ubicación: {experienceLocation}</Text>
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
         marginLeft: 15,
     },
     backButton: {
-        marginRight: 10,
+        marginRight: 5,
         padding: 5, // Add padding to make it easier to tap
     },
 });
