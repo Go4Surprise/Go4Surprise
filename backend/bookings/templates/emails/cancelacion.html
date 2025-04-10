@@ -1,0 +1,13 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>Cancelación confirmada</h2>
+<p>Hola <strong>{{ usuario.name }}</strong>,</p>
+<p>Hemos recibido tu solicitud de <strong>cancelación</strong> para la experiencia sorpresa.</p>
+<p style="color: green;"><strong>Te confirmamos que procederemos con el reembolso de tu pago de inmediato.</strong></p>
+<p>Si tienes alguna pregunta, no dudes en contactarnos respondiendo a este correo.</p>
+
+<p>Gracias por elegirnos y esperamos <em>sorprenderte</em> muy pronto. 🎁</p>
+
+<p style="margin-top: 30px;">Un saludo,<br><strong>El equipo de Go4Surprise</strong></p>
+{% endblock %}
