@@ -21,9 +21,9 @@ from django.core.mail import send_mail
 from decouple import config
 import logging
 import stripe
-from django.core.mail import send_mail
-from django.utils.timezone import now
-from datetime import timedelta
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from datetime import datetime
 
 
 logger = logging.getLogger(__name__)
@@ -52,6 +52,43 @@ def crear_reserva(request):
       if serializer.is_valid():
             reserva_obj = serializer.save()
             response_serializer = ReservaSerializer(reserva_obj)
+
+            # Enviar correo electrónico al usuario
+            usuario = reserva_obj.user
+            from_email = config('DEFAULT_FROM_EMAIL')
+            to = [usuario.email]
+            subject = "Confirmación de reserva - Go4Surprise"
+            context = {
+                "usuario": usuario,
+                "subject": subject,
+                "year": datetime.now().year,
+                "experience_date": reserva_obj.experience_date,
+                "location": reserva_obj.experience.location,
+                "total_price": reserva_obj.total_price,
+            }
+
+            text_content = f"""
+            Hola {usuario.name},
+            Gracias por reservar con nosotros. Tu reserva ha sido confirmada y estamos emocionados de sorprenderte.
+            Aquí tienes los detalles de tu reserva:
+            - Fecha de experiencia: {reserva_obj.experience_date}
+            - Ubicación: {reserva_obj.experience.location}
+            - Precio total: {reserva_obj.total_price} EUR
+            Si tienes alguna pregunta, no dudes en contactarnos.
+            ¡Gracias por elegirnos y esperamos sorprenderte pronto!
+            Atentamente,
+            El equipo de Go4Surprise
+            """
+        
+            html_content = render_to_string("emails/confirmacion.html", context)
+
+            msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+            msg.attach_alternative(html_content, "text/html")
+
+            try:
+                msg.send()
+            except Exception as e:
+                logger.error(f"Error al enviar email de cancelación: {str(e)}")
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
       
       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -379,7 +416,16 @@ def cancelar_reserva(request, id):
 
             usuario = reserva.user
             subject = "Confirmación de cancelación y reembolso - Go4Surprise"
-            message = f"""
+            from_email = config('DEFAULT_FROM_EMAIL')
+            to = [usuario.email]
+
+            context = {
+                "usuario": usuario,
+                "subject": subject,
+                "year": datetime.now().year,
+            }
+
+            text_content = f"""
             Hola {usuario.name},
         
             Hemos recibido tu solicitud de cancelación para la experiencia sorpresa. Lamentamos que no puedas disfrutarla esta vez. Te confirmamos que procederemos con el reembolso de tu pago de inmediato.
@@ -392,13 +438,13 @@ def cancelar_reserva(request, id):
             El equipo de Go4Surprise
             """
         
+            html_content = render_to_string("emails/cancelacion.html", context)
+
+            msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+            msg.attach_alternative(html_content, "text/html")
+
             try:
-                send_mail(
-                subject=subject,
-                message=message,
-                from_email=config('DEFAULT_FROM_EMAIL'),
-                recipient_list=[usuario.email],
-                )
+                msg.send()
             except Exception as e:
                 logger.error(f"Error al enviar email de cancelación: {str(e)}")
 
