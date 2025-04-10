@@ -37,10 +37,11 @@ const PoliticaPrivacidad = () => {
 
       <Text
         style={[styles.paragraph, { color: 'blue', textDecorationLine: 'underline' }]}
-        onPress={() => Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
+        onPress={() => void Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
       >
         Go4surprise.ispp@gmail.com
       </Text>
+
 
       <Text style={styles.sectionTitle}>3. Recopilación de Datos Personales</Text>
       <Text style={styles.paragraph}>
@@ -104,7 +105,7 @@ const PoliticaPrivacidad = () => {
         Las solicitudes pueden realizarse contactando al servicio de atención al cliente a través del correo: 
         <Text
           style={[styles.paragraph, { color: 'blue', textDecorationLine: 'underline' }]}
-          onPress={() => Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
+          onPress={() => void Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
         >
           Go4surprise.ispp@gmail.com
         </Text>
@@ -151,7 +152,7 @@ const PoliticaPrivacidad = () => {
         Cualquier cambio será notificado a los usuarios a través de la plataforma o correo electrónico  <br></br>
         <Text
           style={[styles.paragraph, { color: 'blue', textDecorationLine: 'underline' }]}
-          onPress={() => Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
+          onPress={() => void Linking.openURL('mailto:Go4surprise.ispp@gmail.com')}
         >
           Go4surprise.ispp@gmail.com
         </Text>
