@@ -84,7 +84,7 @@ export default function RegisterScreen() {
         "Debes aceptar la política de privacidad y condiciones de uso";
     }
 
-    const nameRegex = /^[A-Za-z]+$/;
+    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+(?:\s[A-Za-zÁÉÍÓÚáéíóúÑñ]+)*$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]+$/;
 
