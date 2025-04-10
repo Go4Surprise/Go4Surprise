@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     View, Text, StyleSheet, FlatList, TouchableOpacity,
-    ActivityIndicator, Alert, useWindowDimensions, Modal, Button
+    ActivityIndicator, Alert, useWindowDimensions, Modal, Button, TextInput
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
@@ -35,12 +35,17 @@ interface Booking {
 }
 
 const AdminBookings = () => {
+    const { width, height } = useWindowDimensions(); // Get screen dimensions
     const [bookings, setBookings] = useState<Booking[]>([]);
+    const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]); // For search results
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null); // New state for success message
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState<'date' | 'username'>('date'); // Sorting criteria
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc'); // Sorting order
+    const [searchQuery, setSearchQuery] = useState(''); // Search query
     const router = useRouter();
     const searchParams = useLocalSearchParams();
 
@@ -54,6 +59,39 @@ const AdminBookings = () => {
             setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
         }
     }, [searchParams.successMessage]); // Add dependency to re-trigger when params change
+
+    useEffect(() => {
+        applyFiltersAndSorting();
+    }, [bookings, sortBy, sortOrder, searchQuery]); // Reapply filters and sorting when dependencies change
+
+    const applyFiltersAndSorting = () => {
+        let updatedBookings = [...bookings];
+
+        // Apply search filter
+        if (searchQuery) {
+            updatedBookings = updatedBookings.filter(
+                (booking) =>
+                    booking.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    booking.user_email.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        // Apply sorting
+        updatedBookings.sort((a, b) => {
+            if (sortBy === 'date') {
+                const dateA = new Date(a.experience_date).getTime();
+                const dateB = new Date(b.experience_date).getTime();
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+            } else if (sortBy === 'username') {
+                const nameA = a.user_name.toLowerCase();
+                const nameB = b.user_name.toLowerCase();
+                return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+            }
+            return 0;
+        });
+
+        setFilteredBookings(updatedBookings);
+    };
 
     const checkAdminStatus = async () => {
         const isAdmin = await AsyncStorage.getItem('isAdmin');
@@ -154,7 +192,7 @@ const AdminBookings = () => {
 
         return (
             <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
-                <View style={cardStyle}>
+                <View style={[cardStyle, { width: width * 0.9 }]}>
                     <Text style={styles.label}>
                         <Ionicons name="person" size={16} color="#1877F2" /> Usuario: {item.user_name} ({item.user_email})
                     </Text>
@@ -175,7 +213,7 @@ const AdminBookings = () => {
     if (error) return <Text style={styles.errorText}>{error}</Text>;
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { paddingHorizontal: width * 0.05 }]}>
             <View style={styles.header}>
                 <TouchableOpacity style={styles.dashboardButton} onPress={() => router.push('/AdminPanel')}>
                     <Ionicons name="grid-outline" size={24} color="#1877F2" />
@@ -187,10 +225,46 @@ const AdminBookings = () => {
             </View>
             <Text style={styles.title}>Gestión de Reservas</Text>
             {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
+
+            {/* Search Bar */}
+            <TextInput
+                style={[styles.searchBar, { width: width * 0.9 }]}
+                placeholder="Buscar por nombre de usuario o correo electrónico"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            />
+
+            {/* Sorting Options */}
+            <View style={[styles.sortingContainer, { width: width * 0.9 }]}>
+                <TouchableOpacity
+                    style={styles.sortButton}
+                    onPress={() => {
+                        setSortBy('date');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                    }}
+                >
+                    <Text style={styles.sortButtonText}>
+                        Ordenar por Fecha ({sortOrder === 'asc' ? 'Ascendente' : 'Descendente'})
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.sortButton}
+                    onPress={() => {
+                        setSortBy('username');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                    }}
+                >
+                    <Text style={styles.sortButtonText}>
+                        Ordenar por Usuario ({sortOrder === 'asc' ? 'Ascendente' : 'Descendente'})
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
-                data={bookings}
+                data={filteredBookings}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
+                contentContainerStyle={{ alignItems: 'center' }}
                 ListEmptyComponent={<Text style={styles.noBookingsText}>No hay reservas registradas.</Text>}
             />
             <Modal
@@ -216,7 +290,6 @@ const AdminBookings = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
         backgroundColor: '#f9f9f9',
     },
     title: {
@@ -348,6 +421,32 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    searchBar: {
+        height: 40,
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+        backgroundColor: '#fff',
+    },
+    sortingContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    sortButton: {
+        padding: 10,
+        backgroundColor: '#1877F2',
+        borderRadius: 8,
+        flex: 1,
+        marginHorizontal: 5,
+    },
+    sortButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        textAlign: 'center',
     },
 });
 
