@@ -137,10 +137,14 @@ class UsersLoadTest(HttpUser):
         """Prueba la URL para actualizar un usuario (admin)."""
         user_id = 3
         data = {
-            "name": "Juanito",
-            "phone": "987654321"
+            "is_active": True,
+            "is_staff": False,
+            "is_superuser": False,
+            "name": "Juan",
+            "surname": "Pérez",
+            "phone": "123456789"
         }
-        self.client.put(f"/users/admin/update/{user_id}/", json=data, headers=self.get_headers())
+        self.client.put(f"/users/admin/update/{user_id}/", json=data, headers=self.get_headers_admin())
 
 """ 
     @task
