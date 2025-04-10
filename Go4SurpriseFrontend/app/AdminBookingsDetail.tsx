@@ -34,6 +34,7 @@ const translateCategoria = (categoria: Categoria | null): string =>
 type BookingDetail = {
     id: string;
     experience_date: string;
+    booking_date: string;
     participants: number;
     total_price: number;
     status: string;
@@ -69,6 +70,7 @@ const AdminBookingsDetail = () => {
     const [experienceLink, setExperienceLink] = useState<string | null>(null);
     const [experienceNotasAdicionales, setExperienceNotasAdicionales] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
+    const [bookingDate, setBookingDate] = useState<string | null>(null);
 
     interface Experience {
         id: string;
@@ -116,6 +118,7 @@ const AdminBookingsDetail = () => {
             setExperienceDescription(data.experience?.description || '');
             setExperienceLink(data.experience?.link || '');
             setExperienceNotasAdicionales(data.experience?.notas_adicionales || '');
+            setBookingDate(data.booking_date);
         } catch (error: any) {
             if (error.response?.status === 401) {
                 Alert.alert('Sesión expirada', 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -177,6 +180,7 @@ const AdminBookingsDetail = () => {
                     experience_date: experienceDate,
                     participants: participants,
                     total_price: totalPrice,
+                    booking_date: bookingDate
                 },
                 {
                     headers: {
@@ -213,7 +217,20 @@ const AdminBookingsDetail = () => {
             </View>
             {booking && (
                 <View style={styles.card}>
-                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha: {experienceDate}</Text>
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha de la experiencia:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={experienceDate ?? ''}
+                        onChangeText={setExperienceDate}
+                        placeholder="YYYY-MM-DD"
+                    />
+                    <Text style={styles.label}><Ionicons name="calendar" size={16} color="#1877F2" /> Fecha de Reserva:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={bookingDate ?? ''}
+                        onChangeText={setBookingDate}
+                        placeholder="YYYY-MM-DD"
+                    />
                     <Text style={styles.label}><Ionicons name="people" size={16} color="#1877F2" /> Participantes: {participants}</Text>
                     <Text style={styles.label}><Ionicons name="pricetag" size={16} color="#1877F2" /> Precio Total: {totalPrice?.toString() ?? ''} €</Text>
                     <View style={styles.row}>
