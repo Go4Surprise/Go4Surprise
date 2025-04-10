@@ -28,10 +28,14 @@ const CondicionesUso = () => {
       </Text>
 
       <Text style={styles.sectionTitle}>1. Requisitos de edad y uso</Text>
-      <Text style={styles.listItem}>• Los usuarios deben ser mayores de 18 años para registrarse y hacer reservas en la plataforma.</Text>
-      <Text style={styles.listItem}>• Si un usuario es menor de 18 años, solo podrá participar en eventos si la reserva es realizada por un adulto responsable (padre, madre o tutor legal).</Text>
-      <Text style={styles.listItem}>• El adulto que realiza la reserva asume la responsabilidad total por el menor, incluyendo el cumplimiento de las normativas de seguridad y las condiciones del evento.</Text>
-      <Text style={styles.listItem}>• En caso de que un menor reserve un evento sin la debida autorización de un adulto, Go4Surprise se reserva el derecho de cancelar la reserva sin reembolso.</Text>
+
+      <Text style={styles.listItem}>• Los usuarios pueden registrarse en la plataforma sin importar su edad.</Text>
+      <Text style={styles.listItem}>• Durante el registro, se solicitará la fecha de nacimiento del usuario para adaptar las actividades y experiencias disponibles según su edad.</Text>
+      <Text style={styles.listItem}>• Si un usuario es menor de 18 años, podrá participar en eventos y actividades acordes a su edad. Sin embargo, algunas experiencias pueden requerir la reserva o autorización de un adulto responsable (padre, madre o tutor legal).</Text>
+      <Text style={styles.listItem}>• El adulto que realice la reserva o autorice la participación de un menor asume la responsabilidad total, incluyendo el cumplimiento de las normativas de seguridad y las condiciones del evento.</Text>
+      <Text style={styles.listItem}>• Go4Surprise se reserva el derecho de cancelar reservas que no cumplan con los requisitos de edad establecidos para cada actividad.</Text>
+      <Text style={styles.listItem}>• <Text style={{ fontWeight: 'bold' }}>Si un usuario proporciona información falsa sobre su edad</Text>, Go4Surprise no se hará responsable de los problemas que puedan surgir. En tales casos, la decisión final sobre la participación en el evento quedará a criterio del organizador del evento.</Text>
+
 
       <Text style={styles.sectionTitle}>2. Responsabilidad del usuario</Text>
       <Text style={styles.listItem}>• El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso, que incluyen su nombre de usuario y contraseña. Se compromete a notificar inmediatamente a Go4Surprise en caso de uso no autorizado de su cuenta o cualquier violación de seguridad.</Text>
@@ -43,7 +47,29 @@ const CondicionesUso = () => {
       <Text style={styles.subItem}>  - Realizar transacciones fraudulentas o no autorizadas</Text>
       <Text style={styles.subItem}>  - Interferir con el funcionamiento normal de la plataforma</Text>
       <Text style={styles.listItem}>• Los usuarios no deben compartir información sobre eventos sorpresa, incluyendo detalles, pistas, ubicaciones y cualquier otro dato que pueda revelar la naturaleza de la sorpresa, antes de la fecha del evento. La confidencialidad es clave para mantener la experiencia de sorpresa; cualquier infracción a esta política puede resultar en la anulación de la reserva.</Text>
-      <Text style={styles.listItem}>• La plataforma está destinada exclusivamente para el uso personal de los usuarios. Se prohíbe el uso de Go4Surprise para fines comerciales, como la reventa de entradas o la promoción de negocios sin la autorización expresa de la empresa.</Text>
+
+      <Text style={styles.sectionTitle}>4. Uso inadecuado de la plataforma</Text>
+
+      <Text style={styles.paragraph}>
+        La plataforma Go4Surprise está destinada exclusivamente para el uso personal de los usuarios. Se prohíbe estrictamente cualquier uso con fines comerciales sin la autorización expresa de la empresa, incluyendo, pero no limitado a:
+      </Text>
+
+      <Text style={styles.listItem}>• La reventa de entradas adquiridas a través de la plataforma.</Text>
+      <Text style={styles.listItem}>• La promoción de negocios, servicios o eventos ajenos a Go4Surprise sin autorización.</Text>
+      <Text style={styles.listItem}>• La compra de entradas con el propósito de revenderlas a terceros, ya sea a título personal o mediante plataformas externas.</Text>
+
+      <Text style={styles.paragraph}>
+        En caso de que Go4Surprise detecte que una entrada adquirida a través de la plataforma ha sido revendida o utilizada con fines comerciales no autorizados, nos reservamos el derecho de tomar las acciones que consideremos oportunas, incluyendo la cancelación de la entrada sin derecho a reembolso y la suspensión o eliminación de la cuenta del usuario infractor.
+      </Text>
+
+      <Text style={styles.paragraph}>
+        Además, si Go4Surprise obtiene evidencia de que la reventa o uso indebido de entradas adquiridas en la plataforma ha generado perjuicios o incumple las condiciones establecidas, podremos emprender acciones legales contra los responsables para proteger los derechos de la empresa y de los usuarios legítimos.
+      </Text>
+
+      <Text style={styles.paragraph}>
+        La plataforma está destinada exclusivamente para el uso personal de los usuarios. Se prohíbe el uso de Go4Surprise para fines comerciales, como la reventa de entradas o la promoción de negocios sin la autorización expresa de la empresa.
+      </Text>
+
     </ScrollView>
     </>
   );
@@ -55,6 +81,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: '#ffffff',
+    paddingTop: 50,
   },
   title: {
     fontSize: 26,
