@@ -1,0 +1,49 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h2>✨ ¡Tu experiencia está a punto de comenzar! ✨</h2>
+<p>Hola <strong>{{ booking.user.name }}</strong>,</p>
+<p>¡Tu experiencia con Go4Surprise es mañana! 🎉 Aquí tienes todos los detalles que necesitas:</p>
+
+<div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #ff6b6b; margin: 15px 0;">
+    <h3 style="color: #ff6b6b; margin-top: 0;">Detalles de la experiencia</h3>
+    <p><strong>Título:</strong> {{ booking.experience.title }}</p>
+    <p><strong>Descripción:</strong> {{ booking.experience.description }}</p>
+    <p><strong>Enlace:</strong> <a href="{{ booking.experience.link }}" target="_blank">{{ booking.experience.link }}</a></p>
+</div>
+
+<h3>Información de tu reserva:</h3>
+<table style="width: 100%; border-collapse: collapse;">
+    <tr style="background-color: #f2f2f2;">
+        <td style="padding: 8px; border: 1px solid #ddd;">🕵️‍♂️ Pista:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;"><em>"{{ booking.experience.hint }}"</em></td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">📅 Fecha:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{ booking.experience_date }}</td>
+    </tr>
+    <tr style="background-color: #f2f2f2;">
+        <td style="padding: 8px; border: 1px solid #ddd;">⏰ Horario preferido:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{ booking.experience.time_preference }}</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">📍 Ubicación:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{ booking.experience.location }}</td>
+    </tr>
+    <tr style="background-color: #f2f2f2;">
+        <td style="padding: 8px; border: 1px solid #ddd;">💰 Precio total:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{ booking.total_price }}€</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px; border: 1px solid #ddd;">👥 Participantes:</td>
+        <td style="padding: 8px; border: 1px solid #ddd;">{{ booking.participants }}</td>
+    </tr>
+</table>
+
+<p style="margin-top: 20px;"><strong>¡Prepárate para disfrutar de una experiencia inolvidable llena de sorpresas y emociones!</strong></p>
+<p>Si tienes alguna pregunta o necesitas más información, no dudes en contactarnos respondiendo a este correo.</p>
+
+<p>¡Gracias por confiar en Go4Surprise para tus aventuras!</p>
+
+<p>🌟 Nos vemos pronto,<br><strong>El equipo de Go4Surprise</strong></p>
+{% endblock %}
