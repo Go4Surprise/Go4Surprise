@@ -290,7 +290,7 @@ export default function MoreReviews() {
                 <Text style={styles.headerTitle}>Opiniones de usuarios</Text>
             </View>
             
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 30 }]}>
                 <View style={styles.masonryContainer}>
                     {columns.map((column, columnIndex) => (
                         <View 

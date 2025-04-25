@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import {
   Platform,
   StatusBar,
   useWindowDimensions,
-  Modal
+  Modal,
+  Animated,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useNavigation } from 'expo-router';
@@ -77,9 +79,56 @@ const experiencesData: Experience[] = [
   },
 ];
 
+// Define quotes and images
+const quotes = [
+  "La vida misma es una sorpresa. Atrévete a descubrir la tuya.",
+  "Lo mejor de la vida llega sin avisar.",
+  "Cada día es una nueva aventura esperando a ser vivida.",
+  "Las experiencias inolvidables comienzan con un ‘¿y si…?’",
+  "La magia está en lo inesperado.",
+  "El mejor plan es el que aún no conoces.",
+  "No necesitas conocer el destino para disfrutar del viaje.",
+  "Las sorpresas dan sabor a la rutina.",
+  "Donde menos lo esperas, nace el recuerdo más grande.",
+  "Vive hoy. Sorpréndete siempre.",
+];
+
+const sorpresinImages = [
+  require('../assets/images/sorpresin/Sorpresin1.png'),
+  require('../assets/images/sorpresin/Sorpresin2.png'),
+  require('../assets/images/sorpresin/Sorpresin3.png'),
+  require('../assets/images/sorpresin/Sorpresin4.png'),
+];
+
+// Define interface for reviews
+interface Review {
+  firstName: string;
+  lastName: string;
+  reviewText: string;
+}
+
+// Mock reviews data (replace with actual data if available)
+const reviewsData: Review[] = [
+  { firstName: "Juan", lastName: "Pérez", reviewText: "¡Increíble experiencia! Me encantó." },
+  { firstName: "María", lastName: "Gómez", reviewText: "Una sorpresa inolvidable, lo recomiendo." },
+  { firstName: "Carlos", lastName: "López", reviewText: "Todo estuvo perfecto, repetiría sin duda." },
+  { firstName: "Ana", lastName: "Martínez", reviewText: "La organización fue excelente, muy divertido." },
+  { firstName: "Luis", lastName: "Hernández", reviewText: "Una experiencia única, superó mis expectativas." },
+];
+
+// Reutilizar el componente StarRating
+const StarRating = ({ stars }: { stars: number }) => (
+  <View style={styles.reviewRating}>
+    {Array.from({ length: stars }).map((_, i) => (
+      <Ionicons key={i} name="star" size={16} color="#FFD700" />
+    ))}
+  </View>
+);
+
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
+  const reviewCardWidth = width * 0.7; // Extraer constante para ancho de tarjeta
 
   // Definiciones de tamaños de pantalla más detalladas
   const isSmallMobile = width < 375;
@@ -90,29 +139,97 @@ export default function HomeScreen() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<User>({});
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [scrollX] = useState(new Animated.Value(0)); // Animación para el desplazamiento horizontal de las reviews
+  const [currentIndex, setCurrentIndex] = useState(0); // Índice actual del carrusel de reviews
+  const [error, setError] = useState<string | null>(null);
+  const [randomQuote, setRandomQuote] = useState<string>('');
+  const [randomImage, setRandomImage] = useState<any>(null);
+  const [imageHoverAnimation] = useState(new Animated.Value(1)); // Inicializa la animación de hover para imágenes
+  const [quoteAnimation] = useState(new Animated.Value(0)); // Inicializa la animación para la frase
+  const reviewScrollRef = useRef<ScrollView>(null); // Add ref for ScrollView
 
-  
+  const scaleAnimations = useState(() => {
+    const animations = experiencesData.reduce((acc, experience) => {
+      acc[experience.title] = new Animated.Value(1); // Inicializa la escala en 1 para categorías
+      return acc;
+    }, {} as { [key: string]: Animated.Value });
+
+    // Inicializa la escala en 1 para las reviews
+    for (let i = 0; i < 5; i++) {
+      animations[`review-${i}`] = new Animated.Value(1);
+    }
+
+    return animations;
+  })[0];
+
+  const handlePressIn = (key: string) => {
+    if (scaleAnimations[key]) {
+      Animated.spring(scaleAnimations[key], {
+        toValue: 1.2, // Escala al 120% para el efecto de pop
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const handlePressOut = (key: string) => {
+    if (scaleAnimations[key]) {
+      Animated.spring(scaleAnimations[key], {
+        toValue: 1, // Vuelve a la escala original
+        friction: 3, // Reduce la fricción para un efecto más suave
+        tension: 40, // Aumenta la tensión para un rebote más rápido
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const handleImageHoverIn = () => {
+    Animated.spring(imageHoverAnimation, {
+      toValue: 1.2, // Escala al 120%
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleImageHoverOut = () => {
+    Animated.spring(imageHoverAnimation, {
+      toValue: 1, // Vuelve a la escala original
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleNextReview = () => {
+    const nextIndex = (currentIndex + 1) % reviewsData.length;
+    reviewScrollRef.current?.scrollTo({ x: nextIndex * width * 0.7, animated: true }); // Use ref to scroll
+    setCurrentIndex(nextIndex);
+  };
+
+  const handlePrevReview = () => {
+    const prevIndex = (currentIndex - 1 + reviewsData.length) % reviewsData.length;
+    reviewScrollRef.current?.scrollTo({ x: prevIndex * width * 0.7, animated: true }); // Use ref to scroll
+    setCurrentIndex(prevIndex);
+  };
+
   const fetchUserData = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
       if (!token) {
         return;
       }
-      
+
       const response = await axios.get(`${BASE_URL}/users/get_user_info/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       setUser({
         pfp: response.data.pfp || '',
       });
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      setError("No se pudo cargar la información del usuario.");
     }
   };
-
 
   // Verificar estado de administrador
   const checkAdminStatus = useCallback(async () => {
@@ -127,6 +244,34 @@ export default function HomeScreen() {
       fetchUserData();
     }, [checkAdminStatus])
   );
+
+  // Unificar lógica de desplazamiento automático
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNextReview(); // Desplazamiento automático
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    // Select a random quote and image on screen refresh
+    setRandomQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    setRandomImage(sorpresinImages[Math.floor(Math.random() * sorpresinImages.length)]);
+
+    // Animar la entrada de la frase y la imagen
+    Animated.sequence([
+      Animated.timing(imageHoverAnimation, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(quoteAnimation, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Estilos dinámicos basados en el tamaño de la pantalla
   const dynamicStyles = {
@@ -165,9 +310,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { paddingBottom: 30 }]} // Añadir paddingBottom
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -200,14 +346,14 @@ export default function HomeScreen() {
                 source={
                   user.pfp
                     ? {
-                      uri: user.pfp.startsWith('http')
-                        ? user.pfp
-                        : `${BASE_URL}${user.pfp}`
-                    }
+                        uri: user.pfp.startsWith('http')
+                          ? user.pfp
+                          : `${BASE_URL}${user.pfp}`,
+                      }
                     : require("../assets/images/user-logo-none.png")
                 }
                 style={styles.profileIcon}
-                onError={() => setUser(prev => ({ ...prev, pfp: '' }))}
+                onError={() => setUser((prev) => ({ ...prev, pfp: '' }))}
               />
             </TouchableOpacity>
           </View>
@@ -220,10 +366,13 @@ export default function HomeScreen() {
         <View style={styles.centeredContainer}>
           <ImageBackground
             source={require("../assets/images/LittleBackground.jpg")}
-            style={[styles.background, {
-              height: isSmallMobile ? 200 : isMobile ? 250 : isTablet ? 300 : 400,
-              width: isDesktop ? 1024 : isTablet ? "100%" : "100%"
-            }]}
+            style={[
+              styles.background,
+              {
+                height: isSmallMobile ? 200 : isMobile ? 250 : isTablet ? 300 : 400,
+                width: isDesktop ? 1024 : isTablet ? "100%" : "100%",
+              },
+            ]}
             imageStyle={styles.image}
             resizeMode="cover"
           >
@@ -231,7 +380,7 @@ export default function HomeScreen() {
               <Text style={[styles.subtitle, dynamicStyles.mainSubtitle]}>
                 ATRÉVETE A UNA
               </Text>
-              <Text style={[styles.subtitle, dynamicStyles.mainSubtitle]}>
+              <Text style={[styles.subtitle, dynamicStyles.mainSubtitle]}> {/* Cambiar stylessubtitle a styles.subtitle */}
                 EXPERIENCIA SORPRESA
               </Text>
               <Text style={[styles.subsubtitle, dynamicStyles.subsubtitle]}>
@@ -242,12 +391,57 @@ export default function HomeScreen() {
                   style={[styles.surpriseButton, dynamicStyles.buttons]}
                   activeOpacity={0.8}
                   onPress={() => router.push("/RegisterBookings")}
+                  accessibilityLabel="Botón para registrarse en una experiencia sorpresa"
                 >
-                  <Text style={[styles.surpriseButtonText, dynamicStyles.buttonText]}>¡Sorpréndeme!</Text>
+                  <Text style={[styles.surpriseButtonText, dynamicStyles.buttonText]}>
+                    ¡Sorpréndeme!
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
           </ImageBackground>
+        </View>
+
+        {/* Quote Section */}
+        <View style={styles.quoteContainer}>
+          <View style={styles.quoteContent}>
+            <TouchableWithoutFeedback
+              onPressIn={handleImageHoverIn}
+              onPressOut={handleImageHoverOut}
+            >
+              <Animated.Image
+                source={randomImage}
+                style={[
+                  styles.quoteImage,
+                  { transform: [{ scale: imageHoverAnimation }] },
+                ]}
+                resizeMode="contain"
+              />
+            </TouchableWithoutFeedback>
+            <View style={styles.quoteTextContainer}>
+              <Animated.Text
+                style={[
+                  styles.quoteText,
+                  {
+                    opacity: quoteAnimation,
+                    transform: [
+                      {
+                        translateY: quoteAnimation.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [20, 0],
+                        }),
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={styles.quoteMarks}>“</Text>
+                {randomQuote}
+                <Text style={styles.quoteMarks}>”</Text>
+              </Animated.Text>
+              <Text style={styles.quoteAuthor}>Go4Surprise</Text>
+            </View>
+          </View>
         </View>
 
         {/* Experiences Section */}
@@ -255,17 +449,29 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Experiencias que ofrecemos</Text>
           <View style={styles.experiencesContainer}>
             {experiencesData.map((experience) => (
-              <TouchableOpacity
+              <TouchableWithoutFeedback
                 key={experience.title}
-                style={styles.experienceCard}
-                activeOpacity={0.8}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                onPress={() => setSelectedExperience(experience)}
+                onPress={() => {
+                  handlePressIn(experience.title);
+                  setTimeout(() => handlePressOut(experience.title), 150); // Ensure the pop effect completes
+                }}
               >
-                <Ionicons name={experience.icon} size={24} color="#004AAD" style={styles.icon} />
-                <Text style={styles.experienceTitle}>{experience.title}</Text>
-              </TouchableOpacity>
+                <Animated.View
+                  style={[
+                    styles.experienceCard,
+                    { transform: [{ scale: scaleAnimations[experience.title] }] },
+                  ]}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setSelectedExperience(experience)}
+                    accessibilityLabel={`Seleccionar experiencia de ${experience.title}`}
+                  >
+                    <Ionicons name={experience.icon} size={24} color="#004AAD" style={styles.icon} />
+                    <Text style={styles.experienceTitle}>{experience.title}</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </TouchableWithoutFeedback>
             ))}
           </View>
         </View>
@@ -286,6 +492,7 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={() => setSelectedExperience(null)}
+                  accessibilityLabel="Cerrar detalles de la experiencia"
                 >
                   <Text style={styles.closeButtonText}>Cerrar</Text>
                 </TouchableOpacity>
@@ -295,7 +502,50 @@ export default function HomeScreen() {
         )}
 
         {/* Reviews Section */}
-        <Reviews navigation={navigation} />
+        <View style={{ marginTop: 30 }}>
+          <Text style={styles.sectionTitle}>Opiniones de nuestros usuarios</Text>
+          <View style={styles.reviewsCarouselContainer}>
+            <TouchableOpacity
+              onPress={handlePrevReview}
+              style={styles.carouselButton}
+              accessibilityLabel="Botón para ir a la reseña anterior"
+            >
+              <Ionicons name="chevron-back" size={24} color="#004AAD" />
+            </TouchableOpacity>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              ref={reviewScrollRef}
+              scrollEnabled={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.reviewsCarousel}
+            >
+              {reviewsData.map((review, index) => (
+                <View key={`review-${index}`} style={[styles.reviewCard, { width: reviewCardWidth }]}>
+                  <Ionicons name="person-circle-outline" size={60} color="#ccc" style={{ marginBottom: 10 }} />
+                  <Text style={styles.reviewUserName}>{`${review.firstName} ${review.lastName}`}</Text>
+                  <Text style={styles.reviewText}>{review.reviewText}</Text>
+                  <StarRating stars={4.5} /> {/* Ejemplo con 4.5 estrellas */}
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              onPress={handleNextReview}
+              style={styles.carouselButton}
+              accessibilityLabel="Botón para ir a la siguiente reseña"
+            >
+              <Ionicons name="chevron-forward" size={24} color="#004AAD" />
+            </TouchableOpacity>
+          </View>
+          {/* Botón Mostrar Más */}
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            onPress={() => router.push('/MoreReviews')}
+            accessibilityLabel="Botón para mostrar más opiniones"
+          >
+            <Text style={styles.showMoreButtonText}>Más opiniones</Text> {/* Cambiar texto */}
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -420,21 +670,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   surpriseButton: {
-    backgroundColor: "blue",
+    backgroundColor: "#004AAD", // Cambiar a un color más oscuro
     borderRadius: 25,
     shadowColor: "#000",
     shadowOpacity: 0.4,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
     elevation: 5,
+    paddingVertical: 12, // Más espacio interno
+    paddingHorizontal: 25,
   },
   surpriseButtonText: {
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
+    fontSize: 18, // Aumentar tamaño de texto
   },
   bookingsButton: {
-    backgroundColor: "blue",
+    backgroundColor: "blue", // Cambiar a un color más oscuro
     borderRadius: 25,
     shadowColor: "#000",
     shadowOpacity: 0.4,
@@ -448,11 +701,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 26, // Aumentar el tamaño texto
     fontWeight: 'bold',
     color: '#004AAD',
     marginBottom: 20,
     textAlign: 'center',
+    textTransform: 'uppercase', // Convertir a mayúsculas
+    letterSpacing: 1.2, // Espaciado entre letras
   },
   experiencesContainer: {
     flexDirection: 'row',
@@ -467,14 +722,16 @@ const styles = StyleSheet.create({
     padding: 15,
     width: '48%',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15, // Suavizar la sombra
     shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
+    shadowRadius: 10, // Aumentar el radio de la sombra
     elevation: 6,
-    alignItems: 'center',
+    alignItems: 'center', // Centrar contenido horizontalmente
+    justifyContent: 'center', // Centrar contenido verticalmente
   },
   icon: {
     marginBottom: 10,
+    textAlign: 'center', // Asegurar que el ícono esté centrado
   },
   experienceTitle: {
     fontSize: 18,
@@ -486,7 +743,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center', // Centrar contenido horizontalmente
   },
   modalContainer: {
     width: '80%',
@@ -527,6 +784,127 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginVertical: 10,
+    fontSize: 16,
+  },
+  quoteContainer: {
+    marginTop: 20,
+    marginBottom: 30,
+    padding: 20,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#004AAD',
+    width: '90%',
+    alignSelf: 'center',
+  },
+  quoteContent: {
+    flexDirection: 'column', // Cambia a columna para centrar verticalmente
+    alignItems: 'center', // Centra horizontalmente
+    justifyContent: 'center', // Centra verticalmente
+    gap: 15, // Espacio entre la imagen y la frase
+  },
+  quoteTextContainer: {
+    alignItems: 'center', // Centra el texto horizontalmente
+    marginTop: 10, // Espacio entre la imagen y el texto
+  },
+  quoteText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+    color: '#004AAD',
+    textAlign: 'center', // Centra el texto
+    marginBottom: 5,
+  },
+  quoteAuthor: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center', // Centra el autor
+  },
+  quoteMarks: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#004AAD',
+  },
+  quoteImage: {
+    width: 100, // Aumenta el tamaño de la imagen
+    height: 100,
+  },
+  reviewsCarouselContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reviewsCarousel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  reviewCard: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 15,
+    padding: 15,
+    marginHorizontal: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reviewImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  reviewUserName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#004AAD',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  reviewText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  carouselButton: {
+    padding: 10,
+  },
+  showMoreButton: {
+    marginTop: 20,
+    alignSelf: 'center',
+    borderColor: '#007ACC', // Cambiar a un tono más suave
+    borderWidth: 2, // Añadir borde
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+  },
+  showMoreButtonText: {
+    color: '#007ACC', // Cambiar el texto al mismo color que el borde
     fontWeight: 'bold',
     fontSize: 16,
   },
