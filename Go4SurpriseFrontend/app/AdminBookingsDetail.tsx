@@ -83,8 +83,8 @@ const AdminBookingsDetail = () => {
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
-        fetchBookingDetail();
-        fetchExperiences();
+        void fetchBookingDetail();
+        void fetchExperiences();
     }, []);
 
     const fetchBookingDetail = async () => {
@@ -170,7 +170,7 @@ const AdminBookingsDetail = () => {
                         location: experienceLocation,
                         time_preference: experienceHorario,
                         categories: experienceCategories,
-                        hint: hint || "",
+                        hint: hint ?? "",
                         price: experiencePrice,
                         title: experienceTitle,
                         description: experienceDescription,
@@ -236,8 +236,8 @@ const AdminBookingsDetail = () => {
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
                         <Picker
-                            selectedValue={selectedStatus || booking.status}
-                            onValueChange={(itemValue) => setSelectedStatus(itemValue)}
+                            selectedValue={selectedStatus ?? booking.status}
+                            onValueChange={(itemValue) => { setSelectedStatus(itemValue); }}
                             style={[styles.transparentPicker, styles.widePicker]}
                         >
                             <Picker.Item label="Pendiente" value="PENDING" />

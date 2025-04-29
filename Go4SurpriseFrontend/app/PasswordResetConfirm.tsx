@@ -58,7 +58,7 @@ const PasswordResetConfirm = () => {
                 />
                 <TouchableOpacity
                     style={styles.eyeIcon}
-                    onPress={() => setShowPassword(!showPassword)}
+                    onPress={() => { setShowPassword(!showPassword); }}
                 >
                     <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#666" />
                 </TouchableOpacity>
@@ -76,7 +76,7 @@ const PasswordResetConfirm = () => {
                 />
                 <TouchableOpacity
                     style={styles.eyeIcon}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onPress={() => { setShowConfirmPassword(!showConfirmPassword); }}
                 >
                     <Ionicons name={showConfirmPassword ? "eye-off" : "eye"} size={24} color="#666" />
                 </TouchableOpacity>

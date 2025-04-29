@@ -39,12 +39,12 @@ const BookingDetailsScreen = () => {
         console.error("Error obteniendo el token:", error);
       }
     };
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   useEffect(() => {
     if (!bookingId) return; // No ejecutar si `bookingId` aún es null
-    fetchBookingDetails();
+    void fetchBookingDetails();
   }, [bookingId]); // Se ejecuta solo cuando `bookingId` cambia y no es null
 
   const handlePayment = async () => {
@@ -68,7 +68,7 @@ const BookingDetailsScreen = () => {
           setShowWebView(true);
         } else {
           // Fallback a Linking (abre el navegador predeterminado)
-          Linking.openURL(checkout_url);
+          void Linking.openURL(checkout_url);
         }
       } else {
         console.error("No se recibió una URL de pago.");
@@ -249,13 +249,13 @@ const BookingDetailsScreen = () => {
         <Modal
           visible={showWebView}
           animationType="slide"
-          onRequestClose={() => setShowWebView(false)}
+          onRequestClose={() => { setShowWebView(false); }}
         >
           <View style={styles.webViewContainer}>
             <View style={styles.webViewHeader}>
               <TouchableOpacity 
                 style={styles.closeButton} 
-                onPress={() => setShowWebView(false)}
+                onPress={() => { setShowWebView(false); }}
               >
                 <Ionicons name="close-outline" size={28} color="#333" />
               </TouchableOpacity>
