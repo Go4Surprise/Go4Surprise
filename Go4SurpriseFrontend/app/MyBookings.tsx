@@ -551,7 +551,7 @@ const MyBookings = () => {
             />
 
             <Text style={styles.modalLabel}>Añadir fotos o videos (máx. 5)</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={pickMedia}>
+            <TouchableOpacity style={styles.uploadButton} onPress={() => { void pickMedia(); }}>
               <Text style={styles.uploadButtonText}>Seleccionar archivo</Text>
             </TouchableOpacity>
 
@@ -589,7 +589,7 @@ const MyBookings = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitReviewButton, { opacity: submittingReview ? 0.7 : 1 }]}
-                onPress={submitReview}
+                onPress={() => { submitReview() }}
                 disabled={submittingReview}
               >
                 {submittingReview ? (

@@ -31,7 +31,7 @@ const translateHorario = (horario: HorarioPreferencia | null): string =>
 const translateCategoria = (categoria: Categoria | null): string =>
     categoria ? categoriasMap[categoria] || categoria : "Sin categoría";
 
-type BookingDetail = {
+interface BookingDetail {
     id: string;
     experience_date: string;
     booking_date: string;
@@ -77,14 +77,12 @@ const AdminBookingsDetail = () => {
         title: string;
     }
 
-    const [experiences, setExperiences] = useState<Experience[]>([]);
     const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
         void fetchBookingDetail();
-        void fetchExperiences();
     }, []);
 
     const fetchBookingDetail = async () => {
@@ -129,21 +127,6 @@ const AdminBookingsDetail = () => {
             console.error('Error fetching booking detail:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchExperiences = async () => {
-        try {
-            const token = await AsyncStorage.getItem('accessToken');
-            const response = await axios.get(`${BASE_URL}/experiences/list/`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            setExperiences(response.data);
-        } catch (error) {
-            console.error('Error fetching experiences:', error);
         }
     };
 
@@ -284,7 +267,7 @@ const AdminBookingsDetail = () => {
                     />
                     <TouchableOpacity
                         style={[styles.updateButton, styles.updateButtonSpacing]}
-                        onPress={updateBookingStatus}
+                        onPress={() => { updateBookingStatus() }}
                     >
                         <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
                     </TouchableOpacity>

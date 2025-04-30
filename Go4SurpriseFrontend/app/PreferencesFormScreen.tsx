@@ -76,7 +76,7 @@ import React, { useState, useEffect } from 'react';
    const fadeAnim = useState(new Animated.Value(1))[0];
    const slideAnim = useState(new Animated.Value(0))[0];
    const cardOpacity = useState(new Animated.Value(1))[0];
-   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+   const { width: screenWidth } = Dimensions.get('window');
    const [isLargeScreen, setIsLargeScreen] = useState(screenWidth > 768);
  
    // Handle screen dimension changes
@@ -112,17 +112,17 @@ import React, { useState, useEffect } from 'react';
    const getCategorySelections = (category: string, selections: CategorySelections): string[] => {
      switch (category) {
        case 'Música':
-         return selections.Música ?? [];
+         return selections["Música"] ?? [];
        case 'Cultura y Arte':
          return selections["Cultura y Arte"] ?? [];
        case 'Deporte y Motor':
          return selections["Deporte y Motor"] ?? [];
        case 'Gastronomía':
-         return selections.Gastronomía ?? [];
+         return selections["Gastronomía"] ?? [];
        case 'Ocio Nocturno':
          return selections["Ocio Nocturno"] ?? [];
        case 'Aventura':
-         return selections.Aventura ?? [];
+         return selections["Aventura"] ?? [];
        default:
          return [];
      }
@@ -163,7 +163,7 @@ import React, { useState, useEffect } from 'react';
      // Update or add the category
      switch (category) {
        case 'Música':
-         newSelectedOptions.Música = updatedSelections;
+         newSelectedOptions["Música"] = updatedSelections;
          break;
        case 'Cultura y Arte':
          newSelectedOptions["Cultura y Arte"] = updatedSelections;
@@ -172,13 +172,13 @@ import React, { useState, useEffect } from 'react';
          newSelectedOptions["Deporte y Motor"] = updatedSelections;
          break;
        case 'Gastronomía':
-         newSelectedOptions.Gastronomía = updatedSelections;
+         newSelectedOptions["Gastronomía"] = updatedSelections;
          break;
        case 'Ocio Nocturno':
          newSelectedOptions["Ocio Nocturno"] = updatedSelections;
          break;
        case 'Aventura':
-         newSelectedOptions.Aventura = updatedSelections;
+         newSelectedOptions["Aventura"] = updatedSelections;
          break;
      }
  
@@ -296,12 +296,12 @@ import React, { useState, useEffect } from 'react';
      try {
        // Using an explicit mapping approach to avoid bracket notation
        const payload = {
-         music: selectedOptions.Música ?? ["🚫 Nada en especial"],
+         music: selectedOptions["Música"] ?? ["🚫 Nada en especial"],
          culture: selectedOptions["Cultura y Arte"] ?? ["🚫 Nada en especial"],
          sports: selectedOptions["Deporte y Motor"] ?? ["🚫 Nada en especial"],
-         gastronomy: selectedOptions.Gastronomía ?? ["🚫 Nada en especial"],
+         gastronomy: selectedOptions["Gastronomía"] ?? ["🚫 Nada en especial"],
          nightlife: selectedOptions["Ocio Nocturno"] ?? ["🚫 Nada en especial"],
-         adventure: selectedOptions.Aventura ?? ["🚫 Nada en especial"]
+         adventure: selectedOptions["Aventura"] ?? ["🚫 Nada en especial"]
        };
  
        console.log("Datos enviados:", payload);

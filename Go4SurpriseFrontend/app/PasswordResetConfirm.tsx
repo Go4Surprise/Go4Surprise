@@ -85,7 +85,7 @@ const PasswordResetConfirm = () => {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <TouchableOpacity style={styles.button} onPress={() => { handleSubmit() }}>
                 <Text style={styles.buttonText}>Restablecer</Text>
             </TouchableOpacity>
         </View>

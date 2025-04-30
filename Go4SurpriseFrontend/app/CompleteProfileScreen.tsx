@@ -114,7 +114,7 @@ export default function CompleteProfileScreen() {
         ) : (
           <>
             <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => { setShowDatePicker(true); }}
               style={styles.dateButton}
             >
               <Text style={styles.dateText}>{birthdate || 'Selecciona una fecha (YYYY-MM-DD)'}</Text>

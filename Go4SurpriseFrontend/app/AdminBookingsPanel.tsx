@@ -19,9 +19,11 @@ const translateEstado = (estado: string): string => {
     const dangerousProps = ['__proto__', 'constructor', 'prototype'];
 
     // Only allow access if the key exists in estadoMap and is not a dangerous property
-    return !dangerousProps.includes(estado) && Object.prototype.hasOwnProperty.call(estadoMap, estado)
-    ? estadoMap[estado]
-    : estado;
+    if (dangerousProps.includes(estado) && !Object.prototype.hasOwnProperty.call(estadoMap, estado)) {
+        return estado;
+    }
+
+    return estadoMap[estado];
   };
 
 interface Booking {
@@ -35,7 +37,7 @@ interface Booking {
 }
 
 const AdminBookings = () => {
-    const { width, height } = useWindowDimensions(); // Get screen dimensions
+    const { width } = useWindowDimensions(); // Get screen dimensions
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]); // For search results
     const [loading, setLoading] = useState(true);
@@ -151,7 +153,7 @@ const AdminBookings = () => {
             if (success) {
                 setBookings((prevBookings) => prevBookings.filter((booking) => booking.id !== selectedBookingId)); // Update state
                 setSuccessMessage('La reserva se ha eliminado correctamente.');
-                setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+                setTimeout(() => { setSuccessMessage(null); }, 3000); // Clear message after 3 seconds
             }
         }
         setModalVisible(false); // Hide modal
@@ -278,7 +280,7 @@ const AdminBookings = () => {
                         <Text style={styles.modalText}>¿Estás seguro de que quieres eliminar esta reserva?</Text>
                         <View style={styles.modalButtons}>
                             <Button title="Cancelar" onPress={() => { setModalVisible(false); }} color="#6c757d" />
-                            <Button title="Eliminar" onPress={confirmDeleteBooking} color="#dc3545" />
+                            <Button title="Eliminar" onPress={() => { confirmDeleteBooking() }} color="#dc3545" />
                         </View>
                     </View>
                 </View>

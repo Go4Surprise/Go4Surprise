@@ -84,18 +84,16 @@ export default function UserProfileScreen() {
 
   // Open edit profile modal with current user data
   const handleEditProfile = () => {
-    if (user) {
-        setEditedUser({
-            name: user.name || '',
-            surname: user.surname || '', 
-            username: user.username || '',  
-            email: user.email || '',
-            phone: user.phone || '',
-            pfp: user.pfp || '',
-            birthdate: user.birthdate || new Date(),
-        });
-        setModalVisible(true);
-    }
+      setEditedUser({
+          name: user.name || '',
+          surname: user.surname || '', 
+          username: user.username || '',  
+          email: user.email || '',
+          phone: user.phone || '',
+          pfp: user.pfp || '',
+          birthdate: user.birthdate || new Date(),
+      });
+      setModalVisible(true);
   };
 
   const pickImage = async () => {
@@ -124,19 +122,17 @@ export default function UserProfileScreen() {
       formData.append('email', editedUser.email);
       formData.append('phone', editedUser.phone);
       let birthdateString = '';
-      if (editedUser.birthdate) {
-        try {
-          if (editedUser.birthdate instanceof Date) {
-            birthdateString = editedUser.birthdate.toISOString().split('T')[0];
-          } 
-          else if (typeof editedUser.birthdate === 'string') {
-            const dateObj = new Date(editedUser.birthdate);
-            birthdateString = dateObj.toISOString().split('T')[0];
-          }
-        } catch (e) {
-          console.error('Error formatting date:', e);
-          birthdateString = new Date().toISOString().split('T')[0];
+      try {
+        if (editedUser.birthdate instanceof Date) {
+          birthdateString = editedUser.birthdate.toISOString().split('T')[0];
+        } 
+        else if (typeof editedUser.birthdate === 'string') {
+          const dateObj = new Date(editedUser.birthdate);
+          birthdateString = dateObj.toISOString().split('T')[0];
         }
+      } catch (e) {
+        console.error('Error formatting date:', e);
+        birthdateString = new Date().toISOString().split('T')[0];
       }
       formData.append('birthdate', birthdateString);
   
@@ -167,10 +163,8 @@ export default function UserProfileScreen() {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
       // Fetch fresh user data from the server instead of just updating local state
       await fetchUserData();
-      
       setModalVisible(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
@@ -211,23 +205,6 @@ export default function UserProfileScreen() {
       } else {
         setPasswordError("🚫 No se pudo conectar al servidor.");
       }
-    }
-  };
-
-  // Get user ID from AsyncStorage
-  const getUserIdFromToken = async (): Promise<string | null> => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const userId = await AsyncStorage.getItem("userId");
-
-      if (!token || !userId) {
-        Alert.alert("Error", "No se encontró ninguna sesión activa.");
-        return null;
-      }
-      return userId;
-    } catch (error) {
-      console.error("Error al obtener el ID de usuario:", error);
-      return null;
     }
   };
 
@@ -300,12 +277,10 @@ export default function UserProfileScreen() {
       </ImageBackground>
 
       {/* Tarjeta del perfil */}
-      {user && (
-                <View style={styles.profileCard}>
-                  <Text style={styles.username}>{user.name} {user.surname}</Text>
-                  <Text style={styles.email}>{user.email}</Text>
-                </View>
-        )}
+      <View style={styles.profileCard}>
+          <Text style={styles.username}>{user.name} {user.surname}</Text>
+          <Text style={styles.email}>{user.email}</Text>
+      </View>
 
       {/* Profile options */}
       <View style={styles.optionsContainer}>
@@ -373,7 +348,7 @@ export default function UserProfileScreen() {
               )}
 
               <Text style={styles.label}>Foto de Perfil</Text>
-              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={() => { pickImage() }}>
                   <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
               <Image 
@@ -468,7 +443,7 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
-                onPress={handleDeleteAccount}
+                onPress={() => { handleDeleteAccount() }}
               >
                 <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>

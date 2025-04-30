@@ -19,7 +19,7 @@ const handleLogout = async (router: any) => {
     router.replace('/LoginScreen');
 };
 
-const AdminHeader = ({ router, adminName, onLogout }: AdminHeaderProps) => {
+const AdminHeader = ({ router, adminName }: AdminHeaderProps) => {
     return (
         <>
             <View style={styles.header}>
@@ -33,7 +33,7 @@ const AdminHeader = ({ router, adminName, onLogout }: AdminHeaderProps) => {
                     </TouchableOpacity>
                 </View>
     
-                <TouchableOpacity style={styles.logoutButton} onPress={() => handleLogout(router)}>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => { handleLogout(router); }}>
                     <Text style={styles.buttonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>

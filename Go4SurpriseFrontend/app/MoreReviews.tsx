@@ -195,7 +195,7 @@ export default function MoreReviews() {
         const widthFactor = 0.8;
         const cardWidth = (availableWidth / columnCount) * widthFactor;
         
-        reviews.forEach((review, index) => {
+        reviews.forEach((review) => {
             const shortestColumnIndex = columns
                 .map((column, i) => ({ 
                     index: i, 
