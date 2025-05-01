@@ -190,7 +190,9 @@ export default function LoginScreen() {
           placeholder="Contraseña" 
           secureTextEntry={!showPassword}
           value={password} 
-          onChangeText={setPassword} 
+          onChangeText={setPassword}
+          returnKeyType="done"
+          onSubmitEditing={handleLogin} 
         />
         <TouchableOpacity
           style={styles.eyeIcon}

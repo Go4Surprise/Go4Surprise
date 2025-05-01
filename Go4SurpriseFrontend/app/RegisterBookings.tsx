@@ -10,6 +10,7 @@ import { ScrollView, Text, View, Dimensions, Platform, TouchableOpacity } from "
 import { router } from "expo-router";
 import { BASE_URL } from '../constants/apiUrl';
 import { CardProps, Reservation, ScrollViewProps } from "../types/bookingTypes";
+import { cities, categories } from "../data/bookingData";
 
 type ScrollState = {
   isDragging: boolean;
@@ -17,7 +18,6 @@ type ScrollState = {
   scrollLeft: number;
   activeScrollView: 'city' | 'category' | null;
 };
-import { cities, categories } from "../data/bookingData";
 
 // Responsive card dimensions
 const getCardDimensions = (isMobile: boolean) => ({
@@ -25,6 +25,8 @@ const getCardDimensions = (isMobile: boolean) => ({
   height: isMobile ? 200 : 300,
   margin: isMobile ? 5 : 8
 });
+
+
 
 // Card Components
 const CityCard = ({ city, isSelected, onSelect, isMobile }: CardProps & { isMobile: boolean }) => {
@@ -294,12 +296,16 @@ const BookingFormFields = ({
       required
       size={isMobile ? "small" : "medium"}
       inputProps={{
-        min: 1
+        min: 1,
       }}
       error={errors.participants || reserva.participants <= 0}
-      helperText={errors.participants || reserva.participants <= 0 ? "El número de participantes debe ser mayor que 0" : ""}
+      helperText={
+        errors.participants || reserva.participants <= 0
+          ? "El número de participantes debe ser mayor que 0"
+          : ""
+      }
     />
-    
+
     <TextField
       label="Fecha de la Experiencia"
       name="experience_date"
@@ -453,6 +459,27 @@ export default function RegisterBooking() {
     };
     void fetchUserData();
   }, []);
+
+  // Escuchar tecla Enter en web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          if (!token) {
+            console.warn("Token no disponible aún");
+            return;
+          }
+  
+          handleSubmit(e as unknown as React.FormEvent);
+        }
+      };
+  
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [token]); // Include token as dependency
 
   // Handle mouse up outside component
   useEffect(() => {
