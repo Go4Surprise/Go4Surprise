@@ -46,7 +46,8 @@ export default function LoginScreen() {
 
   // Set up the Google authentication request
   const [, response, promptAsync] = Google.useAuthRequest({
-    webClientId: '964097563380-ij5ek733mtdb89of91va7t6imqrg5fjv.apps.googleusercontent.com',
+    responseType: "id_token",
+    webClientId: "733784442699-2mt6ngrl43n1a6f9381p2cqvojosmnq0.apps.googleusercontent.com",
   });
 
   useEffect(() => {
