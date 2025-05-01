@@ -589,7 +589,7 @@ const MyBookings = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitReviewButton, { opacity: submittingReview ? 0.7 : 1 }]}
-                onPress={() => { submitReview() }}
+                onPress={() => { void submitReview() }}
                 disabled={submittingReview}
               >
                 {submittingReview ? (

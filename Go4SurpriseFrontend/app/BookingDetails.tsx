@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Linking, useWindowDimensions, ScrollView, Platform, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import { WebView } from "react-native-webview";
 import { BASE_URL } from '../constants/apiUrl';
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 // Importación condicional del WebView solo para plataformas móviles
 let WebViewComponent = null;

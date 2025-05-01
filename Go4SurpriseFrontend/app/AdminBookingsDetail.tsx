@@ -51,7 +51,7 @@ interface BookingDetail {
         link: string;
         notas_adicionales: string;
     };
-};
+}
 
 const AdminBookingsDetail = () => {
     const [booking, setBooking] = useState<BookingDetail | null>(null);
@@ -71,11 +71,6 @@ const AdminBookingsDetail = () => {
     const [experienceNotasAdicionales, setExperienceNotasAdicionales] = useState<string | null>(null);
     const [hint, setHint] = useState<string | null>(null);
     const [bookingDate, setBookingDate] = useState<string | null>(null);
-
-    interface Experience {
-        id: string;
-        title: string;
-    }
 
     const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
     const router = useRouter();
@@ -267,7 +262,7 @@ const AdminBookingsDetail = () => {
                     />
                     <TouchableOpacity
                         style={[styles.updateButton, styles.updateButtonSpacing]}
-                        onPress={() => { updateBookingStatus() }}
+                        onPress={() => { void updateBookingStatus() }}
                     >
                         <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
                     </TouchableOpacity>

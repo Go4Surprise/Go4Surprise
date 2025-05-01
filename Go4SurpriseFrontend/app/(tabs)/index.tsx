@@ -102,8 +102,10 @@ export default function IndexScreen() {
             <Image source={require('../../assets/images/logo.png')} style={styles.headerLogo} />
           </TouchableOpacity>
           <View style={styles.navLinks}>
-
-            <TouchableOpacity onPress={() => scrollToSection(aboutRef)}>
+            <TouchableOpacity onPress={() => { scrollToSection(homeRef); }}>
+              <Text style={styles.navItem}>Inicio</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { scrollToSection(aboutRef); }}>
               <Text style={styles.navItem}>Sobre nosotros</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => scrollToSection(contactRef)}>
