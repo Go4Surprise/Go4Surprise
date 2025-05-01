@@ -122,7 +122,7 @@ import React, { useState, useEffect } from 'react';
        case 'Ocio Nocturno':
          return selections["Ocio Nocturno"] ?? [];
        case 'Aventura':
-         return selections["Aventura"] ?? [];
+         return selections.Aventura ?? [];
        default:
          return [];
      }
@@ -178,7 +178,7 @@ import React, { useState, useEffect } from 'react';
          newSelectedOptions["Ocio Nocturno"] = updatedSelections;
          break;
        case 'Aventura':
-         newSelectedOptions["Aventura"] = updatedSelections;
+         newSelectedOptions.Aventura = updatedSelections;
          break;
      }
  
@@ -269,7 +269,7 @@ import React, { useState, useEffect } from 'react';
      const currentQuestion = getCurrentQuestion(currentQuestionIndex);
      const category = currentQuestion.category;
  
-     if (!selectedOptions[category]?.length) {
+     if (!selectedOptions[category].length) {
        setError('Debes seleccionar al menos una opción.');
        return;
      }
@@ -301,7 +301,7 @@ import React, { useState, useEffect } from 'react';
          sports: selectedOptions["Deporte y Motor"] ?? ["🚫 Nada en especial"],
          gastronomy: selectedOptions["Gastronomía"] ?? ["🚫 Nada en especial"],
          nightlife: selectedOptions["Ocio Nocturno"] ?? ["🚫 Nada en especial"],
-         adventure: selectedOptions["Aventura"] ?? ["🚫 Nada en especial"]
+         adventure: selectedOptions.Aventura ?? ["🚫 Nada en especial"]
        };
  
        console.log("Datos enviados:", payload);

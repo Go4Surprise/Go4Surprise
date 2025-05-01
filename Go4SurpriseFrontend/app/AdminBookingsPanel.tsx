@@ -280,7 +280,7 @@ const AdminBookings = () => {
                         <Text style={styles.modalText}>¿Estás seguro de que quieres eliminar esta reserva?</Text>
                         <View style={styles.modalButtons}>
                             <Button title="Cancelar" onPress={() => { setModalVisible(false); }} color="#6c757d" />
-                            <Button title="Eliminar" onPress={() => { confirmDeleteBooking() }} color="#dc3545" />
+                            <Button title="Eliminar" onPress={() => { void confirmDeleteBooking() }} color="#dc3545" />
                         </View>
                     </View>
                 </View>

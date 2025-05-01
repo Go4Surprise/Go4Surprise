@@ -16,7 +16,6 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import CountDown from './CountDown';
@@ -124,8 +123,7 @@ const StarRating = ({ stars }: { stars: number }) => (
 );
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const reviewCardWidth = width * 0.7; // Extraer constante para ancho de tarjeta
 
   // Definiciones de tamaños de pantalla más detalladas
@@ -137,7 +135,6 @@ export default function HomeScreen() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<User>({});
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0); // Índice actual del carrusel de reviews
   const [error, setError] = useState<string | null>(null);
   const [randomQuote, setRandomQuote] = useState<string>('');
@@ -161,12 +158,10 @@ export default function HomeScreen() {
   })[0];
 
   const handlePressIn = (key: string) => {
-    if (scaleAnimations[key]) {
-      Animated.spring(scaleAnimations[key], {
-        toValue: 1.2, // Escala al 120% para el efecto de pop
-        useNativeDriver: true,
-      }).start();
-    }
+    Animated.spring(scaleAnimations[key], {
+      toValue: 1.2, // Escala al 120% para el efecto de pop
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = (key: string) => {
@@ -237,7 +232,7 @@ export default function HomeScreen() {
   // Cargar datos cuando la pantalla obtiene foco
   useFocusEffect(
     useCallback(() => {
-      checkAdminStatus();
+      void checkAdminStatus();
       void fetchUserData();
     }, [void checkAdminStatus])
   );

@@ -91,7 +91,7 @@ export default function UserProfileScreen() {
           email: user.email || '',
           phone: user.phone || '',
           pfp: user.pfp || '',
-          birthdate: user.birthdate || new Date(),
+          birthdate: user.birthdate,
       });
       setModalVisible(true);
   };
