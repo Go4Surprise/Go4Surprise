@@ -254,14 +254,11 @@ const MyBookings = () => {
         router.push("/LoginScreen");
         return;
       }
-
       const formData = new FormData();
-
       formData.append('puntuacion', reviewRating.toString());
       formData.append('comentario', reviewComment);
       formData.append('experience', selectedExperienceId);
       formData.append('user', userId);
-
       // Process media files
       for (let i = 0; i < selectedMedia.length; i++) {
         const media = selectedMedia[i];
@@ -282,7 +279,6 @@ const MyBookings = () => {
           const match = /\.(\w+)$/.exec(filename);
           const fileType = match ? match[1] : (media.type === 'video' ? 'mp4' : 'jpg');
           const mimeType = media.type === 'video' ? `video/${fileType}` : `image/${fileType}`;
-
           // Explicitly define the file structure as expected by the backend
           formData.append('media_files', {
             uri: media.uri,
@@ -291,13 +287,11 @@ const MyBookings = () => {
           } as any);
         }
       }
-
       // Log the FormData contents for debugging
       console.log('FormData contents:');
       for (let [key, value] of (formData as any).entries()) {
         console.log(`${key}: ${typeof value === 'object' ? 'File object' : value}`);
       }
-
       const response = await axios.post(`${BASE_URL}/reviews/create/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -314,7 +308,6 @@ const MyBookings = () => {
       }
     } catch (error: any) {
       console.error("Error al enviar la reseña:", error);
-
       // Handle case where user already reviewed this experience
       if (error.response?.status === 400 &&
         error.response?.data?.error?.includes("Ya has dejado una reseña")) {

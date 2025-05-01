@@ -168,7 +168,7 @@ export default function IndexScreen() {
             Escríbenos a{' '}
             <Text
               style={styles.emailText}
-              onPress={() => { Linking.openURL('mailto:go4surprise.ispp@gmail.com') }}
+              onPress={() => { void Linking.openURL('mailto:go4surprise.ispp@gmail.com') }}
             >
               go4surprise.ispp@gmail.com
             </Text>{' '}

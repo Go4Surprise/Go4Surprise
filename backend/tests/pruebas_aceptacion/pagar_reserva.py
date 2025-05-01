@@ -114,7 +114,6 @@ class BookingFlowTest(unittest.TestCase):
                 print("⚠️ Elemento stale, reintentando...")
                 time.sleep(1)
 
-
         # Seleccionar categoría CULTURA
         buttons = driver.find_elements(By.TAG_NAME, "button")
         for button in buttons:
@@ -123,11 +122,11 @@ class BookingFlowTest(unittest.TestCase):
                     driver.execute_script("arguments[0].scrollIntoView();", button)
                     driver.execute_script("arguments[0].click();", button)
                     break
-            except:
+            except Exception as e:
+                print(f"⚠️ Error inesperado: {e}")
                 continue
 
         print("✅ Categoría CULTURA seleccionada.")
-
         # Participantes
         participants = wait.until(EC.element_to_be_clickable((By.NAME, "participants")))
         participants.clear()
@@ -144,14 +143,11 @@ class BookingFlowTest(unittest.TestCase):
             input.dispatchEvent(new Event('change', { bubbles: true }));
         """, fecha_input, "2025-04-20")
 
-
-
         # Enviar
         time.sleep(2)
         self.click_with_retry(By.XPATH, "//button[contains(text(),'Realizar Reserva')]")
         time.sleep(3)
 
-        
         try:
             self.click_with_retry(By.XPATH, "//div[contains(text(),'Proceder al pago')]")
         except Exception:
@@ -159,7 +155,6 @@ class BookingFlowTest(unittest.TestCase):
             self.click_with_retry(By.CSS_SELECTOR, "div[class*='r-color-jwli3a'][class*='r-fontWeight-vw2c0b']")
 
         print("✅ Se ha hecho clic en Proceder al pago.")
-
         time.sleep(6)
 
         # Ir a Stripe manualmente (solo para test local)
@@ -167,17 +162,14 @@ class BookingFlowTest(unittest.TestCase):
         print("✅ Página de Stripe cargada.")
         # Rellenar Stripe
         self.fill_field(By.ID, "email", "virginiamesa10@gmail.com")
-
         self.fill_stripe_card_fields()
 
         # Titular
         self.fill_field(By.ID, "billingName", "Virginia Mesa Perez")
 
-    
         # Click final en pagar
         self.click_with_retry(By.XPATH, "//button[contains(., 'Pagar') or contains(@type, 'submit')]")
         time.sleep(7)
-
         print("✅ Pago realizado correctamente (o al menos enviado a Stripe).")
 
     def tearDown(self):
