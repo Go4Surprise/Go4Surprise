@@ -30,10 +30,10 @@ export default function IndexScreen() {
         <View style={styles.header}>
           <Image source={require('../../assets/images/logo.png')} style={styles.headerLogo} />
           <View style={styles.navLinks}>
-            <TouchableOpacity onPress={() => scrollToSection(homeRef)}>
+            <TouchableOpacity onPress={() => { scrollToSection(homeRef); }}>
               <Text style={styles.navItem}>Inicio</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => scrollToSection(aboutRef)}>
+            <TouchableOpacity onPress={() => { scrollToSection(aboutRef); }}>
               <Text style={styles.navItem}>Sobre nosotros</Text>
             </TouchableOpacity>
           </View>

@@ -342,13 +342,13 @@ export default function UserProfileScreen() {
               ) : (
                 <TouchableOpacity style={styles.dateButton} onPress={() => { setShowDatePicker(true); }}>
                   <Text style={styles.dateText}>
-                    {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
+                    {new Date(editedUser.birthdate).toLocaleDateString()}
                   </Text>
                 </TouchableOpacity>
               )}
 
               <Text style={styles.label}>Foto de Perfil</Text>
-              <TouchableOpacity style={styles.imagePickerButton} onPress={() => { pickImage() }}>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={() => { void pickImage() }}>
                   <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
               <Image 
@@ -443,7 +443,7 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
-                onPress={() => { handleDeleteAccount() }}
+                onPress={() => { void handleDeleteAccount() }}
               >
                 <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>

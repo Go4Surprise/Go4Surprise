@@ -33,7 +33,7 @@ const AdminHeader = ({ router, adminName }: AdminHeaderProps) => {
                     </TouchableOpacity>
                 </View>
     
-                <TouchableOpacity style={styles.logoutButton} onPress={() => { handleLogout(router); }}>
+                <TouchableOpacity style={styles.logoutButton} onPress={() => { void handleLogout(router); }}>
                     <Text style={styles.buttonText}>Cerrar sesión</Text>
                 </TouchableOpacity>
             </View>

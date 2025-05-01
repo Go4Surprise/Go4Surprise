@@ -209,7 +209,7 @@ export default function LoginScreen() {
 
       <TouchableOpacity 
         style={[styles.button, isLoading && styles.disabledButton]} 
-        onPress={() => { handleLogin(); }}
+        onPress={() => { void handleLogin(); }}
         disabled={isLoading}
       >
         <Text style={styles.buttonText}>
