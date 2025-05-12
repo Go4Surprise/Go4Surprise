@@ -28,12 +28,13 @@ class CrearReservaSerializer(serializers.ModelSerializer):
         child=serializers.ChoiceField(choices=ExperienceCategory.choices),
         required=False
     )
+    paid = serializers.BooleanField(default=False)
 
     notas_adicionales = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Booking
-        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'time_preference', 'categories', 'notas_adicionales']
+        fields = ['participants', 'price', 'user', 'experience_date', 'location', 'time_preference', 'categories', 'notas_adicionales', 'paid']
         
     def validate_user(self, value):
         """
@@ -113,7 +114,8 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     booking_date=booking_date,
                     total_price=total_price,
                     price=validated_data['price'],
-                    participants=validated_data['participants']
+                    participants=validated_data['participants'],
+                    paid="False",
                 )
             except Usuario.DoesNotExist:
                 raise serializers.ValidationError("User not found")
@@ -131,7 +133,7 @@ class ReservaSerializer(serializers.ModelSerializer):
         model = Booking
         fields = [
             'id', 'participants', 'total_price', 'experience_date', 'booking_date', 'cancellable', 
-            'status', 'user', 'experience', 'experience_hint'
+            'status', 'user', 'experience', 'experience_hint', 'paid'
         ]
 
     def get_experience_hint(self, obj):

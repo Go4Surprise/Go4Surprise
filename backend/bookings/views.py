@@ -333,7 +333,7 @@ def iniciar_pago(request, booking_id):
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET
+    endpoint_secret = settings.STRIPE_ENDPOINT_SECRET_DEBUG if DEBUG else settings.STRIPE_ENDPOINT_SECRET_PROD
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -345,7 +345,7 @@ def stripe_webhook(request):
 
             if booking_id:
                 booking = Booking.objects.get(id=booking_id)
-                booking.status = "CONFIRMED"
+                booking.paid = "True"
                 booking.payment_intent_id = payment_intent_id
                 booking.save()
 
