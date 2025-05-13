@@ -394,6 +394,7 @@ export default function RegisterBooking() {
         height: Dimensions.get('window').height
       });
     };
+  
 
     const subscription = Dimensions.addEventListener('change', updateDimensions);
     
@@ -492,7 +493,7 @@ export default function RegisterBooking() {
   // Form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    console.log("Evento recibido:", e);
     // Clear any previous errors
     setBackendErrors(null);
     
@@ -559,6 +560,26 @@ export default function RegisterBooking() {
       reserva.experience_date !== null
     );
   };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && reserva.location && token) {
+        e.preventDefault();
+        const form = document.querySelector('form');
+        if (form) {
+          const event = new Event('submit', { cancelable: true });
+          form.dispatchEvent(event);
+          void handleSubmit(event as unknown as React.FormEvent);
+          console.log("Event:", event);
+        }
+      }
+    };
+
+    window.addEventListener('keypress', handleKeyPress);
+    return () => {
+      window.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [reserva.location]);
 
   // Modified toggleCategory function to handle multiple selections
   const toggleCategory = (categoryId: string) => {
