@@ -280,7 +280,7 @@ export default function UserProfileScreen() {
       if (response.status === 204) {
         await AsyncStorage.clear();
         setShowDeleteModal(false);
-        router.replace('/'); // Redirect to main screen
+        router.replace('/LoginScreen'); // Redirect to main screen
       } else {
         Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
       }
