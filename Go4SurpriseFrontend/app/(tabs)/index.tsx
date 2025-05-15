@@ -137,15 +137,15 @@ export default function IndexScreen() {
             </View>
             <View style={styles.featureBox}>
               <Text style={styles.featureTitle}>🕒 Pistas a las 48 horas</Text>
-              <Text style={styles.featureText}>48 horas antes recibirás una pista de tu evento, revelado 24 horas antes.</Text>
+              <Text style={styles.featureText}>48 horas antes recibirás una pista de tu evento, siendo este revelado 24 horas antes de su comienzo.</Text>
             </View>
             <View style={styles.featureBox}>
-              <Text style={styles.featureTitle}>🛒 Compra sin sorpresas</Text>
-              <Text style={styles.featureText}>También disponemos de compra tradicional a precios reducidos.</Text>
+              <Text style={styles.featureTitle}>🎁 Revelación 24h antes</Text>
+              <Text style={styles.featureText}>24 horas antes de tu evento recibirás un correo con los detalles de la experiencia que te toca disfrutar.</Text>
             </View>
             <View style={styles.featureBox}>
               <Text style={styles.featureTitle}>📸 Presume de tus experiencias</Text>
-              <Text style={styles.featureText}>Comparte fotos y reseñas de los eventos realizados en la app.</Text>
+              <Text style={styles.featureText}>Podrás compartir fotos y reseñas de todos los eventos realizados en la aplicación.</Text>
             </View>
           </View>
         </View>
