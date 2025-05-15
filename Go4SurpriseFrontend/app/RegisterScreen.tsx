@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   ScrollView,
+  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -43,6 +44,7 @@ export default function RegisterScreen() {
     terms?: string;
   }>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const validateFields = () => {
     const validations = [
@@ -176,8 +178,11 @@ export default function RegisterScreen() {
       await AsyncStorage.setItem("userId", user_id);
       await AsyncStorage.setItem("id", id);
 
-      Alert.alert("¡Bienvenido!", "Tu cuenta ha sido creada con éxito.");
-      router.push("/LoginScreen");
+      setModalVisible(true);
+      setTimeout(() => {
+        setModalVisible(false);
+        router.push("/LoginScreen");
+      }, 5000);
     } catch (error) {
       console.log(error);
       if (axios.isAxiosError(error)) {
@@ -196,233 +201,250 @@ export default function RegisterScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.push("/LoginScreen")}
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-
-        <Image
-          source={require("../assets/images/logo.png")}
-          style={styles.logo}
-        />
-
-        <View style={styles.card}>
-          <Text style={styles.title}>Crear Cuenta</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre de usuario"
-            value={username}
-            onChangeText={setUsername}
-          />
-          {errors.username && (
-            <Text style={styles.errorText}>{errors.username}</Text>
-          )}
-
-          <View style={{ width: "100%", position: "relative" }}>
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.password && (
-            <Text style={styles.errorText}>{errors.password}</Text>
-          )}
-
-          <View style={{ width: "100%", position: "relative" }}>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirmar Contraseña"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-            />
-            <TouchableOpacity
-              style={styles.eyeIcon}
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              <Ionicons
-                name={showConfirmPassword ? "eye-off" : "eye"}
-                size={24}
-                color="#666"
-              />
-            </TouchableOpacity>
-          </View>
-          {errors.confirmPassword && (
-            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Nombre"
-            value={name}
-            onChangeText={setName}
-          />
-          {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Apellido"
-            value={surname}
-            onChangeText={setSurname}
-          />
-          {errors.surname && (
-            <Text style={styles.errorText}>{errors.surname}</Text>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Correo electrónico"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-
-          <TextInput
-            style={styles.input}
-            placeholder="Teléfono"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-          />
-          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-
-          {/* Selector de fecha nativo */}
-          <TextField
-            label="Fecha de Nacimiento"
-            name="birthdate"
-            type="date"
-            fullWidth
-            style={{ marginTop: "2%" }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-            inputProps={{
-              max: new Date(
-                new Date().setFullYear(new Date().getFullYear() - 18)
-              )
-                .toISOString()
-                .split("T")[0], // Fecha mínima (18 años atrás)
-            }}
-            // Usar un valor seguro para el campo
-            value={
-              birthdate && !isNaN(birthdate.getTime())
-                ? birthdate.toISOString().split("T")[0]
-                : ""
-            }
-            onChange={(e) => {
-              try {
-                // Verificar si el valor es válido antes de actualizar el estado
-                const dateStr = e.target.value;
-                if (dateStr) {
-                  const dateValue = new Date(dateStr);
-                  // Verificar que la fecha sea válida antes de actualizar el estado
-                  if (!isNaN(dateValue.getTime())) {
-                    setBirthdate(dateValue);
-                  }
-                } else {
-                  // Si el campo está vacío, establecer una fecha por defecto o null
-                  setBirthdate(new Date(
-                    new Date().setFullYear(new Date().getFullYear() - 18)
-                  ));
-                }
-              } catch (error) {
-                console.error("Error al procesar la fecha:", error);
-                // No actualizar el estado si hay un error
-              }
-            }}
-          />
-
-          {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginTop: 10,
-              flexWrap: "wrap",
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                setAcceptedTerms(!acceptedTerms);
-              }}
-              style={styles.checkbox}
-            >
-              <Ionicons
-                name={acceptedTerms ? "checkbox-outline" : "square-outline"}
-                size={24}
-                color="#1877F2"
-              />
-            </TouchableOpacity>
-            <Text style={styles.termsText}>
-              He leído y acepto la{" "}
-              <Text
-                style={styles.link}
-                onPress={() =>
-                  router.push({
-                    pathname: "/PoliticaPrivacidad",
-                    params: { from: "register" },
-                  })
-                }
-              >
-                Política de Privacidad
-              </Text>{" "}
-              y las{" "}
-              <Text
-                style={styles.link}
-                onPress={() =>
-                  router.push({
-                    pathname: "/CondicionesUso",
-                    params: { from: "register" },
-                  })
-                }
-              >
-                Condiciones de Uso
-              </Text>
-              .
-            </Text>
-          </View>
-          {errors.terms && (
-            <Text style={[styles.errorText, { width: "100%", marginTop: 5 }]}>
-              {errors.terms}
-            </Text>
-          )}
-
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => void handleRegister()}
-          >
-            <Text style={styles.buttonText}>Registrarse</Text>
-          </TouchableOpacity>
-
-          <Text
-            style={styles.loginText}
-            onPress={() => router.push("/LoginScreen")}
-          >
-            ¿Ya tienes cuenta?{" "}
-            <Text style={styles.loginLink}>Inicia sesión</Text>
+    <>
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalBackground}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>
+            Tu cuenta ha sido creada con éxito. Verifica tu cuenta en tu correo electrónico.
           </Text>
         </View>
       </View>
-    </ScrollView>
+    </Modal>
+      
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.container}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.push("/LoginScreen")}
+          >
+            <Ionicons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+
+          <Image
+            source={require("../assets/images/logo.png")}
+            style={styles.logo}
+          />
+
+          <View style={styles.card}>
+            <Text style={styles.title}>Crear Cuenta</Text>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre de usuario"
+              value={username}
+              onChangeText={setUsername}
+            />
+            {errors.username && (
+              <Text style={styles.errorText}>{errors.username}</Text>
+            )}
+
+            <View style={{ width: "100%", position: "relative" }}>
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#666"
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
+
+            <View style={{ width: "100%", position: "relative" }}>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirmar Contraseña"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Ionicons
+                  name={showConfirmPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#666"
+                />
+              </TouchableOpacity>
+            </View>
+            {errors.confirmPassword && (
+              <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+            )}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Nombre"
+              value={name}
+              onChangeText={setName}
+            />
+            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Apellido"
+              value={surname}
+              onChangeText={setSurname}
+            />
+            {errors.surname && (
+              <Text style={styles.errorText}>{errors.surname}</Text>
+            )}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Correo electrónico"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+            />
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+
+            <TextInput
+              style={styles.input}
+              placeholder="Teléfono"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+            />
+            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+
+            {/* Selector de fecha nativo */}
+            <TextField
+              label="Fecha de Nacimiento"
+              name="birthdate"
+              type="date"
+              fullWidth
+              style={{ marginTop: "2%" }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              inputProps={{
+                max: new Date(
+                  new Date().setFullYear(new Date().getFullYear() - 18)
+                )
+                  .toISOString()
+                  .split("T")[0], // Fecha mínima (18 años atrás)
+              }}
+              // Usar un valor seguro para el campo
+              value={
+                birthdate && !isNaN(birthdate.getTime())
+                  ? birthdate.toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={(e) => {
+                try {
+                  // Verificar si el valor es válido antes de actualizar el estado
+                  const dateStr = e.target.value;
+                  if (dateStr) {
+                    const dateValue = new Date(dateStr);
+                    // Verificar que la fecha sea válida antes de actualizar el estado
+                    if (!isNaN(dateValue.getTime())) {
+                      setBirthdate(dateValue);
+                    }
+                  } else {
+                    // Si el campo está vacío, establecer una fecha por defecto o null
+                    setBirthdate(new Date(
+                      new Date().setFullYear(new Date().getFullYear() - 18)
+                    ));
+                  }
+                } catch (error) {
+                  console.error("Error al procesar la fecha:", error);
+                  // No actualizar el estado si hay un error
+                }
+              }}
+            />
+
+            {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setAcceptedTerms(!acceptedTerms);
+                }}
+                style={styles.checkbox}
+              >
+                <Ionicons
+                  name={acceptedTerms ? "checkbox-outline" : "square-outline"}
+                  size={24}
+                  color="#1877F2"
+                />
+              </TouchableOpacity>
+              <Text style={styles.termsText}>
+                He leído y acepto la{" "}
+                <Text
+                  style={styles.link}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/PoliticaPrivacidad",
+                      params: { from: "register" },
+                    })
+                  }
+                >
+                  Política de Privacidad
+                </Text>{" "}
+                y las{" "}
+                <Text
+                  style={styles.link}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/CondicionesUso",
+                      params: { from: "register" },
+                    })
+                  }
+                >
+                  Condiciones de Uso
+                </Text>
+                .
+              </Text>
+            </View>
+            {errors.terms && (
+              <Text style={[styles.errorText, { width: "100%", marginTop: 5 }]}>
+                {errors.terms}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => void handleRegister()}
+            >
+              <Text style={styles.buttonText}>Registrarse</Text>
+            </TouchableOpacity>
+
+            <Text
+              style={styles.loginText}
+              onPress={() => router.push("/LoginScreen")}
+            >
+              ¿Ya tienes cuenta?{" "}
+              <Text style={styles.loginLink}>Inicia sesión</Text>
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
@@ -549,4 +571,39 @@ const styles = StyleSheet.create({
     color: "#1877F2",
     textDecorationLine: "underline",
   },
+  successText: {
+    color: "green",
+    fontSize: 14,
+    marginBottom: 10,
+    alignSelf: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  modalText: {
+    fontSize: 16,
+    color: "green",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  
+
 });
