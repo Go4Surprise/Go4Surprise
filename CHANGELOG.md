@@ -1,3 +1,1236 @@
+## Cambios en PR (2025-05-15)
+
+### 🚀 Nuevas funcionalidades
+- Merge pull request #103 from Go4Surprise/enhance-landingpage
+- feat: improve landing page
+- feat: Modificar fechas de reservas admin
+- feat: emails templates
+- feat: experience pretty show
+- feat: Mejoras para despliegue
+- feat: notify experience details
+- feat: mail notification hints
+- feat: add to calendar button and styles
+- Merge pull request #86 from Go4Surprise/enhance/past-bookings
+- feat: cancel restriction and no booking message
+- feat: future and past bookings available in the same page
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Scroll edit profile y validación de condiciones en registro
+- feat: Obtención de reviews desde backend
+- feat: past bookings details first version
+- feat: Enhance prefrences forms
+- feat: Mejorar la UI de reserva (falta probar en movil el stripe)
+- feat: mejorada la UI de realizar una reserva
+- feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
+- feat: mejorada la interfaz de Login Screen
+- feat: Edit birthdate.
+- feat: update requirements.txt
+- Merge pull request #65 from Go4Surprise/verificar-correo
+- feat: payment process done
+- feat: Accept privacy policy and terms of use during registration.
+- feat: Add privacy policy and terms of use to the home page.
+- feat: cancel booking need to fix
+- feat: verificacion por mail
+- feat: booking details template
+- feature: added profile picture in edit profile modal frontend part
+- feature: added profile picture in edit profile modal
+- Merge pull request #57 from Go4Surprise/password-recovery
+- feat: password confirmation added
+- feat: error maangement
+- feat: reset link
+- Merge pull request #52 from Go4Surprise/feature/landing-page-inicio
+- Merge pull request #51 from Go4Surprise/mobile
+- feat: create landing page for home screen
+- Merge pull request #47 from Go4Surprise/feature/social-login
+- feat: cambios para android
+- feat: reset password view and handling error or success
+- feat: retoques en el frontend
+- feat: Desglose de precio al realizar pedido
+- feat: add adventure image background
+- feat: add leisure image background
+- feat: add a gastronomy image background
+- feat: add sports image background
+- feat: add culture image background
+- feat: add back button
+- feat: Descartes en el  frontend
+- feat: social login done!
+- feat: Add a background image with music and animation for quiz questions
+- feat: password reset backend
+- feat: add introduction to the preference questionnaire
+- feat: Modificación backend de categorías para descarte en reserva
+- feat: password reset confirm
+- feat: admin update booking and experience hint
+- feat: email configuration
+- feat: recovery urls
+- feat: Add user birthdate in frontend
+- feat: user-birthdate backend
+- feat: auto changelog on pull request to main
+- feat: Added AdminBooking Detail panel and Update Booking status
+- feat: AministratorBookings Panel + fix Hint
+- feat: incluir los mensajes de error en la pantalla
+- feat: administrador lista, actualiza y borra reservas
+- feat: incluir en el backend la comprobación de que el username no existe
+- feat: Continous Integration with codacy
+- feat: Add conventional Commits without api keys
+- feat: solo administradores pueden actualizar experiencias (backend)
+- feat: muestra la pista si faltan 24 horas (backend)
+- feat: reset password template
+- feat: user profile backend
+- feat: user get method
+- feat: user get method
+- feat: user profile screen
+- feat: formulario de preferencias básico
+
+### 🐛 Correcciones
+- fix: minor fix info page
+- fix: success messages when register new account and delete account
+- fix: button to my bookings in home screen
+- fix: redirect to main page after deleting account
+- Merge pull request #104 from Go4Surprise/fix/google-login
+- fix: Arreglo login google
+- Merge pull request #102 from Go4Surprise/fix/update-home-page
+- fix:enhance home page
+- fix: Registro de cuentas con dos apellidos
+- fix: Adaptación correos de pista y experiencia
+- fix: Jsonparser para login social
+- fix: Borrado de usuarios desde admin
+- fix: fix style
+- fix: Remove the button to view reservation details in the email
+- fix: tests rendimiento funcionan correctamente
+- fix: date picker in register
+- fix: fix codacy errors
+- fix: Improve display and set the CANCELLED status correctly
+- fix: add to be able to see the password when editing it
+- fix: fix the password recovery screen
+- fix: changes in the conditions of use
+- fix: changes to the privacy policy
+- fix: textinput import
+- fix: back arrow bookingdetails and filter bookingpanel
+- fix:Arreglar tests
+- fix: Arreglar tests selenium
+- fix: Arreglando pruebas de aceptación
+- fix: Arreglando pruebas de aceptación
+- Merge pull request #97 from Go4Surprise/fix/delete-account
+- fix: Improve display for mobile screens
+- fix: the questionnaire has been fixed
+- fix: delete account and bookings
+- fix: merge
+- fix: Añadiendo cerrar sesión y arrow-back
+- fix: adminbooking details scrolleable
+- fix: adminheader logout
+- fix: admin booking list and mybookings time
+- fix: Update unit test
+- fix: merge
+- Merge pull request #91 from Go4Surprise/fix-codacy
+- fix: fix codacy new issues
+- fix: some codacy issues has been fixed
+- fix: Adaptaciones despliegue
+- fix: email config
+- fix: Arreglos pantalla admin reservas
+- fix: reviews
+- fix: bug home screen
+- fix: Arreglo elementos perdidos en merge
+- Merge pull request #87 from Go4Surprise/enhance/enhance-UI
+- fix: improve visualization
+- fix: improve the display in the admin panel
+- fix: currency error
+- fix: past bookings order
+- fix: merge error
+- fix: fix canceled status
+- fix: improve UI for cancelled bookings with red card and text
+- fix: keep the same language
+- fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
+- fix: redirección stripe
+- fix: Fix passwords
+- Merge pull request #81 from Go4Surprise/fix/arreglar-errores
+- fix: Arreglos constraseñas form
+- fix: migracion bd
+- fix: Fix design issues
+- fix: Add user profile code and fix design issues
+- Merge pull request #76 from Go4Surprise/fix-home-screen
+- fix: countdown fixed
+- fix: views done
+- fix: all conflicts done!
+- Merge pull request #73 from Go4Surprise/fixes
+- fix: Adaptaciones despliegue
+- fix: stripe in same page
+- Merge pull request #70 from Go4Surprise/fix/cuestionario-preferencias
+- fix: modify _layout
+- fix: put the redirect to the correct page
+- fix: change text from English to Spanish
+- fix: Modificación visualización categorías admin
+- fix: Campo faltante en llamada a api
+- fix: Adaptación datos de reserva
+- fix: hide Social Login header
+- fix: social login redirection
+- fix: canceling booking fixed
+- fix: relationship bookings and experiences + css
+- fix: Arreglo error libreria distutils
+- fix: Idioma en home screen en error login settings
+- fix: Adding 'MyBooking' button
+- fix: Change the language
+- fix: correct media URL for profile picture rendering
+- fix: Arreglar registro
+- Merge pull request #59 from Go4Surprise/fix-delete-account
+- fix: arreglo profile_complete
+- fix: Botón siguiente deshabilitado al no seleccionar en formulario de prefencias
+- fix: Arreglo credenciales admin en login
+- fix: Fixing the delete account option
+- Merge pull request #58 from Go4Surprise/fix-register
+- fix: Fix the register page
+- fix: merge fixes
+- Merge pull request #56 from Go4Surprise/fix-login-social
+- fix: Change the social login redirect
+- fix: Reguister screen
+- Merge pull request #53 from Go4Surprise/fixes
+- fix: login
+- fix: Modelos para franja de tiempo en lugar de duración
+- Merge pull request #45 from Go4Surprise/fix/register-validations
+- fix: add missing dependencies to backend
+- fix: not fixed yet
+- fix: conflictos
+- Merge pull request #48 from Go4Surprise/fix/cuestionario-preferencias
+- fix: Arreglos en reserva
+- fix: fix codacy
+- fix: change music image and add less transparency
+- fix: change the background animation of the quiz questions
+- fix: reset password working
+- fix: fix animation disappearance
+- fix: conflicts
+- fix: minor fix in experience
+- Merge pull request #44 from Go4Surprise/fix/password-adjustments
+- fix: solve codacy error
+- fix: codacy fixes
+- fix: minor codacy issues
+- fix: add helper text
+- fix: change quiz colors
+- fix: If you select the nothing option, do not let it select the rest of the options
+- fix: track changes
+- fix: added validations at register fields
+- fix: password adjustments
+- fix: duplicated file detection
+- fix: Fix user profile edit modal
+- fix: Fix bookings button on the user profile page
+- fix: Fix home button on the user profile page
+- fix: Arreglos en reserva y campo de notas adicionales
+- fix: userDetails asincrony
+- fix: rename attribute from experience date to birthdate in frontend
+- fix: reworded quiz questions to make them more general and aligned with user experience types
+- Merge pull request #41 from Go4Surprise/fix-codacy
+- Merge pull request #37 from Go4Surprise/fix/opiniones-recientes
+- fix: show hint in MyBookings
+- fix: main merge
+- fix: delete workflow that is not working
+- fix: autochangelog to run locally
+- fix: change url of changelog workflow
+- fix: add detection to changelog workflow
+- fix: add permision to changelog workflow
+- fix: add permision to changelog workflow
+- fix: auto-changelog
+- fix: actualizar opiniones recientes en las reviews
+- fix: intentar solucionar los errores del codacy, parte 2
+- fix: solucionar los errores del codacy, parte 1
+- fix: el boton al registrate ya te redirige bien al login
+- fix: reducir el número de ifs con las validaciones de las propiedades
+- fix: errores al arrancar solucionados
+- fix: changelog action
+- fix: Arreglos y mejoras en panel de administración
+- fix login
+- fix: Quitar 2 preguntas de la encuesta acordadas en la reunión
+- fix: cambio para que se haga el cuestionario tras registrarse
+- fix: Manejo correcto de preferencias inexistentes
+- Merge pull request #18 from Go4Surprise/login-registro-formulario
+- fix: arreglo login y añadido formulario de preferencias
+- Merge pull request #6 from Go4Surprise/base-datos
+- fix: django and postgres discrepancies
+
+### 📚 Documentación
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs: requirements update
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md en rama auto-changelog
+
+### ♻️ Refactorización
+- refactor: Alert deleted
+- refactor: some minor codacy errors are solved
+- refactor: reduce complexity
+- refactor: all codacy errors
+- Merge pull request #42 from Go4Surprise/fix-codacy
+- refactor: some minors error prune
+- refactor: new errors
+- refactor: error-prune finds by codify are fixed
+- refactor: fix the newly created issues
+- refactor: codacy security hotspots
+- refactor: codacy quick fixes
+- refactor: more codacy errors
+- refactor: Fixed security issues, identified by codify
+- refactor: fix codacy issues
+- refactor: Added changes suggested by codify
+- Merge branch 'main' of https://github.com/Go4Surprise/Go4Surprise refactor: merge branch main
+
+### ⚡ Mejoras de rendimiento
+- perfil completo
+
+### 🧪 Pruebas
+- tests: locustfile users corregido
+- test: test de users funcionando de rendimiento
+- tests: token corregido
+- test: cobertura
+- test: Añadir tests aceptación
+- test: añadir test
+- test: tests de rendimeinto funcionando a excepción de users
+- test:Add tests
+- test: Add selenium tests
+- test: Test de Integracion
+- test: pruebas de aceptación users
+- test: Add unit tests
+- tests users
+- tests reviews
+- tests experiences
+- tests de booking, casos positivos y negativos
+
+### 🔧 Otros cambios
+- style: saving local changes before pull
+- style: saving local changes before pull
+
+## Cambios en PR (2025-05-15)
+
+### 🚀 Nuevas funcionalidades
+- Merge pull request #103 from Go4Surprise/enhance-landingpage
+- feat: improve landing page
+- feat: Modificar fechas de reservas admin
+- feat: emails templates
+- feat: experience pretty show
+- feat: Mejoras para despliegue
+- feat: notify experience details
+- feat: mail notification hints
+- feat: add to calendar button and styles
+- Merge pull request #86 from Go4Surprise/enhance/past-bookings
+- feat: cancel restriction and no booking message
+- feat: future and past bookings available in the same page
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Scroll edit profile y validación de condiciones en registro
+- feat: Obtención de reviews desde backend
+- feat: past bookings details first version
+- feat: Enhance prefrences forms
+- feat: Mejorar la UI de reserva (falta probar en movil el stripe)
+- feat: mejorada la UI de realizar una reserva
+- feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
+- feat: mejorada la interfaz de Login Screen
+- feat: Edit birthdate.
+- feat: update requirements.txt
+- Merge pull request #65 from Go4Surprise/verificar-correo
+- feat: payment process done
+- feat: Accept privacy policy and terms of use during registration.
+- feat: Add privacy policy and terms of use to the home page.
+- feat: cancel booking need to fix
+- feat: verificacion por mail
+- feat: booking details template
+- feature: added profile picture in edit profile modal frontend part
+- feature: added profile picture in edit profile modal
+- Merge pull request #57 from Go4Surprise/password-recovery
+- feat: password confirmation added
+- feat: error maangement
+- feat: reset link
+- Merge pull request #52 from Go4Surprise/feature/landing-page-inicio
+- Merge pull request #51 from Go4Surprise/mobile
+- feat: create landing page for home screen
+- Merge pull request #47 from Go4Surprise/feature/social-login
+- feat: cambios para android
+- feat: reset password view and handling error or success
+- feat: retoques en el frontend
+- feat: Desglose de precio al realizar pedido
+- feat: add adventure image background
+- feat: add leisure image background
+- feat: add a gastronomy image background
+- feat: add sports image background
+- feat: add culture image background
+- feat: add back button
+- feat: Descartes en el  frontend
+- feat: social login done!
+- feat: Add a background image with music and animation for quiz questions
+- feat: password reset backend
+- feat: add introduction to the preference questionnaire
+- feat: Modificación backend de categorías para descarte en reserva
+- feat: password reset confirm
+- feat: admin update booking and experience hint
+- feat: email configuration
+- feat: recovery urls
+- feat: Add user birthdate in frontend
+- feat: user-birthdate backend
+- feat: auto changelog on pull request to main
+- feat: Added AdminBooking Detail panel and Update Booking status
+- feat: AministratorBookings Panel + fix Hint
+- feat: incluir los mensajes de error en la pantalla
+- feat: administrador lista, actualiza y borra reservas
+- feat: incluir en el backend la comprobación de que el username no existe
+- feat: Continous Integration with codacy
+- feat: Add conventional Commits without api keys
+- feat: solo administradores pueden actualizar experiencias (backend)
+- feat: muestra la pista si faltan 24 horas (backend)
+- feat: reset password template
+- feat: user profile backend
+- feat: user get method
+- feat: user get method
+- feat: user profile screen
+- feat: formulario de preferencias básico
+
+### 🐛 Correcciones
+- fix: success messages when register new account and delete account
+- fix: button to my bookings in home screen
+- fix: redirect to main page after deleting account
+- Merge pull request #104 from Go4Surprise/fix/google-login
+- fix: Arreglo login google
+- Merge pull request #102 from Go4Surprise/fix/update-home-page
+- fix:enhance home page
+- fix: Registro de cuentas con dos apellidos
+- fix: Adaptación correos de pista y experiencia
+- fix: Jsonparser para login social
+- fix: Borrado de usuarios desde admin
+- fix: fix style
+- fix: Remove the button to view reservation details in the email
+- fix: tests rendimiento funcionan correctamente
+- fix: date picker in register
+- fix: fix codacy errors
+- fix: Improve display and set the CANCELLED status correctly
+- fix: add to be able to see the password when editing it
+- fix: fix the password recovery screen
+- fix: changes in the conditions of use
+- fix: changes to the privacy policy
+- fix: textinput import
+- fix: back arrow bookingdetails and filter bookingpanel
+- fix:Arreglar tests
+- fix: Arreglar tests selenium
+- fix: Arreglando pruebas de aceptación
+- fix: Arreglando pruebas de aceptación
+- Merge pull request #97 from Go4Surprise/fix/delete-account
+- fix: Improve display for mobile screens
+- fix: the questionnaire has been fixed
+- fix: delete account and bookings
+- fix: merge
+- fix: Añadiendo cerrar sesión y arrow-back
+- fix: adminbooking details scrolleable
+- fix: adminheader logout
+- fix: admin booking list and mybookings time
+- fix: Update unit test
+- fix: merge
+- Merge pull request #91 from Go4Surprise/fix-codacy
+- fix: fix codacy new issues
+- fix: some codacy issues has been fixed
+- fix: Adaptaciones despliegue
+- fix: email config
+- fix: Arreglos pantalla admin reservas
+- fix: reviews
+- fix: bug home screen
+- fix: Arreglo elementos perdidos en merge
+- Merge pull request #87 from Go4Surprise/enhance/enhance-UI
+- fix: improve visualization
+- fix: improve the display in the admin panel
+- fix: currency error
+- fix: past bookings order
+- fix: merge error
+- fix: fix canceled status
+- fix: improve UI for cancelled bookings with red card and text
+- fix: keep the same language
+- fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
+- fix: redirección stripe
+- fix: Fix passwords
+- Merge pull request #81 from Go4Surprise/fix/arreglar-errores
+- fix: Arreglos constraseñas form
+- fix: migracion bd
+- fix: Fix design issues
+- fix: Add user profile code and fix design issues
+- Merge pull request #76 from Go4Surprise/fix-home-screen
+- fix: countdown fixed
+- fix: views done
+- fix: all conflicts done!
+- Merge pull request #73 from Go4Surprise/fixes
+- fix: Adaptaciones despliegue
+- fix: stripe in same page
+- Merge pull request #70 from Go4Surprise/fix/cuestionario-preferencias
+- fix: modify _layout
+- fix: put the redirect to the correct page
+- fix: change text from English to Spanish
+- fix: Modificación visualización categorías admin
+- fix: Campo faltante en llamada a api
+- fix: Adaptación datos de reserva
+- fix: hide Social Login header
+- fix: social login redirection
+- fix: canceling booking fixed
+- fix: relationship bookings and experiences + css
+- fix: Arreglo error libreria distutils
+- fix: Idioma en home screen en error login settings
+- fix: Adding 'MyBooking' button
+- fix: Change the language
+- fix: correct media URL for profile picture rendering
+- fix: Arreglar registro
+- Merge pull request #59 from Go4Surprise/fix-delete-account
+- fix: arreglo profile_complete
+- fix: Botón siguiente deshabilitado al no seleccionar en formulario de prefencias
+- fix: Arreglo credenciales admin en login
+- fix: Fixing the delete account option
+- Merge pull request #58 from Go4Surprise/fix-register
+- fix: Fix the register page
+- fix: merge fixes
+- Merge pull request #56 from Go4Surprise/fix-login-social
+- fix: Change the social login redirect
+- fix: Reguister screen
+- Merge pull request #53 from Go4Surprise/fixes
+- fix: login
+- fix: Modelos para franja de tiempo en lugar de duración
+- Merge pull request #45 from Go4Surprise/fix/register-validations
+- fix: add missing dependencies to backend
+- fix: not fixed yet
+- fix: conflictos
+- Merge pull request #48 from Go4Surprise/fix/cuestionario-preferencias
+- fix: Arreglos en reserva
+- fix: fix codacy
+- fix: change music image and add less transparency
+- fix: change the background animation of the quiz questions
+- fix: reset password working
+- fix: fix animation disappearance
+- fix: conflicts
+- fix: minor fix in experience
+- Merge pull request #44 from Go4Surprise/fix/password-adjustments
+- fix: solve codacy error
+- fix: codacy fixes
+- fix: minor codacy issues
+- fix: add helper text
+- fix: change quiz colors
+- fix: If you select the nothing option, do not let it select the rest of the options
+- fix: track changes
+- fix: added validations at register fields
+- fix: password adjustments
+- fix: duplicated file detection
+- fix: Fix user profile edit modal
+- fix: Fix bookings button on the user profile page
+- fix: Fix home button on the user profile page
+- fix: Arreglos en reserva y campo de notas adicionales
+- fix: userDetails asincrony
+- fix: rename attribute from experience date to birthdate in frontend
+- fix: reworded quiz questions to make them more general and aligned with user experience types
+- Merge pull request #41 from Go4Surprise/fix-codacy
+- Merge pull request #37 from Go4Surprise/fix/opiniones-recientes
+- fix: show hint in MyBookings
+- fix: main merge
+- fix: delete workflow that is not working
+- fix: autochangelog to run locally
+- fix: change url of changelog workflow
+- fix: add detection to changelog workflow
+- fix: add permision to changelog workflow
+- fix: add permision to changelog workflow
+- fix: auto-changelog
+- fix: actualizar opiniones recientes en las reviews
+- fix: intentar solucionar los errores del codacy, parte 2
+- fix: solucionar los errores del codacy, parte 1
+- fix: el boton al registrate ya te redirige bien al login
+- fix: reducir el número de ifs con las validaciones de las propiedades
+- fix: errores al arrancar solucionados
+- fix: changelog action
+- fix: Arreglos y mejoras en panel de administración
+- fix login
+- fix: Quitar 2 preguntas de la encuesta acordadas en la reunión
+- fix: cambio para que se haga el cuestionario tras registrarse
+- fix: Manejo correcto de preferencias inexistentes
+- Merge pull request #18 from Go4Surprise/login-registro-formulario
+- fix: arreglo login y añadido formulario de preferencias
+- Merge pull request #6 from Go4Surprise/base-datos
+- fix: django and postgres discrepancies
+
+### 📚 Documentación
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs: requirements update
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md en rama auto-changelog
+
+### ♻️ Refactorización
+- refactor: Alert deleted
+- refactor: some minor codacy errors are solved
+- refactor: reduce complexity
+- refactor: all codacy errors
+- Merge pull request #42 from Go4Surprise/fix-codacy
+- refactor: some minors error prune
+- refactor: new errors
+- refactor: error-prune finds by codify are fixed
+- refactor: fix the newly created issues
+- refactor: codacy security hotspots
+- refactor: codacy quick fixes
+- refactor: more codacy errors
+- refactor: Fixed security issues, identified by codify
+- refactor: fix codacy issues
+- refactor: Added changes suggested by codify
+- Merge branch 'main' of https://github.com/Go4Surprise/Go4Surprise refactor: merge branch main
+
+### ⚡ Mejoras de rendimiento
+- perfil completo
+
+### 🧪 Pruebas
+- tests: locustfile users corregido
+- test: test de users funcionando de rendimiento
+- tests: token corregido
+- test: cobertura
+- test: Añadir tests aceptación
+- test: añadir test
+- test: tests de rendimeinto funcionando a excepción de users
+- test:Add tests
+- test: Add selenium tests
+- test: Test de Integracion
+- test: pruebas de aceptación users
+- test: Add unit tests
+- tests users
+- tests reviews
+- tests experiences
+- tests de booking, casos positivos y negativos
+
+### 🔧 Otros cambios
+- style: saving local changes before pull
+- style: saving local changes before pull
+
+## Cambios en PR (2025-05-15)
+
+### 🚀 Nuevas funcionalidades
+- Merge pull request #103 from Go4Surprise/enhance-landingpage
+- feat: improve landing page
+- feat: Modificar fechas de reservas admin
+- feat: emails templates
+- feat: experience pretty show
+- feat: Mejoras para despliegue
+- feat: notify experience details
+- feat: mail notification hints
+- feat: add to calendar button and styles
+- Merge pull request #86 from Go4Surprise/enhance/past-bookings
+- feat: cancel restriction and no booking message
+- feat: future and past bookings available in the same page
+- feat: Fotos y vídeos en reseñas
+- feat: Fotos de perfil en reviews
+- feat: Integración con GCS para subida de imágenes. Implementado en pfps
+- feat: Creación de reseñas para reservas
+- feat: Obtención últimas reviews desde api en HomeScreen
+- feat: Scroll edit profile y validación de condiciones en registro
+- feat: Obtención de reviews desde backend
+- feat: past bookings details first version
+- feat: Enhance prefrences forms
+- feat: Mejorar la UI de reserva (falta probar en movil el stripe)
+- feat: mejorada la UI de realizar una reserva
+- feat: mejorada la UI de la pantalla Home
+- feat: Pantalla de todas las reviews
+- feat: mejorada la interfaz de Login Screen
+- feat: Edit birthdate.
+- feat: update requirements.txt
+- Merge pull request #65 from Go4Surprise/verificar-correo
+- feat: payment process done
+- feat: Accept privacy policy and terms of use during registration.
+- feat: Add privacy policy and terms of use to the home page.
+- feat: cancel booking need to fix
+- feat: verificacion por mail
+- feat: booking details template
+- feature: added profile picture in edit profile modal frontend part
+- feature: added profile picture in edit profile modal
+- Merge pull request #57 from Go4Surprise/password-recovery
+- feat: password confirmation added
+- feat: error maangement
+- feat: reset link
+- Merge pull request #52 from Go4Surprise/feature/landing-page-inicio
+- Merge pull request #51 from Go4Surprise/mobile
+- feat: create landing page for home screen
+- Merge pull request #47 from Go4Surprise/feature/social-login
+- feat: cambios para android
+- feat: reset password view and handling error or success
+- feat: retoques en el frontend
+- feat: Desglose de precio al realizar pedido
+- feat: add adventure image background
+- feat: add leisure image background
+- feat: add a gastronomy image background
+- feat: add sports image background
+- feat: add culture image background
+- feat: add back button
+- feat: Descartes en el  frontend
+- feat: social login done!
+- feat: Add a background image with music and animation for quiz questions
+- feat: password reset backend
+- feat: add introduction to the preference questionnaire
+- feat: Modificación backend de categorías para descarte en reserva
+- feat: password reset confirm
+- feat: admin update booking and experience hint
+- feat: email configuration
+- feat: recovery urls
+- feat: Add user birthdate in frontend
+- feat: user-birthdate backend
+- feat: auto changelog on pull request to main
+- feat: Added AdminBooking Detail panel and Update Booking status
+- feat: AministratorBookings Panel + fix Hint
+- feat: incluir los mensajes de error en la pantalla
+- feat: administrador lista, actualiza y borra reservas
+- feat: incluir en el backend la comprobación de que el username no existe
+- feat: Continous Integration with codacy
+- feat: Add conventional Commits without api keys
+- feat: solo administradores pueden actualizar experiencias (backend)
+- feat: muestra la pista si faltan 24 horas (backend)
+- feat: reset password template
+- feat: user profile backend
+- feat: user get method
+- feat: user get method
+- feat: user profile screen
+- feat: formulario de preferencias básico
+
+### 🐛 Correcciones
+- fix: button to my bookings in home screen
+- fix: redirect to main page after deleting account
+- Merge pull request #104 from Go4Surprise/fix/google-login
+- fix: Arreglo login google
+- Merge pull request #102 from Go4Surprise/fix/update-home-page
+- fix:enhance home page
+- fix: Registro de cuentas con dos apellidos
+- fix: Adaptación correos de pista y experiencia
+- fix: Jsonparser para login social
+- fix: Borrado de usuarios desde admin
+- fix: fix style
+- fix: Remove the button to view reservation details in the email
+- fix: tests rendimiento funcionan correctamente
+- fix: date picker in register
+- fix: fix codacy errors
+- fix: Improve display and set the CANCELLED status correctly
+- fix: add to be able to see the password when editing it
+- fix: fix the password recovery screen
+- fix: changes in the conditions of use
+- fix: changes to the privacy policy
+- fix: textinput import
+- fix: back arrow bookingdetails and filter bookingpanel
+- fix:Arreglar tests
+- fix: Arreglar tests selenium
+- fix: Arreglando pruebas de aceptación
+- fix: Arreglando pruebas de aceptación
+- Merge pull request #97 from Go4Surprise/fix/delete-account
+- fix: Improve display for mobile screens
+- fix: the questionnaire has been fixed
+- fix: delete account and bookings
+- fix: merge
+- fix: Añadiendo cerrar sesión y arrow-back
+- fix: adminbooking details scrolleable
+- fix: adminheader logout
+- fix: admin booking list and mybookings time
+- fix: Update unit test
+- fix: merge
+- Merge pull request #91 from Go4Surprise/fix-codacy
+- fix: fix codacy new issues
+- fix: some codacy issues has been fixed
+- fix: Adaptaciones despliegue
+- fix: email config
+- fix: Arreglos pantalla admin reservas
+- fix: reviews
+- fix: bug home screen
+- fix: Arreglo elementos perdidos en merge
+- Merge pull request #87 from Go4Surprise/enhance/enhance-UI
+- fix: improve visualization
+- fix: improve the display in the admin panel
+- fix: currency error
+- fix: past bookings order
+- fix: merge error
+- fix: fix canceled status
+- fix: improve UI for cancelled bookings with red card and text
+- fix: keep the same language
+- fix: change from English to Spanish to keep the same language
+- fix: Mejoras en foto de perfil
+- fix: redirección stripe
+- fix: Fix passwords
+- Merge pull request #81 from Go4Surprise/fix/arreglar-errores
+- fix: Arreglos constraseñas form
+- fix: migracion bd
+- fix: Fix design issues
+- fix: Add user profile code and fix design issues
+- Merge pull request #76 from Go4Surprise/fix-home-screen
+- fix: countdown fixed
+- fix: views done
+- fix: all conflicts done!
+- Merge pull request #73 from Go4Surprise/fixes
+- fix: Adaptaciones despliegue
+- fix: stripe in same page
+- Merge pull request #70 from Go4Surprise/fix/cuestionario-preferencias
+- fix: modify _layout
+- fix: put the redirect to the correct page
+- fix: change text from English to Spanish
+- fix: Modificación visualización categorías admin
+- fix: Campo faltante en llamada a api
+- fix: Adaptación datos de reserva
+- fix: hide Social Login header
+- fix: social login redirection
+- fix: canceling booking fixed
+- fix: relationship bookings and experiences + css
+- fix: Arreglo error libreria distutils
+- fix: Idioma en home screen en error login settings
+- fix: Adding 'MyBooking' button
+- fix: Change the language
+- fix: correct media URL for profile picture rendering
+- fix: Arreglar registro
+- Merge pull request #59 from Go4Surprise/fix-delete-account
+- fix: arreglo profile_complete
+- fix: Botón siguiente deshabilitado al no seleccionar en formulario de prefencias
+- fix: Arreglo credenciales admin en login
+- fix: Fixing the delete account option
+- Merge pull request #58 from Go4Surprise/fix-register
+- fix: Fix the register page
+- fix: merge fixes
+- Merge pull request #56 from Go4Surprise/fix-login-social
+- fix: Change the social login redirect
+- fix: Reguister screen
+- Merge pull request #53 from Go4Surprise/fixes
+- fix: login
+- fix: Modelos para franja de tiempo en lugar de duración
+- Merge pull request #45 from Go4Surprise/fix/register-validations
+- fix: add missing dependencies to backend
+- fix: not fixed yet
+- fix: conflictos
+- Merge pull request #48 from Go4Surprise/fix/cuestionario-preferencias
+- fix: Arreglos en reserva
+- fix: fix codacy
+- fix: change music image and add less transparency
+- fix: change the background animation of the quiz questions
+- fix: reset password working
+- fix: fix animation disappearance
+- fix: conflicts
+- fix: minor fix in experience
+- Merge pull request #44 from Go4Surprise/fix/password-adjustments
+- fix: solve codacy error
+- fix: codacy fixes
+- fix: minor codacy issues
+- fix: add helper text
+- fix: change quiz colors
+- fix: If you select the nothing option, do not let it select the rest of the options
+- fix: track changes
+- fix: added validations at register fields
+- fix: password adjustments
+- fix: duplicated file detection
+- fix: Fix user profile edit modal
+- fix: Fix bookings button on the user profile page
+- fix: Fix home button on the user profile page
+- fix: Arreglos en reserva y campo de notas adicionales
+- fix: userDetails asincrony
+- fix: rename attribute from experience date to birthdate in frontend
+- fix: reworded quiz questions to make them more general and aligned with user experience types
+- Merge pull request #41 from Go4Surprise/fix-codacy
+- Merge pull request #37 from Go4Surprise/fix/opiniones-recientes
+- fix: show hint in MyBookings
+- fix: main merge
+- fix: delete workflow that is not working
+- fix: autochangelog to run locally
+- fix: change url of changelog workflow
+- fix: add detection to changelog workflow
+- fix: add permision to changelog workflow
+- fix: add permision to changelog workflow
+- fix: auto-changelog
+- fix: actualizar opiniones recientes en las reviews
+- fix: intentar solucionar los errores del codacy, parte 2
+- fix: solucionar los errores del codacy, parte 1
+- fix: el boton al registrate ya te redirige bien al login
+- fix: reducir el número de ifs con las validaciones de las propiedades
+- fix: errores al arrancar solucionados
+- fix: changelog action
+- fix: Arreglos y mejoras en panel de administración
+- fix login
+- fix: Quitar 2 preguntas de la encuesta acordadas en la reunión
+- fix: cambio para que se haga el cuestionario tras registrarse
+- fix: Manejo correcto de preferencias inexistentes
+- Merge pull request #18 from Go4Surprise/login-registro-formulario
+- fix: arreglo login y añadido formulario de preferencias
+- Merge pull request #6 from Go4Surprise/base-datos
+- fix: django and postgres discrepancies
+
+### 📚 Documentación
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs: requirements update
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md para PR a main
+- docs(changelog): actualizar CHANGELOG.md en rama auto-changelog
+
+### ♻️ Refactorización
+- refactor: Alert deleted
+- refactor: some minor codacy errors are solved
+- refactor: reduce complexity
+- refactor: all codacy errors
+- Merge pull request #42 from Go4Surprise/fix-codacy
+- refactor: some minors error prune
+- refactor: new errors
+- refactor: error-prune finds by codify are fixed
+- refactor: fix the newly created issues
+- refactor: codacy security hotspots
+- refactor: codacy quick fixes
+- refactor: more codacy errors
+- refactor: Fixed security issues, identified by codify
+- refactor: fix codacy issues
+- refactor: Added changes suggested by codify
+- Merge branch 'main' of https://github.com/Go4Surprise/Go4Surprise refactor: merge branch main
+
+### ⚡ Mejoras de rendimiento
+- perfil completo
+
+### 🧪 Pruebas
+- tests: locustfile users corregido
+- test: test de users funcionando de rendimiento
+- tests: token corregido
+- test: cobertura
+- test: Añadir tests aceptación
+- test: añadir test
+- test: tests de rendimeinto funcionando a excepción de users
+- test:Add tests
+- test: Add selenium tests
+- test: Test de Integracion
+- test: pruebas de aceptación users
+- test: Add unit tests
+- tests users
+- tests reviews
+- tests experiences
+- tests de booking, casos positivos y negativos
+
+### 🔧 Otros cambios
+- style: saving local changes before pull
+- style: saving local changes before pull
+
 ## Cambios en PR (2025-05-01)
 
 ### 🚀 Nuevas funcionalidades
