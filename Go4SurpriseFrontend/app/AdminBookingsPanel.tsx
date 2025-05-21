@@ -19,9 +19,11 @@ const translateEstado = (estado: string): string => {
     const dangerousProps = ['__proto__', 'constructor', 'prototype'];
 
     // Only allow access if the key exists in estadoMap and is not a dangerous property
-    return !dangerousProps.includes(estado) && Object.prototype.hasOwnProperty.call(estadoMap, estado)
-    ? estadoMap[estado]
-    : estado;
+    if (dangerousProps.includes(estado) && !Object.prototype.hasOwnProperty.call(estadoMap, estado)) {
+        return estado;
+    }
+
+    return estadoMap[estado];
   };
 
 interface Booking {
@@ -35,7 +37,7 @@ interface Booking {
 }
 
 const AdminBookings = () => {
-    const { width, height } = useWindowDimensions(); // Get screen dimensions
+    const { width } = useWindowDimensions(); // Get screen dimensions
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]); // For search results
     const [loading, setLoading] = useState(true);
@@ -51,12 +53,12 @@ const AdminBookings = () => {
 
     useEffect(() => {
         void checkAdminStatus();
-        fetchBookings();
+        void fetchBookings();
 
         // Show the success message if passed in the navigation params
         if (searchParams.successMessage) {
             setSuccessMessage(searchParams.successMessage as string);
-            setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+            setTimeout(() => { setSuccessMessage(null); }, 3000); // Clear message after 3 seconds
         }
     }, [searchParams.successMessage]); // Add dependency to re-trigger when params change
 
@@ -151,7 +153,7 @@ const AdminBookings = () => {
             if (success) {
                 setBookings((prevBookings) => prevBookings.filter((booking) => booking.id !== selectedBookingId)); // Update state
                 setSuccessMessage('La reserva se ha eliminado correctamente.');
-                setTimeout(() => setSuccessMessage(null), 3000); // Clear message after 3 seconds
+                setTimeout(() => { setSuccessMessage(null); }, 3000); // Clear message after 3 seconds
             }
         }
         setModalVisible(false); // Hide modal
@@ -191,7 +193,7 @@ const AdminBookings = () => {
         ];
 
         return (
-            <TouchableOpacity onPress={() => handleBookingPress(item.id)}>
+            <TouchableOpacity onPress={() => { handleBookingPress(item.id); }}>
                 <View style={[cardStyle, { width: width * 0.9 }]}>
                     <Text style={styles.label}>
                         <Ionicons name="person" size={16} color="#1877F2" /> Usuario: {item.user_name} ({item.user_email})
@@ -271,14 +273,14 @@ const AdminBookings = () => {
                 visible={modalVisible}
                 transparent={true}
                 animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => { setModalVisible(false); }}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalText}>¿Estás seguro de que quieres eliminar esta reserva?</Text>
                         <View style={styles.modalButtons}>
-                            <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#6c757d" />
-                            <Button title="Eliminar" onPress={confirmDeleteBooking} color="#dc3545" />
+                            <Button title="Cancelar" onPress={() => { setModalVisible(false); }} color="#6c757d" />
+                            <Button title="Eliminar" onPress={() => { void confirmDeleteBooking() }} color="#dc3545" />
                         </View>
                     </View>
                 </View>

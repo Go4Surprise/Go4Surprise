@@ -57,7 +57,7 @@ const MyBookings = () => {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<Array<{ uri: string, type: string }>>([]);
+  const [selectedMedia, setSelectedMedia] = useState<{ uri: string, type: string }[]>([]);
   const [unpaidBookings, setUnpaidBookings] = useState<Reserva[]>([]);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -242,7 +242,7 @@ const MyBookings = () => {
 
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Go4Surprise&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=Reserva+sorpresa+en+${item.city}&location=${item.city}`;
 
-    Linking.openURL(url);
+    void Linking.openURL(url);
   };
 
   const openReviewModal = (experienceId: string) => {
@@ -291,14 +291,11 @@ const MyBookings = () => {
         router.push("/LoginScreen");
         return;
       }
-
       const formData = new FormData();
-
       formData.append('puntuacion', reviewRating.toString());
       formData.append('comentario', reviewComment);
       formData.append('experience', selectedExperienceId);
       formData.append('user', userId);
-
       // Process media files
       for (let i = 0; i < selectedMedia.length; i++) {
         const media = selectedMedia[i];
@@ -315,11 +312,10 @@ const MyBookings = () => {
           }
         } else {
           // For mobile: Make sure we're creating the file object correctly
-          const filename = media.uri.split('/').pop() || `file${i}`;
+          const filename = media.uri.split('/').pop() ?? `file${i}`;
           const match = /\.(\w+)$/.exec(filename);
           const fileType = match ? match[1] : (media.type === 'video' ? 'mp4' : 'jpg');
           const mimeType = media.type === 'video' ? `video/${fileType}` : `image/${fileType}`;
-
           // Explicitly define the file structure as expected by the backend
           formData.append('media_files', {
             uri: media.uri,
@@ -328,13 +324,11 @@ const MyBookings = () => {
           } as any);
         }
       }
-
       // Log the FormData contents for debugging
       console.log('FormData contents:');
       for (let [key, value] of (formData as any).entries()) {
         console.log(`${key}: ${typeof value === 'object' ? 'File object' : value}`);
       }
-
       const response = await axios.post(`${BASE_URL}/reviews/create/`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -351,7 +345,6 @@ const MyBookings = () => {
       }
     } catch (error: any) {
       console.error("Error al enviar la reseña:", error);
-
       // Handle case where user already reviewed this experience
       if (error.response?.status === 400 &&
         error.response?.data?.error?.includes("Ya has dejado una reseña")) {
@@ -359,7 +352,7 @@ const MyBookings = () => {
         setReviewedExperiences(prev =>
           prev.includes(selectedExperienceId)
             ? prev
-            : [...prev, selectedExperienceId as string]
+            : [...prev, selectedExperienceId]
         );
       } else {
         Alert.alert("Error", "No se pudo enviar la reseña. Inténtalo de nuevo.");
@@ -370,7 +363,7 @@ const MyBookings = () => {
   };
 
   const renderItem = ({ item }: { item: Reserva }) => {
-    const timePreferenceMap: { [key: string]: string } = {
+    const timePreferenceMap: Record<string, string> = {
       MORNING: "Mañana",
       AFTERNOON: "Tarde",
       NIGHT: "Noche",
@@ -457,7 +450,7 @@ const MyBookings = () => {
           <View style={styles.calendarButtonsContainer}>
             <TouchableOpacity
               style={styles.googleCalendarButton}
-              onPress={() => openGoogleCalendar(item)}
+              onPress={() => { openGoogleCalendar(item); }}
             >
               <Ionicons name="logo-google" size={16} color="white" />
               <Text style={styles.buttonText}>Añadir a Google Calendar</Text>
@@ -469,7 +462,7 @@ const MyBookings = () => {
           && (
             <TouchableOpacity
               style={styles.reviewButton}
-              onPress={() => openReviewModal(item.experience.id)}
+              onPress={() => { openReviewModal(item.experience.id); }}
             >
               <Ionicons name="star" size={16} color="white" />
               <Text style={styles.reviewButtonText}>Dejar Reseña</Text>
@@ -500,7 +493,7 @@ const MyBookings = () => {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabButton, selectedTab === "activas" && styles.tabButtonActive]}
-          onPress={() => setSelectedTab("activas")}
+          onPress={() => { setSelectedTab("activas"); }}
         >
           <Text style={[styles.tabText, selectedTab === "activas" && styles.tabTextActive]}>Activas</Text>
         </TouchableOpacity>
@@ -563,7 +556,7 @@ const MyBookings = () => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => { setModalVisible(false); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -572,7 +565,7 @@ const MyBookings = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
-                onPress={() => setModalVisible(false)}
+                onPress={() => { setModalVisible(false); }}
               >
                 <Text style={styles.modalCancelButtonText}>No</Text>
               </TouchableOpacity>
@@ -590,7 +583,7 @@ const MyBookings = () => {
         animationType="slide"
         transparent={true}
         visible={reviewModalVisible}
-        onRequestClose={() => setReviewModalVisible(false)}
+        onRequestClose={() => { setReviewModalVisible(false); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.reviewModalContent}>
@@ -624,7 +617,7 @@ const MyBookings = () => {
             />
 
             <Text style={styles.modalLabel}>Añadir fotos o videos (máx. 5)</Text>
-            <TouchableOpacity style={styles.uploadButton} onPress={pickMedia}>
+            <TouchableOpacity style={styles.uploadButton} onPress={() => { void pickMedia(); }}>
               <Text style={styles.uploadButtonText}>Seleccionar archivo</Text>
             </TouchableOpacity>
 
@@ -644,7 +637,7 @@ const MyBookings = () => {
                     )}
                     <TouchableOpacity
                       style={styles.removeMediaButton}
-                      onPress={() => removeMedia(index)}
+                      onPress={() => { removeMedia(index); }}
                     >
                       <Ionicons name="close-circle" size={20} color="red" />
                     </TouchableOpacity>
@@ -656,13 +649,13 @@ const MyBookings = () => {
             <View style={[styles.modalButtons, styles.reviewModalButtons]}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
-                onPress={() => setReviewModalVisible(false)}
+                onPress={() => { setReviewModalVisible(false); }}
               >
                 <Text style={styles.modalCancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.submitReviewButton, { opacity: submittingReview ? 0.7 : 1 }]}
-                onPress={submitReview}
+                onPress={() => { void submitReview() }}
                 disabled={submittingReview}
               >
                 {submittingReview ? (

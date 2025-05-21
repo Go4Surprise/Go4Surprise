@@ -153,10 +153,8 @@ def login_user(request):
         # Obtenemos el usuario del serializador
         username = serializer.validated_data.get('username')
         user = User.objects.get(username=username)
-        
         try:
             usuario = user.usuario
-            
             # Verificamos si el correo ha sido verificado
             if not usuario.email_verified:
                 # Verificamos si han pasado 48 horas desde el registro
@@ -165,16 +163,13 @@ def login_user(request):
                     user.delete()  # Esto eliminará también el Usuario por la cascada
                     return Response(
                         {"error": "Tu cuenta ha sido eliminada porque no verificaste tu correo electrónico en las 48 horas establecidas. Por favor, regístrate de nuevo."},
-                        status=status.HTTP_403_FORBIDDEN
-                    )
+                        status=status.HTTP_403_FORBIDDEN)
                 else:
                     # Enviamos un nuevo correo de verificación si lo solicita
                     if request.data.get('resend_verification'):
                         usuario.refresh_verification_token()
-                        
                         base_url = "http://localhost:8081" if DEBUG else f"https://{GS_PUNTERO}-go4-frontend-dot-ispp-2425-g10.ew.r.appspot.com"
                         verification_link = f"{base_url}/VerifyEmail?token={usuario.email_verification_token}&user_id={usuario.id}"
-                        
                         subject = "Verifica tu correo electrónico - Go4Surprise"
                         html_content = render_to_string("emails/email_verificacion.html", {
                             "usuario": usuario,
@@ -205,13 +200,11 @@ def login_user(request):
                         
                         return Response(
                             {"message": "Se ha enviado un nuevo correo de verificación. Por favor, verifica tu cuenta."},
-                            status=status.HTTP_200_OK
-                        )
+                            status=status.HTTP_200_OK)
                     
                     return Response(
                         {"error": "Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada."},
-                        status=status.HTTP_403_FORBIDDEN
-                    )
+                        status=status.HTTP_403_FORBIDDEN)
             
             # Si el correo está verificado, continúa con el login normal
             return Response(serializer.validated_data, status=status.HTTP_200_OK)

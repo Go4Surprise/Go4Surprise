@@ -62,7 +62,8 @@ class BookingFlowTest(unittest.TestCase):
                     driver.execute_script("arguments[0].scrollIntoView();", button)
                     driver.execute_script("arguments[0].click();", button)
                     break
-            except:
+            except Exception as e:
+                print(f"⚠️ Error inesperado: {e}")
                 continue
 
         print("✅ Categoría CULTURA seleccionada.")

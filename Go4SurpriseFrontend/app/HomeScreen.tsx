@@ -7,7 +7,6 @@ import {
   ScrollView,
   Image,
   ImageBackground,
-  Alert,
   SafeAreaView,
   Platform,
   StatusBar,
@@ -17,11 +16,9 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { router } from 'expo-router';
-import { useNavigation } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import CountDown from './CountDown';
-import Reviews from './Reviews';
 import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 import { useFocusEffect } from '@react-navigation/native';
@@ -127,8 +124,7 @@ const StarRating = ({ stars }: { stars: number }) => (
 );
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const reviewCardWidth = width * 0.7; // Extraer constante para ancho de tarjeta
 
   // Definiciones de tamaños de pantalla más detalladas
@@ -140,8 +136,6 @@ export default function HomeScreen() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<User>({});
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
-  const [scrollX] = useState(new Animated.Value(0)); // Animación para el desplazamiento horizontal de las reviews
   const [currentIndex, setCurrentIndex] = useState(0); // Índice actual del carrusel de reviews
   const [error, setError] = useState<string | null>(null);
   const [randomQuote, setRandomQuote] = useState<string>('');
@@ -154,7 +148,7 @@ export default function HomeScreen() {
     const animations = experiencesData.reduce((acc, experience) => {
       acc[experience.title] = new Animated.Value(1); // Inicializa la escala en 1 para categorías
       return acc;
-    }, {} as { [key: string]: Animated.Value });
+    }, {} as Record<string, Animated.Value>);
 
     // Inicializa la escala en 1 para las reviews
     for (let i = 0; i < 5; i++) {
@@ -165,12 +159,10 @@ export default function HomeScreen() {
   })[0];
 
   const handlePressIn = (key: string) => {
-    if (scaleAnimations[key]) {
-      Animated.spring(scaleAnimations[key], {
-        toValue: 1.2, // Escala al 120% para el efecto de pop
-        useNativeDriver: true,
-      }).start();
-    }
+    Animated.spring(scaleAnimations[key], {
+      toValue: 1.2, // Escala al 120% para el efecto de pop
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = (key: string) => {
@@ -241,9 +233,9 @@ export default function HomeScreen() {
   // Cargar datos cuando la pantalla obtiene foco
   useFocusEffect(
     useCallback(() => {
-      checkAdminStatus();
-      fetchUserData();
-    }, [checkAdminStatus])
+      void checkAdminStatus();
+      void fetchUserData();
+    }, [void checkAdminStatus])
   );
 
   // Unificar lógica de desplazamiento automático
@@ -251,7 +243,7 @@ export default function HomeScreen() {
     const interval = setInterval(() => {
       handleNextReview(); // Desplazamiento automático
     }, 5000);
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, [currentIndex]);
 
   useEffect(() => {
@@ -360,7 +352,7 @@ export default function HomeScreen() {
                     : require("../assets/images/user-logo-none.png")
                 }
                 style={styles.profileIcon}
-                onError={() => setUser((prev) => ({ ...prev, pfp: '' }))}
+                onError={() => { setUser((prev) => ({ ...prev, pfp: '' })); }}
               />
             </TouchableOpacity>
           </View>
@@ -464,7 +456,7 @@ export default function HomeScreen() {
                 key={experience.title}
                 onPress={() => {
                   handlePressIn(experience.title);
-                  setTimeout(() => handlePressOut(experience.title), 150); // Ensure the pop effect completes
+                  setTimeout(() => { handlePressOut(experience.title); }, 150); // Ensure the pop effect completes
                 }}
               >
                 <Animated.View
@@ -475,7 +467,7 @@ export default function HomeScreen() {
                 >
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => setSelectedExperience(experience)}
+                    onPress={() => { setSelectedExperience(experience); }}
                     accessibilityLabel={`Seleccionar experiencia de ${experience.title}`}
                   >
                     <Ionicons name={experience.icon} size={24} color="#004AAD" style={styles.icon} />
@@ -493,7 +485,7 @@ export default function HomeScreen() {
             transparent={true}
             animationType="slide"
             visible={!!selectedExperience}
-            onRequestClose={() => setSelectedExperience(null)}
+            onRequestClose={() => { setSelectedExperience(null); }}
           >
             <View style={styles.modalOverlay}>
               <View style={styles.modalContainer}>
@@ -502,7 +494,7 @@ export default function HomeScreen() {
                 <Text style={styles.modalDescription}>{selectedExperience.description}</Text>
                 <TouchableOpacity
                   style={styles.closeButton}
-                  onPress={() => setSelectedExperience(null)}
+                  onPress={() => { setSelectedExperience(null); }}
                   accessibilityLabel="Cerrar detalles de la experiencia"
                 >
                   <Text style={styles.closeButtonText}>Cerrar</Text>

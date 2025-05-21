@@ -52,7 +52,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (response?.type === 'success') {
-      handleGoogleAuth(response);
+      void handleGoogleAuth(response);
     }
   }, [response]);
 
@@ -197,7 +197,7 @@ export default function LoginScreen() {
         />
         <TouchableOpacity
           style={styles.eyeIcon}
-          onPress={() => setShowPassword(!showPassword)}
+          onPress={() => { setShowPassword(!showPassword); }}
           accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
         >
           <Ionicons 
@@ -212,7 +212,7 @@ export default function LoginScreen() {
 
       <TouchableOpacity 
         style={[styles.button, isLoading && styles.disabledButton]} 
-        onPress={handleLogin}
+        onPress={() => { void handleLogin(); }}
         disabled={isLoading}
       >
         <Text style={styles.buttonText}>
@@ -260,7 +260,7 @@ export default function LoginScreen() {
       visible={showVerificationModal}
       transparent={true}
       animationType="fade"
-      onRequestClose={() => setShowVerificationModal(false)}
+      onRequestClose={() => { setShowVerificationModal(false); }}
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
@@ -280,7 +280,7 @@ export default function LoginScreen() {
               )}
               <TouchableOpacity 
                 style={[styles.verifyButton, resendInProgress && styles.disabledButton]}
-                onPress={handleResendVerification}
+                onPress={() => { void handleResendVerification(); }}
                 disabled={resendInProgress}
               >
                 <Text style={styles.verifyButtonText}>

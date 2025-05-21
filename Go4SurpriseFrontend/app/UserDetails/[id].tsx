@@ -95,7 +95,6 @@ export default function UserDetails() {
     const handleDeleteUser = async () => {
         try {
             console.log("Delete function triggered for ID:", id);
-            
             const token = await AsyncStorage.getItem('accessToken');
             
             if (!token) {
@@ -105,8 +104,7 @@ export default function UserDetails() {
             }
             
             const deleteUrl = `${BASE_URL}/users/admin/delete/${id}/`;
-            
-            const response = await axios.delete(deleteUrl, {
+            await axios.delete(deleteUrl, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',

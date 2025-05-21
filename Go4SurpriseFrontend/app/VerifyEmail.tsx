@@ -13,7 +13,7 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState<string>('Verificando tu correo electrónico...');
 
   useEffect(() => {
-    verifyEmail();
+    void verifyEmail();
   }, [token, user_id]);
 
   const verifyEmail = async () => {

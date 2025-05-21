@@ -6,7 +6,7 @@ from users.models import Usuario
 from .models import Booking
 from django.utils import timezone
 from experiences.serializers import ExperienceSerializer
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 class CrearReservaSerializer(serializers.ModelSerializer):
     participants= serializers.IntegerField(required=True)
@@ -115,7 +115,7 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     total_price=total_price,
                     price=validated_data['price'],
                     participants=validated_data['participants'],
-                    paid="False",
+                    paid=False,
                 )
             except Usuario.DoesNotExist:
                 raise serializers.ValidationError("User not found")
@@ -154,12 +154,6 @@ class AdminBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ['id', 'experience_date', 'participants', 'total_price', 'status', 'user_name', 'user_email', 'experience', 'booking_date']  # Include user_name and user_email
-
-
-class ExperienceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Experience
-        fields = ['id', 'name', 'description', 'hint']  # Aquí puedes agregar los campos que necesitas de la experiencia
 
 
 class AdminBookingUpdateSerializer(serializers.ModelSerializer):

@@ -98,15 +98,17 @@ export default function IndexScreen() {
       <ScrollView ref={scrollRef} contentContainerStyle={{ flexGrow: 1 }}>
         {/* HEADER */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => scrollToSection(homeRef)}>
+          <TouchableOpacity onPress={() => { scrollToSection(homeRef); }}>
             <Image source={require('../../assets/images/logo.png')} style={styles.headerLogo} />
           </TouchableOpacity>
           <View style={styles.navLinks}>
-
-            <TouchableOpacity onPress={() => scrollToSection(aboutRef)}>
+            <TouchableOpacity onPress={() => { scrollToSection(homeRef); }}>
+              <Text style={styles.navItem}>Inicio</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { scrollToSection(aboutRef); }}>
               <Text style={styles.navItem}>Sobre nosotros</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => scrollToSection(contactRef)}>
+            <TouchableOpacity onPress={() => { scrollToSection(contactRef); }}>
               <Text style={styles.navItem}>Contáctanos</Text>
             </TouchableOpacity>
           </View>
@@ -166,7 +168,7 @@ export default function IndexScreen() {
             Escríbenos a{' '}
             <Text
               style={styles.emailText}
-              onPress={() => Linking.openURL('mailto:go4surprise.ispp@gmail.com')}
+              onPress={() => { void Linking.openURL('mailto:go4surprise.ispp@gmail.com') }}
             >
               go4surprise.ispp@gmail.com
             </Text>{' '}

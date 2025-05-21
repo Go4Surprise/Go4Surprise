@@ -32,7 +32,6 @@ export default function UserProfileScreen() {
     birthdate: new Date(),
   });
   
-  const [, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
   const [editedUser, setEditedUser] = useState({ name: '', email: '', username: '', surname: '', phone: '', pfp: '' , birthdate: new Date() });
@@ -80,7 +79,7 @@ export default function UserProfileScreen() {
   
 
   useEffect(() => {
-    fetchUserData();
+    void fetchUserData();
   }, []);
 
   // Escuchar tecla Enter en web
@@ -104,18 +103,16 @@ export default function UserProfileScreen() {
 
   // Open edit profile modal with current user data
   const handleEditProfile = () => {
-    if (user) {
-        setEditedUser({
-            name: user.name || '',
-            surname: user.surname || '', 
-            username: user.username || '',  
-            email: user.email || '',
-            phone: user.phone || '',
-            pfp: user.pfp || '',
-            birthdate: user.birthdate || new Date(),
-        });
-        setModalVisible(true);
-    }
+      setEditedUser({
+          name: user.name || '',
+          surname: user.surname || '', 
+          username: user.username || '',  
+          email: user.email || '',
+          phone: user.phone || '',
+          pfp: user.pfp || '',
+          birthdate: user.birthdate,
+      });
+      setModalVisible(true);
   };
 
   const pickImage = async () => {
@@ -144,19 +141,17 @@ export default function UserProfileScreen() {
       formData.append('email', editedUser.email);
       formData.append('phone', editedUser.phone);
       let birthdateString = '';
-      if (editedUser.birthdate) {
-        try {
-          if (editedUser.birthdate instanceof Date) {
-            birthdateString = editedUser.birthdate.toISOString().split('T')[0];
-          } 
-          else if (typeof editedUser.birthdate === 'string') {
-            const dateObj = new Date(editedUser.birthdate);
-            birthdateString = dateObj.toISOString().split('T')[0];
-          }
-        } catch (e) {
-          console.error('Error formatting date:', e);
-          birthdateString = new Date().toISOString().split('T')[0];
+      try {
+        if (editedUser.birthdate instanceof Date) {
+          birthdateString = editedUser.birthdate.toISOString().split('T')[0];
+        } 
+        else if (typeof editedUser.birthdate === 'string') {
+          const dateObj = new Date(editedUser.birthdate);
+          birthdateString = dateObj.toISOString().split('T')[0];
         }
+      } catch (e) {
+        console.error('Error formatting date:', e);
+        birthdateString = new Date().toISOString().split('T')[0];
       }
       formData.append('birthdate', birthdateString);
   
@@ -175,7 +170,7 @@ export default function UserProfileScreen() {
           
           formData.append('pfp', {
             uri: editedUser.pfp,
-            name: filename || 'profile.jpg',
+            name: filename ?? 'profile.jpg',
             type
           } as any);
         }
@@ -187,10 +182,8 @@ export default function UserProfileScreen() {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
       // Fetch fresh user data from the server instead of just updating local state
       await fetchUserData();
-      
       setModalVisible(false);
       Alert.alert('Éxito', 'Perfil actualizado correctamente.');
     } catch (error) {
@@ -232,45 +225,6 @@ export default function UserProfileScreen() {
         setPasswordError("🚫 No se pudo conectar al servidor.");
       }
     }
-  };
-
-  // Get user ID from AsyncStorage
-  const getUserIdFromToken = async (): Promise<string | null> => {
-    try {
-      const token = await AsyncStorage.getItem("accessToken");
-      const userId = await AsyncStorage.getItem("userId");
-
-      if (!token || !userId) {
-        Alert.alert("Error", "No se encontró ninguna sesión activa.");
-        return null;
-      }
-      return userId;
-    } catch (error) {
-      console.error("Error al obtener el ID de usuario:", error);
-      return null;
-    }
-  };
-
-  // Get usuario_id from API
-  const getUsuarioId = async (userId: string, token: string): Promise<string | null> => {
-    try {
-      const usuarioResponse = await axios.get(`${BASE_URL}/users/get-usuario-id/`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { user_id: userId }
-      });
-      return usuarioResponse.data.usuario_id;
-    } catch (error) {
-      console.error("Error al obtener el ID de usuario:", error);
-      return null;
-    }
-  };
-
-
-  // Validate authentication data
-  const validateAuthData = async () => {
-    const token = await AsyncStorage.getItem("accessToken");
-    const userId = await getUserIdFromToken();
-    return { token, userId, isValid: !!userId && !!token };
   };
 
   // Handle user logout
@@ -345,12 +299,10 @@ export default function UserProfileScreen() {
       </ImageBackground>
 
       {/* Tarjeta del perfil */}
-      {user && (
-                <View style={styles.profileCard}>
-                  <Text style={styles.username}>{user.name} {user.surname}</Text>
-                  <Text style={styles.email}>{user.email}</Text>
-                </View>
-        )}
+      <View style={styles.profileCard}>
+          <Text style={styles.username}>{user.name} {user.surname}</Text>
+          <Text style={styles.email}>{user.email}</Text>
+      </View>
 
       {/* Profile options */}
       <View style={styles.optionsContainer}>
@@ -374,7 +326,7 @@ export default function UserProfileScreen() {
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => setShowDeleteModal(true)}>
+        <TouchableOpacity style={[styles.optionButton, styles.deleteButton]} onPress={() => { setShowDeleteModal(true); }}>
           <Ionicons name="trash" size={20} color="#fff" style={styles.icon} />
           <Text style={styles.deleteText}>Eliminar cuenta</Text>
         </TouchableOpacity>
@@ -392,39 +344,33 @@ export default function UserProfileScreen() {
             <ScrollView contentContainerStyle={styles.modalScrollContent}>
               <Text style={styles.modalTitle}>Editar Perfil</Text>
               <Text style={styles.label}>Nombre</Text>
-              <TextInput style={styles.input} value={editedUser.name} 
-                onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" 
-                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
+              <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => { setEditedUser({ ...editedUser, name: text }); }} placeholder="Nombre" />
               <Text style={styles.label}>Apellidos</Text>
-              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" 
-                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
+              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => { setEditedUser({ ...editedUser, surname: text }); }} placeholder="Apellido" />
               <Text style={styles.label}>Usuario</Text>
-              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" 
-                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
+              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => { setEditedUser({ ...editedUser, username: text }); }} placeholder="Usuario" />
               <Text style={styles.label}>Email</Text>
-              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" 
-                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
+              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => { setEditedUser({ ...editedUser, email: text }); }} placeholder="Email" keyboardType="email-address" />
               <Text style={styles.label}>Teléfono</Text>
-              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" 
-                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
+              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => { setEditedUser({ ...editedUser, phone: text }); }} placeholder="Teléfono" keyboardType="phone-pad" />
               <Text style={styles.label}>Fecha de Nacimiento</Text>
               {Platform.OS === 'web' ? (
                 <input
                   style={styles.webDateInput}
                   type="date"
                   value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
-                  onChange={(e) => setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) })}
+                  onChange={(e) => { setEditedUser({ ...editedUser, birthdate: new Date(e.target.value) }); }}
                 />
               ) : (
-                <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
+                <TouchableOpacity style={styles.dateButton} onPress={() => { setShowDatePicker(true); }}>
                   <Text style={styles.dateText}>
-                    {editedUser.birthdate ? new Date(editedUser.birthdate).toLocaleDateString() : 'Seleccionar Fecha'}
+                    {new Date(editedUser.birthdate).toLocaleDateString()}
                   </Text>
                 </TouchableOpacity>
               )}
 
               <Text style={styles.label}>Foto de Perfil</Text>
-              <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
+              <TouchableOpacity style={styles.imagePickerButton} onPress={() => { void pickImage() }}>
                   <Text style={styles.imagePickerButtonText}>Seleccionar Imagen</Text>
               </TouchableOpacity>
               <Image 
@@ -468,7 +414,7 @@ export default function UserProfileScreen() {
                 placeholder="Contraseña actual"
                 secureTextEntry={!showCurrentPassword}
               />
-              <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+              <TouchableOpacity onPress={() => { setShowCurrentPassword(!showCurrentPassword); }}>
                 <Ionicons name={showCurrentPassword ? "eye-off" : "eye"} size={24} color="#777" />
               </TouchableOpacity>
             </View>
@@ -484,7 +430,7 @@ export default function UserProfileScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleChangePassword}
               />
-              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+              <TouchableOpacity onPress={() => { setShowNewPassword(!showNewPassword); }}>
                 <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="#777" />
               </TouchableOpacity>
             </View>
@@ -505,7 +451,7 @@ export default function UserProfileScreen() {
         visible={showDeleteModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowDeleteModal(false)}
+        onRequestClose={() => { setShowDeleteModal(false); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -515,14 +461,14 @@ export default function UserProfileScreen() {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowDeleteModal(false)}
+                onPress={() => { setShowDeleteModal(false); }}
               >
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
-                onPress={handleDeleteAccount}
+                onPress={() => { void handleDeleteAccount() }}
               >
                 <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>
@@ -560,7 +506,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     backgroundColor: '#fff',
-    boxSizing: 'border-box' as 'border-box', // Explicitly cast to valid BoxSizing type
+    boxSizing: 'border-box' as const, // Explicitly cast to valid BoxSizing type
   },
   
   dateButton: {

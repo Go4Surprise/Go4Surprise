@@ -31,7 +31,7 @@ const translateHorario = (horario: HorarioPreferencia | null): string =>
 const translateCategoria = (categoria: Categoria | null): string =>
     categoria ? categoriasMap[categoria] || categoria : "Sin categoría";
 
-type BookingDetail = {
+interface BookingDetail {
     id: string;
     experience_date: string;
     booking_date: string;
@@ -51,7 +51,7 @@ type BookingDetail = {
         link: string;
         notas_adicionales: string;
     };
-};
+}
 
 const AdminBookingsDetail = () => {
     const [booking, setBooking] = useState<BookingDetail | null>(null);
@@ -72,19 +72,12 @@ const AdminBookingsDetail = () => {
     const [hint, setHint] = useState<string | null>(null);
     const [bookingDate, setBookingDate] = useState<string | null>(null);
 
-    interface Experience {
-        id: string;
-        title: string;
-    }
-
-    const [experiences, setExperiences] = useState<Experience[]>([]);
     const [selectedExperienceId, setSelectedExperienceId] = useState<string | null>(null);
     const router = useRouter();
     const { id } = useLocalSearchParams();
 
     useEffect(() => {
-        fetchBookingDetail();
-        fetchExperiences();
+        void fetchBookingDetail();
     }, []);
 
     const fetchBookingDetail = async () => {
@@ -132,21 +125,6 @@ const AdminBookingsDetail = () => {
         }
     };
 
-    const fetchExperiences = async () => {
-        try {
-            const token = await AsyncStorage.getItem('accessToken');
-            const response = await axios.get(`${BASE_URL}/experiences/list/`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            setExperiences(response.data);
-        } catch (error) {
-            console.error('Error fetching experiences:', error);
-        }
-    };
-
     const updateBookingStatus = async () => {
         if (!selectedStatus || !experienceDate || !participants || !totalPrice || !selectedExperienceId) {
             Alert.alert('Error', 'Por favor asegúrate de completar todos los campos.');
@@ -170,7 +148,7 @@ const AdminBookingsDetail = () => {
                         location: experienceLocation,
                         time_preference: experienceHorario,
                         categories: experienceCategories,
-                        hint: hint || "",
+                        hint: hint ?? "",
                         price: experiencePrice,
                         title: experienceTitle,
                         description: experienceDescription,
@@ -236,8 +214,8 @@ const AdminBookingsDetail = () => {
                     <View style={styles.row}>
                         <Text style={styles.label}><Ionicons name="information-circle" size={16} color="#1877F2" /> Estado Actual:</Text>
                         <Picker
-                            selectedValue={selectedStatus || booking.status}
-                            onValueChange={(itemValue) => setSelectedStatus(itemValue)}
+                            selectedValue={selectedStatus ?? booking.status}
+                            onValueChange={(itemValue) => { setSelectedStatus(itemValue); }}
                             style={[styles.transparentPicker, styles.widePicker]}
                         >
                             <Picker.Item label="Pendiente" value="PENDING" />
@@ -284,7 +262,7 @@ const AdminBookingsDetail = () => {
                     />
                     <TouchableOpacity
                         style={[styles.updateButton, styles.updateButtonSpacing]}
-                        onPress={updateBookingStatus}
+                        onPress={() => { void updateBookingStatus() }}
                     >
                         <Text style={styles.updateButtonText}>Actualizar Reserva</Text>
                     </TouchableOpacity>

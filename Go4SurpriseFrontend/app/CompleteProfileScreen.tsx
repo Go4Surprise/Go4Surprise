@@ -33,7 +33,7 @@ export default function CompleteProfileScreen() {
   }, []);
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
+    const currentDate = selectedDate ?? date;
     setShowDatePicker(Platform.OS === 'ios');
     setDate(currentDate);
     const formattedDate = currentDate.toISOString().split('T')[0];
@@ -114,7 +114,7 @@ export default function CompleteProfileScreen() {
         ) : (
           <>
             <TouchableOpacity
-              onPress={() => void setShowDatePicker(true)}
+              onPress={() => { setShowDatePicker(true); }}
               style={styles.dateButton}
             >
               <Text style={styles.dateText}>{birthdate || 'Selecciona una fecha (YYYY-MM-DD)'}</Text>
