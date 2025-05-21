@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
-import { Platform } from 'react-native';
+import { Platform, Keyboard } from 'react-native';
 
 
 interface User {
@@ -42,6 +42,7 @@ export default function UserProfileScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
 
 
@@ -80,6 +81,24 @@ export default function UserProfileScreen() {
   useEffect(() => {
     void fetchUserData();
   }, []);
+
+  // Escuchar tecla Enter en web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          if (modalVisible) {
+            handleSaveChanges();
+          } else if (passwordModalVisible) {
+            handleChangePassword();
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [modalVisible, passwordModalVisible, editedUser, currentPassword, newPassword]);
   
 
   // Open edit profile modal with current user data
@@ -234,7 +253,10 @@ export default function UserProfileScreen() {
       if (response.status === 204) {
         await AsyncStorage.clear();
         setShowDeleteModal(false);
-        router.replace('/'); // Redirect to main screen
+        setShowDeleteSuccess(true);
+        setTimeout(() => {
+          router.replace('/LoginScreen'); // Redirect to main screen
+        }, 5000);
       } else {
         Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
       }
@@ -405,6 +427,8 @@ export default function UserProfileScreen() {
                 onChangeText={setNewPassword}
                 placeholder="Nueva contraseña"
                 secureTextEntry={!showNewPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleChangePassword}
               />
               <TouchableOpacity onPress={() => { setShowNewPassword(!showNewPassword); }}>
                 <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="#777" />
@@ -441,6 +465,7 @@ export default function UserProfileScreen() {
               >
                 <Text style={styles.modalButtonText}>Cancelar</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={[styles.modalButton, styles.confirmButton]}
                 onPress={() => { void handleDeleteAccount() }}
@@ -448,6 +473,21 @@ export default function UserProfileScreen() {
                 <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showDeleteSuccess}
+        onRequestClose={() => setShowDeleteSuccess(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainerDeleteSuccess}>
+            <Text style={styles.modalTextDeleteSuccess}>
+              Tu cuenta ha sido eliminada con éxito.
+            </Text>
           </View>
         </View>
       </Modal>
@@ -728,6 +768,37 @@ profileImagePreview: {
     borderColor: '#ccc',
     marginBottom: 10,
     paddingVertical: 5,
+  },
+  successText: {
+    color: "green",
+    fontSize: 14,
+    marginBottom: 10,
+    alignSelf: "center",
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainerDeleteSuccess: {
+    backgroundColor: "#fff",
+    padding: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalTextDeleteSuccess: {
+    fontSize: 16,
+    color: "green",
+    textAlign: "center",
+    fontWeight: "bold",
   },
   
 });

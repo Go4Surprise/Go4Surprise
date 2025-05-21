@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ interface Reserva {
   time_preference: string;
   city: string;
   experience_hint: string;
+  paid: boolean;
   experience: {
     id: string;
     time_preference: string;
@@ -49,7 +50,6 @@ const MyBookings = () => {
   const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
-  const fadeAnim = useState(new Animated.Value(0))[0];
   const [selectedTab, setSelectedTab] = useState("activas");
   const [reviewedExperiences, setReviewedExperiences] = useState<string[]>([]);
   const [reviewModalVisible, setReviewModalVisible] = useState(false);
@@ -58,6 +58,39 @@ const MyBookings = () => {
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<{ uri: string, type: string }[]>([]);
+  const [unpaidBookings, setUnpaidBookings] = useState<Reserva[]>([]);
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    if (unpaidBookings.length > 0 && selectedTab !== "pendientes") {
+      // Inicia el parpadeo solo si no está seleccionada la pestaña de pendientes
+      animationRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(fadeAnim, {
+            toValue: 0.3,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      animationRef.current.start();
+    } else {
+      // Detiene la animación y restablece la opacidad si se selecciona la pestaña
+      if (animationRef.current) {
+        animationRef.current.stop();
+        animationRef.current = null;
+        fadeAnim.setValue(1); // Asegura que vuelva a opacidad completa
+      }
+    }
+  }, [unpaidBookings, selectedTab]);
+
 
   useEffect(() => {
     void fetchReservas();
@@ -116,6 +149,8 @@ const MyBookings = () => {
           }))
           .sort((a, b) => a.experience_date.getTime() - b.experience_date.getTime());
         setReservas(sorted);
+        setUnpaidBookings(sorted.filter(item => item.paid === false));
+        console.log("Reservas no pagadas:", unpaidBookings); // Agregado para depuración
         console.log("Reservas ordenadas:", sorted); // Agregado para depuración
       } else {
         throw new Error("Formato de datos incorrecto");
@@ -185,11 +220,13 @@ const MyBookings = () => {
     const ahora = new Date();
 
     if (selectedTab === "activas") {
-      return item.status !== "CANCELLED" && fecha >= ahora;
+      return item.status !== "CANCELLED" && fecha >= ahora && item.paid;
     } else if (selectedTab === "pasadas") {
-      return item.status !== "CANCELLED" && fecha < ahora;
+      return item.status !== "CANCELLED" && fecha < ahora && item.paid;
     } else if (selectedTab === "canceladas") {
       return item.status === "CANCELLED";
+    } else if (selectedTab === "pendientes") {
+      return !item.paid && item.status !== "CANCELLED";
     }
 
     return false;
@@ -346,6 +383,7 @@ const MyBookings = () => {
     const hasReviewed = reviewedExperiences.includes(item.experience.id);
     const isCancelled = item.status === "CANCELLED";
     const isConfirmed = item.status === "CONFIRMED";
+    const isPaid = item.paid;
 
     return (
 
@@ -383,6 +421,18 @@ const MyBookings = () => {
           {timePreferenceMap[item.time_preference] || item.time_preference}
         </Text>
 
+        {!isPaid && (
+          <View
+            style={styles.paymentButtonsContainer}>
+            <TouchableOpacity
+              style={styles.paymentButton}
+              onPress={() => router.push({ pathname: "/BookingDetails", params: { bookingId: item.id } })}>
+              <Ionicons name="card" size={16} color="white" />
+              <Text style={styles.buttonText}>Pagar ahora</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {!isCancelled && isCancellable(item) && (
           <TouchableOpacity
             style={styles.cancelButton}
@@ -396,7 +446,7 @@ const MyBookings = () => {
           </TouchableOpacity>
         )}
 
-        {!isCancelled && isAfter(new Date(item.experience_date), new Date()) && (
+        {isPaid && !isCancelled && isAfter(new Date(item.experience_date), new Date()) && (
           <View style={styles.calendarButtonsContainer}>
             <TouchableOpacity
               style={styles.googleCalendarButton}
@@ -463,6 +513,27 @@ const MyBookings = () => {
         </TouchableOpacity>
       </View>
 
+      {unpaidBookings.length > 0 && (
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <TouchableOpacity
+            style={[
+              styles.pendingPaymentButton,
+              selectedTab === "pendientes" && styles.tabButtonActive,
+            ]}
+            onPress={() => setSelectedTab("pendientes")}
+          >
+            <Text
+              style={[
+                styles.pendingPaymentText,
+                selectedTab === "pendientes" && styles.tabTextActive,
+              ]}
+            >
+              Pendientes de pago
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
+
       <FlatList
         data={reservasFiltradas}
         keyExtractor={(item) => item.id.toString()}
@@ -473,7 +544,9 @@ const MyBookings = () => {
               ? "No tienes reservas activas."
               : selectedTab === "pasadas"
                 ? "No tienes reservas pasadas."
-                : "No tienes reservas canceladas."}
+                : selectedTab === "canceladas"
+                  ? "No tienes reservas canceladas."
+                  : "No tienes reservas pendientes de pago."}
           </Text>
         }
       />
@@ -498,7 +571,7 @@ const MyBookings = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalConfirmButton}
-                onPress={() => {void cancelarReserva(); }}
+                onPress={() => { void cancelarReserva(); }}
               >
                 <Text style={styles.modalConfirmButtonText}>Sí</Text>
               </TouchableOpacity>
@@ -634,6 +707,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginVertical: 16,
     gap: 10,
+    maxWidth: '90%',
+    alignSelf: 'center',
   },
 
   tabButton: {
@@ -677,6 +752,30 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 16,
     gap: 8,
+  },
+
+  paymentButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    gap: 8,
+  },
+
+  paymentButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FF9900', // naranja
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  paymentButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 8,
   },
 
   googleCalendarButton: {
@@ -971,6 +1070,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: "flex-start",
   },
+
+  pendingPaymentButton: {
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#FF9900',
+  },
+  pendingPaymentText: {
+    color: '#333',
+    fontWeight: '600',
+  },
+
 });
 
 
