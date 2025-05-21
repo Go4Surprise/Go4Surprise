@@ -339,6 +339,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
             )}
             <TouchableOpacity
+              style={styles.bookingsButton}
+              onPress={() => router.push('/MyBookings')}
+            >
+              <Text style={styles.bookingsButtonText}>Mis reservas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => router.push("/Profile")}
               style={styles.profileButton}
               activeOpacity={0.7}
@@ -692,18 +698,23 @@ const styles = StyleSheet.create({
     fontSize: 18, // Aumentar tamaño de texto
   },
   bookingsButton: {
-    backgroundColor: "blue", // Cambiar a un color más oscuro
+    backgroundColor: '#004AAD',
     borderRadius: 25,
-    shadowColor: "#000",
-    shadowOpacity: 0.4,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
     elevation: 5,
+    marginRight: 10,
+    alignSelf: 'center',
   },
   bookingsButtonText: {
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 26, // Aumentar el tamaño texto
