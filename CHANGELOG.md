@@ -1,5 +1,3 @@
-## Cambios en PR (2025-05-13)
-
 ### 🚀 Nuevas funcionalidades
 - feat: press enter in register
 - feat: profile & login press enter
@@ -89,6 +87,7 @@
 - feat: formulario de preferencias básico
 
 ### 🐛 Correcciones
+- fix: unpaid bookings treated as paid
 - Merge pull request #104 from Go4Surprise/fix/google-login
 - fix: Arreglo login google
 - Merge pull request #102 from Go4Surprise/fix/update-home-page
