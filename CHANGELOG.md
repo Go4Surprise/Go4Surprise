@@ -1,6 +1,7 @@
-## Cambios en PR (2025-05-15)
-
 ### 🚀 Nuevas funcionalidades
+- feat: press enter in register
+- feat: profile & login press enter
+- feat: profile & login press enter
 - Merge pull request #103 from Go4Surprise/enhance-landingpage
 - feat: improve landing page
 - feat: Modificar fechas de reservas admin
@@ -90,6 +91,8 @@
 - fix: success messages when register new account and delete account
 - fix: button to my bookings in home screen
 - fix: redirect to main page after deleting account
+- Merge pull request #106 from Go4Surprise/fix/unpaid-bookings
+- fix: unpaid bookings treated as paid
 - Merge pull request #104 from Go4Surprise/fix/google-login
 - fix: Arreglo login google
 - Merge pull request #102 from Go4Surprise/fix/update-home-page
@@ -410,8 +413,6 @@
 ### 🔧 Otros cambios
 - style: saving local changes before pull
 - style: saving local changes before pull
-
-## Cambios en PR (2025-05-15)
 
 ### 🚀 Nuevas funcionalidades
 - Merge pull request #103 from Go4Surprise/enhance-landingpage
@@ -822,9 +823,9 @@
 - style: saving local changes before pull
 - style: saving local changes before pull
 
-## Cambios en PR (2025-05-15)
-
 ### 🚀 Nuevas funcionalidades
+- feat: press enter in register
+- feat: profile & login press enter
 - Merge pull request #103 from Go4Surprise/enhance-landingpage
 - feat: improve landing page
 - feat: Modificar fechas de reservas admin
@@ -912,6 +913,7 @@
 ### 🐛 Correcciones
 - fix: button to my bookings in home screen
 - fix: redirect to main page after deleting account
+- fix: unpaid bookings treated as paid
 - Merge pull request #104 from Go4Surprise/fix/google-login
 - fix: Arreglo login google
 - Merge pull request #102 from Go4Surprise/fix/update-home-page

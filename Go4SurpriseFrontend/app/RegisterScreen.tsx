@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -45,6 +45,19 @@ export default function RegisterScreen() {
   }>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && acceptedTerms) {
+        void handleRegister();
+      }
+    };
+
+    window.addEventListener('keypress', handleKeyPress);
+    return () => {
+      window.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [acceptedTerms]); // Only re-run if acceptedTerms changes
 
   const validateFields = () => {
     const validations = [

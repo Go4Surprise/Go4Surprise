@@ -25,6 +25,7 @@ import Reviews from './Reviews';
 import axios from "axios";
 import { BASE_URL } from '@/constants/apiUrl';
 import { useFocusEffect } from '@react-navigation/native';
+import PendingBookingAdvert from './PendingBookingAdvert';
 
 // Add interface for user data
 interface User {
@@ -352,10 +353,10 @@ export default function HomeScreen() {
                 source={
                   user.pfp
                     ? {
-                        uri: user.pfp.startsWith('http')
-                          ? user.pfp
-                          : `${BASE_URL}${user.pfp}`,
-                      }
+                      uri: user.pfp.startsWith('http')
+                        ? user.pfp
+                        : `${BASE_URL}${user.pfp}`,
+                    }
                     : require("../assets/images/user-logo-none.png")
                 }
                 style={styles.profileIcon}
@@ -367,6 +368,10 @@ export default function HomeScreen() {
 
         {/* Countdown */}
         <CountDown />
+
+
+        {/* Pending Booking Advert */}
+        <PendingBookingAdvert />
 
         {/* Main Banner */}
         <View style={styles.centeredContainer}>

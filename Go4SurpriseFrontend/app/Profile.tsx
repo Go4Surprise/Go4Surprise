@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import { BASE_URL } from '../constants/apiUrl';
 import * as ImagePicker from 'expo-image-picker';
-import { Platform } from 'react-native';
+import { Platform, Keyboard } from 'react-native';
 
 
 interface User {
@@ -82,6 +82,24 @@ export default function UserProfileScreen() {
   useEffect(() => {
     fetchUserData();
   }, []);
+
+  // Escuchar tecla Enter en web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          if (modalVisible) {
+            handleSaveChanges();
+          } else if (passwordModalVisible) {
+            handleChangePassword();
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [modalVisible, passwordModalVisible, editedUser, currentPassword, newPassword]);
   
 
   // Open edit profile modal with current user data
@@ -374,15 +392,21 @@ export default function UserProfileScreen() {
             <ScrollView contentContainerStyle={styles.modalScrollContent}>
               <Text style={styles.modalTitle}>Editar Perfil</Text>
               <Text style={styles.label}>Nombre</Text>
-              <TextInput style={styles.input} value={editedUser.name} onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" />
+              <TextInput style={styles.input} value={editedUser.name} 
+                onChangeText={(text) => setEditedUser({ ...editedUser, name: text })} placeholder="Nombre" 
+                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
               <Text style={styles.label}>Apellidos</Text>
-              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" />
+              <TextInput style={styles.input} value={editedUser.surname} onChangeText={(text) => setEditedUser({ ...editedUser, surname: text })} placeholder="Apellido" 
+                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
               <Text style={styles.label}>Usuario</Text>
-              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" />
+              <TextInput style={styles.input} value={editedUser.username} onChangeText={(text) => setEditedUser({ ...editedUser, username: text })} placeholder="Usuario" 
+                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
               <Text style={styles.label}>Email</Text>
-              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" />
+              <TextInput style={styles.input} value={editedUser.email} onChangeText={(text) => setEditedUser({ ...editedUser, email: text })} placeholder="Email" keyboardType="email-address" 
+                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
               <Text style={styles.label}>Teléfono</Text>
-              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" />
+              <TextInput style={styles.input} value={editedUser.phone} onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })} placeholder="Teléfono" keyboardType="phone-pad" 
+                returnKeyType="done" onSubmitEditing={handleSaveChanges}/>
               <Text style={styles.label}>Fecha de Nacimiento</Text>
               {Platform.OS === 'web' ? (
                 <input
@@ -457,6 +481,8 @@ export default function UserProfileScreen() {
                 onChangeText={setNewPassword}
                 placeholder="Nueva contraseña"
                 secureTextEntry={!showNewPassword}
+                returnKeyType="done"
+                onSubmitEditing={handleChangePassword}
               />
               <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
                 <Ionicons name={showNewPassword ? "eye-off" : "eye"} size={24} color="#777" />
