@@ -345,7 +345,7 @@ def stripe_webhook(request):
 
             if booking_id:
                 booking = Booking.objects.get(id=booking_id)
-                booking.paid = "True"
+                booking.paid = True
                 booking.payment_intent_id = payment_intent_id
                 booking.save()
 

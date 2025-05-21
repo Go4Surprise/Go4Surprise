@@ -115,7 +115,7 @@ class CrearReservaSerializer(serializers.ModelSerializer):
                     total_price=total_price,
                     price=validated_data['price'],
                     participants=validated_data['participants'],
-                    paid="False",
+                    paid=False,
                 )
             except Usuario.DoesNotExist:
                 raise serializers.ValidationError("User not found")
