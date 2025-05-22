@@ -273,11 +273,11 @@ export default function HomeScreen() {
       paddingVertical: isSmallMobile ? 10 : 15
     },
     logo: {
-      width: isSmallMobile ? 40 : isMobile ? 35 : 40,
-      height: isSmallMobile ? 40 : isMobile ? 35 : 40,
+      width: isSmallMobile ? 30 : isMobile ? 30 : 40, // Adjusted for mobile
+      height: isSmallMobile ? 30 : isMobile ? 30 : 40, // Adjusted for mobile
     },
     title: {
-      fontSize: isSmallMobile ? 20 : isMobile ? 24 : 30,
+      fontSize: isSmallMobile ? 18 : isMobile ? 20 : 30, // Adjusted for mobile
     },
     background: {
       height: isSmallMobile ? 200 : isMobile ? 250 : isTablet ? 300 : 350,
@@ -294,6 +294,22 @@ export default function HomeScreen() {
     buttons: {
       paddingVertical: isSmallMobile ? 8 : isMobile ? 10 : 12,
       paddingHorizontal: isSmallMobile ? 15 : isMobile ? 20 : 25,
+    },
+    adminButton: { // Added for dynamic styling
+      paddingVertical: isSmallMobile ? 4 : isMobile ? 5 : 5,
+      paddingHorizontal: isSmallMobile ? 8 : isMobile ? 10 : 10,
+      marginRight: isSmallMobile ? 4 : isMobile ? 6 : 8,
+    },
+    adminText: { // Added for dynamic styling
+      fontSize: isSmallMobile ? 10 : isMobile ? 12 : 14,
+    },
+    bookingsButton: { // Added for dynamic styling
+      paddingVertical: isSmallMobile ? 6 : isMobile ? 8 : 12,
+      paddingHorizontal: isSmallMobile ? 10 : isMobile ? 15 : 25,
+      marginRight: isSmallMobile ? 5 : isMobile ? 8 : 10,
+    },
+    bookingsButtonText: { // Added for dynamic styling
+      fontSize: isSmallMobile ? 12 : isMobile ? 14 : 16,
     },
     centeredContainer: {
       // width se aplica directamente en el componente
@@ -322,19 +338,19 @@ export default function HomeScreen() {
           <View style={styles.headerRightContainer}>
             {isAdmin && (
               <TouchableOpacity
-                style={styles.adminButton}
+                style={[styles.adminButton, dynamicStyles.adminButton]} // Applied dynamic style
                 onPress={() => router.push("/AdminPanel")}
                 activeOpacity={0.7}
               >
-                <Ionicons name="shield-checkmark" size={isSmallMobile ? 18 : 24} color="#1877F2" />
-                <Text style={styles.adminText}>Admin</Text>
+                <Ionicons name="shield-checkmark" size={isSmallMobile ? 16 : isMobile ? 18 : 24} color="#1877F2" />
+                <Text style={[styles.adminText, dynamicStyles.adminText]}>Admin</Text> 
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={styles.bookingsButton}
+              style={[styles.bookingsButton, dynamicStyles.bookingsButton]} // Applied dynamic style
               onPress={() => router.push('/MyBookings')}
             >
-              <Text style={styles.bookingsButtonText}>Mis reservas</Text>
+              <Text style={[styles.bookingsButtonText, dynamicStyles.bookingsButtonText]}>Mis reservas</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push("/Profile")}
@@ -600,10 +616,10 @@ const styles = StyleSheet.create({
   adminButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
-    marginLeft: 15,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    // marginRight: 8, // Controlled by dynamicStyles
+    // marginLeft: 15, // Consider adjusting if needed, or make dynamic
+    // paddingVertical: 5, // Controlled by dynamicStyles
+    // paddingHorizontal: 10, // Controlled by dynamicStyles
     borderRadius: 15,
     borderWidth: 1,
     borderColor: '#1877F2',
@@ -613,6 +629,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     color: '#1877F2',
     fontWeight: 'bold',
+    // fontSize: 14, // Controlled by dynamicStyles
   },
   profileButton: {
     padding: 2,
@@ -687,25 +704,25 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
-    fontSize: 18, // Aumentar tamaño de texto
+    // fontSize: 18, // Aumentar tamaño de texto // Controlled by dynamicStyles.buttonText
   },
   bookingsButton: {
     backgroundColor: '#004AAD',
     borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+    // paddingVertical: 12, // Controlled by dynamicStyles
+    // paddingHorizontal: 25, // Controlled by dynamicStyles
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 6,
     elevation: 5,
-    marginRight: 10,
+    // marginRight: 10, // Controlled by dynamicStyles
     alignSelf: 'center',
   },
   bookingsButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    // fontSize: 16, // Controlled by dynamicStyles
     textAlign: 'center',
   },
   sectionTitle: {

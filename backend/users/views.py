@@ -405,7 +405,7 @@ def delete_user_account(request):
         usuario.delete()
         user.delete()
 
-        return Response({"message": "Cuenta eliminada correctamente"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
     except Usuario.DoesNotExist:
         return Response({"error": "Usuario no encontrado"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
