@@ -247,7 +247,7 @@ const MyBookings = () => {
 
   const openReviewModal = (experienceId: string) => {
     setSelectedExperienceId(experienceId);
-    setReviewRating(5);
+    setReviewRating(0);
     setReviewComment("");
     setReviewModalVisible(true);
   };
