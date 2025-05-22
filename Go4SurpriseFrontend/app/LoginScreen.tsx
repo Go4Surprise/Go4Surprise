@@ -236,22 +236,6 @@ export default function LoginScreen() {
       >
         <Text style={styles.secondaryButtonText}>Registrate</Text>
       </TouchableOpacity>
-
-      <View style={styles.socialLoginContainer}>
-        <Text style={styles.socialLoginText}>Regístrate con:</Text>
-        <View style={styles.socialButtonsRow}>
-          <TouchableOpacity 
-            style={styles.socialIconButton} 
-            onPress={() => promptAsync()}
-            disabled={isLoading}
-          >
-            <View style={styles.googleIconContainer}>
-              <SvgXml xml={googleLogoSVG} width={24} height={24} />
-            </View>
-          </TouchableOpacity>
-          {/* Espacio para añadir otros botones de redes sociales en el futuro */}
-        </View>
-      </View>
     </View>
   );
 

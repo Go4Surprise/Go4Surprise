@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Linking, useWindowDimensions, ScrollView, Platform, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from '../constants/apiUrl';
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 // Importación condicional del WebView solo para plataformas móviles
 let WebViewComponent = null;
@@ -18,8 +19,10 @@ try {
 
 const BookingDetailsScreen = () => {
   const { bookingId } = useLocalSearchParams();
+  const router = useRouter();
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const { width,  } = useWindowDimensions();
@@ -28,8 +31,20 @@ const BookingDetailsScreen = () => {
   const isMobile = width < 768;
 
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("accessToken");
+        setToken(storedToken);
+      } catch (error) {
+        console.error("Error obteniendo el token:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
     if (!bookingId) return; // No ejecutar si `bookingId` aún es null
-    void fetchBookingDetails();
+    fetchBookingDetails();
   }, [bookingId]); // Se ejecuta solo cuando `bookingId` cambia y no es null
 
   const handlePayment = async () => {
@@ -53,7 +68,7 @@ const BookingDetailsScreen = () => {
           setShowWebView(true);
         } else {
           // Fallback a Linking (abre el navegador predeterminado)
-          void Linking.openURL(checkout_url);
+          Linking.openURL(checkout_url);
         }
       } else {
         console.error("No se recibió una URL de pago.");
@@ -75,7 +90,7 @@ const BookingDetailsScreen = () => {
       // El pago fue exitoso, cerrar el WebView y actualizar el estado
       setShowWebView(false);
       // Opcional: refrescar los detalles de la reserva
-      void fetchBookingDetails();
+      fetchBookingDetails();
     } else if (url.includes('/cancel') || url.includes('/failed')) {
       // El pago fue cancelado, cerrar el WebView
       setShowWebView(false);
@@ -203,7 +218,7 @@ const BookingDetailsScreen = () => {
                   styles.button, 
                   isMobile ? styles.buttonMobile : styles.buttonDesktop
                 ]} 
-                onPress={() => { handlePayment }}
+                onPress={handlePayment}
                 disabled={loading}
               >
                 {loading ? (
@@ -234,13 +249,13 @@ const BookingDetailsScreen = () => {
         <Modal
           visible={showWebView}
           animationType="slide"
-          onRequestClose={() => { setShowWebView(false); }}
+          onRequestClose={() => setShowWebView(false)}
         >
           <View style={styles.webViewContainer}>
             <View style={styles.webViewHeader}>
               <TouchableOpacity 
                 style={styles.closeButton} 
-                onPress={() => { setShowWebView(false); }}
+                onPress={() => setShowWebView(false)}
               >
                 <Ionicons name="close-outline" size={28} color="#333" />
               </TouchableOpacity>

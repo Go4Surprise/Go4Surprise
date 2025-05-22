@@ -255,7 +255,8 @@ export default function UserProfileScreen() {
         setShowDeleteModal(false);
         setShowDeleteSuccess(true);
         setTimeout(() => {
-          router.replace('/LoginScreen'); // Redirect to main screen
+          setShowDeleteSuccess(false);
+          router.push("/LoginScreen");
         }, 5000);
       } else {
         Alert.alert("Error", "No se pudo eliminar la cuenta. Inténtalo más tarde.");
